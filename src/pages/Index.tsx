@@ -94,7 +94,7 @@ const Index = () => {
               </div>
             </>
           ) : (
-            <div className="pt-[60px] md:pt-[80px]">
+            <div className="pt-[60px] md:pt-[80px] pb-32">
               {/* Show user's requirement */}
               <div className="w-full max-w-[860px] mx-auto mb-6">
                 <div className="flex items-start gap-3 p-4 rounded-xl bg-secondary/50 border border-border">
@@ -108,10 +108,15 @@ const Index = () => {
               <PlanFlow
                 requirement={planFlow.requirement}
                 onCancel={() => setPlanFlow({ active: false, requirement: "" })}
-                onStartDev={() => {
-                  // Stay in confirmed/developing state
-                }}
+                onStartDev={() => {}}
               />
+
+              {/* Bottom prompt bar */}
+              <div className="fixed bottom-0 left-0 right-0 z-30 bg-background/80 backdrop-blur-md border-t border-border py-3 px-5">
+                <div className={`transition-all duration-300 ${sidebarOpen && isDesktop ? "lg:ml-[280px]" : ""}`}>
+                  <PromptBar onSubmit={handleSubmit} />
+                </div>
+              </div>
             </div>
           )}
         </main>
