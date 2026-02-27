@@ -5,7 +5,6 @@ import { Loader2 } from "lucide-react";
 
 type FlowStage = "clarifying" | "generating" | "planning" | "confirmed";
 
-// Mock data sets keyed by simple keyword matching
 const mockQuestions: ClarifyQuestion[] = [
   {
     id: "scope",
@@ -37,6 +36,31 @@ const mockPlan: { title: string; steps: PlanStep[]; totalTime: string } = {
   totalTime: "约 1 小时 45 分钟",
 };
 
+/** A single chat bubble */
+const UserBubble = ({ text }: { text: string }) => (
+  <div className="flex justify-end animate-in fade-in slide-in-from-bottom-2 duration-300">
+    <div className="flex items-start gap-3 max-w-[80%] flex-row-reverse">
+      <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center shrink-0">
+        <span className="text-primary-foreground text-xs font-bold">你</span>
+      </div>
+      <div className="px-4 py-3 rounded-2xl rounded-tr-sm bg-primary text-primary-foreground text-sm">
+        {text}
+      </div>
+    </div>
+  </div>
+);
+
+const AIBubbleWrapper = ({ children }: { children: React.ReactNode }) => (
+  <div className="flex justify-start animate-in fade-in slide-in-from-bottom-2 duration-300">
+    <div className="flex items-start gap-3 max-w-[90%]">
+      <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center shrink-0">
+        <span className="text-foreground text-xs font-bold">DF</span>
+      </div>
+      <div className="flex-1 min-w-0">{children}</div>
+    </div>
+  </div>
+);
+
 interface PlanFlowProps {
   requirement: string;
   onCancel: () => void;
@@ -45,49 +69,75 @@ interface PlanFlowProps {
 
 const PlanFlow = ({ requirement, onCancel, onStartDev }: PlanFlowProps) => {
   const [stage, setStage] = useState<FlowStage>("clarifying");
+  const [clarifyAnswers, setClarifyAnswers] = useState<Record<string, string> | null>(null);
 
-  const handleClarifyComplete = (_answers: Record<string, string>) => {
+  const handleClarifyComplete = (answers: Record<string, string>) => {
+    setClarifyAnswers(answers);
     setStage("generating");
-    // Simulate plan generation delay
     setTimeout(() => setStage("planning"), 1500);
   };
 
-  if (stage === "clarifying") {
-    return <ClarifyCards questions={mockQuestions} onComplete={handleClarifyComplete} />;
-  }
-
-  if (stage === "generating") {
-    return (
-      <div className="w-full max-w-[860px] mx-auto flex flex-col items-center justify-center py-20 animate-in fade-in duration-300">
-        <Loader2 size={32} className="text-primary animate-spin mb-4" />
-        <p className="text-sm text-muted-foreground">正在生成开发计划...</p>
-      </div>
-    );
-  }
-
-  if (stage === "planning") {
-    return (
-      <PlanCard
-        title={mockPlan.title}
-        steps={mockPlan.steps}
-        totalTime={mockPlan.totalTime}
-        onConfirm={() => {
-          setStage("confirmed");
-          onStartDev();
-        }}
-        onRevise={onCancel}
-      />
-    );
-  }
-
-  // confirmed
   return (
-    <div className="w-full max-w-[860px] mx-auto flex flex-col items-center justify-center py-20 animate-in fade-in duration-300">
-      <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-        <Loader2 size={24} className="text-primary animate-spin" />
-      </div>
-      <p className="text-base font-medium text-foreground mb-1">开发中...</p>
-      <p className="text-sm text-muted-foreground">DeepFlow 正在根据计划进行开发</p>
+    <div className="flex flex-col gap-6">
+      {/* 1. User's requirement */}
+      <UserBubble text={requirement} />
+
+      {/* 2. AI asks clarifying questions */}
+      <AIBubbleWrapper>
+        <p className="text-sm text-muted-foreground mb-3">在开始之前，我需要了解一些细节：</p>
+        <ClarifyCards
+          questions={mockQuestions}
+          onComplete={handleClarifyComplete}
+          disabled={stage !== "clarifying"}
+        />
+      </AIBubbleWrapper>
+
+      {/* 3. User's answers summary (after clarify) */}
+      {clarifyAnswers && (
+        <UserBubble
+          text={Object.entries(clarifyAnswers)
+            .map(([, val]) => val)
+            .join("、")}
+        />
+      )}
+
+      {/* 4. Generating / Plan */}
+      {stage === "generating" && (
+        <AIBubbleWrapper>
+          <div className="flex items-center gap-2 py-4">
+            <Loader2 size={18} className="text-primary animate-spin" />
+            <span className="text-sm text-muted-foreground">正在生成开发计划...</span>
+          </div>
+        </AIBubbleWrapper>
+      )}
+
+      {stage === "planning" && (
+        <AIBubbleWrapper>
+          <p className="text-sm text-muted-foreground mb-3">根据你的需求，我制定了以下开发计划：</p>
+          <PlanCard
+            title={mockPlan.title}
+            steps={mockPlan.steps}
+            totalTime={mockPlan.totalTime}
+            onConfirm={() => {
+              setStage("confirmed");
+              onStartDev();
+            }}
+            onRevise={onCancel}
+          />
+        </AIBubbleWrapper>
+      )}
+
+      {stage === "confirmed" && (
+        <>
+          <UserBubble text="确认，开始开发吧！" />
+          <AIBubbleWrapper>
+            <div className="flex items-center gap-2 py-4">
+              <Loader2 size={18} className="text-primary animate-spin" />
+              <span className="text-sm text-foreground font-medium">正在根据计划进行开发...</span>
+            </div>
+          </AIBubbleWrapper>
+        </>
+      )}
     </div>
   );
 };
