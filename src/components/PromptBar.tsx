@@ -1,8 +1,26 @@
 import { useState } from "react";
 import { Plus, Mic, ArrowUp, ListChecks } from "lucide-react";
 
-const PromptBar = () => {
+interface PromptBarProps {
+  onSubmit?: (data: { text: string; isPlanMode: boolean }) => void;
+}
+
+const PromptBar = ({ onSubmit }: PromptBarProps) => {
   const [planMode, setPlanMode] = useState(false);
+  const [text, setText] = useState("");
+
+  const handleSend = () => {
+    if (!text.trim()) return;
+    onSubmit?.({ text: text.trim(), isPlanMode: planMode });
+    setText("");
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  };
 
   return (
     <div className="w-full max-w-[860px] mx-auto">
@@ -12,6 +30,9 @@ const PromptBar = () => {
         </button>
         <input
           type="text"
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          onKeyDown={handleKeyDown}
           placeholder="帮我修复用户登录页的表单验证 bug，并添加单元测试"
           className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none h-10"
         />
@@ -29,7 +50,10 @@ const PromptBar = () => {
         <button className="shrink-0 w-9 h-9 rounded-full flex items-center justify-center hover:bg-secondary transition-colors text-muted-foreground">
           <Mic size={18} />
         </button>
-        <button className="shrink-0 w-9 h-9 rounded-full bg-primary flex items-center justify-center text-primary-foreground hover:opacity-90 transition-opacity">
+        <button
+          onClick={handleSend}
+          className="shrink-0 w-9 h-9 rounded-full bg-primary flex items-center justify-center text-primary-foreground hover:opacity-90 transition-opacity"
+        >
           <ArrowUp size={18} />
         </button>
       </div>
