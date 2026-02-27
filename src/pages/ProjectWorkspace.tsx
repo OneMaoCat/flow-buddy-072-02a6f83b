@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Menu, PanelRightOpen, PanelRightClose, ExternalLink, Sparkles, Settings } from "lucide-react";
+import { Menu, PanelRightOpen, PanelRightClose, ExternalLink, Sparkles, Settings, Pin, PinOff } from "lucide-react";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 import { mockProjects } from "@/data/projects";
 import PlanFlow from "@/components/PlanFlow";
@@ -19,6 +19,7 @@ const ProjectWorkspace = () => {
   const project = mockProjects.find((p) => p.id === id);
 
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarPinned, setSidebarPinned] = useState(true);
   const [rightPanelOpen, setRightPanelOpen] = useState(true);
   const [planFlow, setPlanFlow] = useState<{ active: boolean; requirement: string }>({ active: false, requirement: "" });
   const [testsPassed, setTestsPassed] = useState(false);
@@ -30,6 +31,7 @@ const ProjectWorkspace = () => {
   useEffect(() => {
     if (!isDesktop) {
       setSidebarOpen(false);
+      setSidebarPinned(false);
       setRightPanelOpen(false);
     }
   }, [isDesktop]);
@@ -63,11 +65,27 @@ const ProjectWorkspace = () => {
       {/* Sidebar */}
       {sidebarOpen && (
         <>
-          {!isDesktop && <div className="fixed inset-0 bg-foreground/20 z-30" onClick={() => setSidebarOpen(false)} />}
-          <aside className={`${isDesktop ? "relative" : "fixed left-0 top-0 h-full z-40"} w-[260px] bg-sidebar border-r border-border flex flex-col shrink-0`}>
+          {(!isDesktop || !sidebarPinned) && (
+            <div className="fixed inset-0 bg-foreground/20 z-30" onClick={() => setSidebarOpen(false)} />
+          )}
+          <aside className={`${isDesktop && sidebarPinned ? "relative" : "fixed left-0 top-0 h-full z-40"} w-[260px] bg-sidebar border-r border-border flex flex-col shrink-0`}>
             {/* Project Switcher */}
-            <div className="px-3 py-3 border-b border-border">
-              <ProjectSwitcher currentProject={project} />
+            <div className="px-3 py-3 border-b border-border flex items-center gap-2">
+              <div className="flex-1 min-w-0">
+                <ProjectSwitcher currentProject={project} />
+              </div>
+              {isDesktop && (
+                <button
+                  onClick={() => {
+                    setSidebarPinned(!sidebarPinned);
+                    if (sidebarPinned) setSidebarOpen(false);
+                  }}
+                  className="p-1.5 rounded-md hover:bg-secondary transition-colors text-muted-foreground shrink-0"
+                  title={sidebarPinned ? "取消固定" : "固定侧边栏"}
+                >
+                  {sidebarPinned ? <Pin size={14} /> : <PinOff size={14} />}
+                </button>
+              )}
             </div>
 
             {/* DeepFlow AI Entry */}
@@ -115,8 +133,8 @@ const ProjectWorkspace = () => {
         {/* Topbar */}
         <header className="h-12 flex items-center justify-between px-4 border-b border-border shrink-0">
           <div className="flex items-center gap-2">
-            {!sidebarOpen && (
-              <button onClick={() => setSidebarOpen(true)} className="p-2 rounded-lg hover:bg-secondary transition-colors">
+            {(!sidebarOpen || !sidebarPinned) && (
+              <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 rounded-lg hover:bg-secondary transition-colors">
                 <Menu size={16} />
               </button>
             )}
