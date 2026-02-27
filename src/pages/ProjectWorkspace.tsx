@@ -83,6 +83,45 @@ const ProjectWorkspace = () => {
               </div>
             </div>
 
+            {/* Production Status */}
+            <div className="px-3 py-3 border-b border-border">
+              <p className="px-2 text-xs text-muted-foreground font-medium mb-2">线上状态</p>
+              <div className="rounded-lg border border-border bg-background/50 p-3 space-y-3">
+                {/* Overall status */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                    <span className="text-xs font-medium text-foreground">运行正常</span>
+                  </div>
+                  <span className="text-[10px] text-muted-foreground">99.9% 可用</span>
+                </div>
+                {/* Metrics */}
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="rounded-md bg-secondary/60 px-2 py-1.5">
+                    <p className="text-[10px] text-muted-foreground">今日请求</p>
+                    <p className="text-sm font-semibold text-foreground">12,847</p>
+                  </div>
+                  <div className="rounded-md bg-secondary/60 px-2 py-1.5">
+                    <p className="text-[10px] text-muted-foreground">错误率</p>
+                    <p className="text-sm font-semibold text-foreground">0.02%</p>
+                  </div>
+                  <div className="rounded-md bg-secondary/60 px-2 py-1.5">
+                    <p className="text-[10px] text-muted-foreground">平均响应</p>
+                    <p className="text-sm font-semibold text-foreground">128ms</p>
+                  </div>
+                  <div className="rounded-md bg-secondary/60 px-2 py-1.5">
+                    <p className="text-[10px] text-muted-foreground">活跃用户</p>
+                    <p className="text-sm font-semibold text-foreground">1,203</p>
+                  </div>
+                </div>
+                {/* Recent deploy */}
+                <div className="flex items-center justify-between text-[10px]">
+                  <span className="text-muted-foreground">最近部署: 2小时前</span>
+                  <span className="text-primary font-medium cursor-pointer hover:underline">查看详情</span>
+                </div>
+              </div>
+            </div>
+
             {/* Conversations */}
             <div className="flex-1 overflow-y-auto px-3 py-3 scrollbar-hide">
               <p className="px-2 text-xs text-muted-foreground font-medium mb-2">对话历史</p>
@@ -94,14 +133,6 @@ const ProjectWorkspace = () => {
                   {c}
                 </button>
               ))}
-            </div>
-
-            {/* Status */}
-            <div className="px-4 py-3 border-t border-border">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-green-500" />
-                <span className="text-xs text-muted-foreground">项目活跃中</span>
-              </div>
             </div>
           </aside>
         </>
