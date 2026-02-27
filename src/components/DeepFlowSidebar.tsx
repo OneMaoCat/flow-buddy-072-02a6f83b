@@ -8,11 +8,11 @@ const navItems = [
 ];
 
 const conversations = [
-  { title: "总结会议纪要并生成待办", hasNotif: true },
-  { title: "分析Q4销售数据趋势", hasNotif: false },
-  { title: "生成产品发布会PPT", hasNotif: true },
-  { title: "撰写项目周报", hasNotif: false },
-  { title: "设计用户调研问卷", hasNotif: false },
+  { title: "修复用户登录页表单验证 Bug", hasNotif: true },
+  { title: "重构订单模块支付流程", hasNotif: false },
+  { title: "搭建后台管理系统页面", hasNotif: true },
+  { title: "优化首页加载性能至 2s 内", hasNotif: false },
+  { title: "编写用户权限模块单元测试", hasNotif: false },
 ];
 
 interface DeepFlowSidebarProps {
