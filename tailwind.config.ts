@@ -57,6 +57,22 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        "deep-sidebar": {
+          hover: "hsl(var(--sidebar-hover))",
+          active: "hsl(var(--sidebar-active))",
+          "active-text": "hsl(var(--sidebar-active-text))",
+        },
+        chip: {
+          DEFAULT: "hsl(var(--chip-bg))",
+          hover: "hsl(var(--chip-hover))",
+          text: "hsl(var(--chip-text))",
+        },
+        prompt: {
+          DEFAULT: "hsl(var(--prompt-bg))",
+          border: "hsl(var(--prompt-border))",
+          shadow: "hsl(var(--prompt-shadow))",
+        },
+        thumb: "hsl(var(--card-thumb))",
       },
       borderRadius: {
         lg: "var(--radius)",
