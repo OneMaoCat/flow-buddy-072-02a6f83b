@@ -9,7 +9,7 @@ const PromptBar = () => {
         </button>
         <input
           type="text"
-          placeholder="总结罗振宇 2026 跨年演讲金句，生成一组图片"
+          placeholder="帮我修复用户登录页的表单验证 bug，并添加单元测试"
           className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none h-10"
         />
         <button className="shrink-0 w-9 h-9 rounded-full flex items-center justify-center hover:bg-secondary transition-colors text-muted-foreground">
