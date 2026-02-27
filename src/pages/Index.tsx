@@ -94,22 +94,14 @@ const Index = () => {
               </div>
             </>
           ) : (
-            <div className="pt-[60px] md:pt-[80px] pb-32">
-              {/* Show user's requirement */}
-              <div className="w-full max-w-[860px] mx-auto mb-6">
-                <div className="flex items-start gap-3 p-4 rounded-xl bg-secondary/50 border border-border">
-                  <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center shrink-0">
-                    <span className="text-primary-foreground text-xs font-bold">你</span>
-                  </div>
-                  <p className="text-sm text-foreground pt-1">{planFlow.requirement}</p>
-                </div>
+            <div className="pt-[40px] md:pt-[60px] pb-32">
+              <div className="w-full max-w-[860px] mx-auto">
+                <PlanFlow
+                  requirement={planFlow.requirement}
+                  onCancel={() => setPlanFlow({ active: false, requirement: "" })}
+                  onStartDev={() => {}}
+                />
               </div>
-
-              <PlanFlow
-                requirement={planFlow.requirement}
-                onCancel={() => setPlanFlow({ active: false, requirement: "" })}
-                onStartDev={() => {}}
-              />
 
               {/* Bottom prompt bar */}
               <div className="fixed bottom-0 left-0 right-0 z-30 bg-background/80 backdrop-blur-md border-t border-border py-3 px-5">
