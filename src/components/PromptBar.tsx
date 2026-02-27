@@ -1,13 +1,18 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Plus, Mic, ArrowUp, ListChecks } from "lucide-react";
 
 interface PromptBarProps {
   onSubmit?: (data: { text: string; isPlanMode: boolean }) => void;
+  defaultText?: string;
 }
 
-const PromptBar = ({ onSubmit }: PromptBarProps) => {
+const PromptBar = ({ onSubmit, defaultText }: PromptBarProps) => {
   const [planMode, setPlanMode] = useState(false);
   const [text, setText] = useState("");
+
+  useEffect(() => {
+    if (defaultText) setText(defaultText);
+  }, [defaultText]);
 
   const handleSend = () => {
     if (!text.trim()) return;

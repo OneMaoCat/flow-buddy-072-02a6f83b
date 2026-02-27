@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Menu, PanelRightOpen, PanelRightClose, ExternalLink } from "lucide-react";
+import { Menu, PanelRightOpen, PanelRightClose, ExternalLink, Sparkles } from "lucide-react";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 import { mockProjects } from "@/data/projects";
 import PlanFlow from "@/components/PlanFlow";
 import PromptBar from "@/components/PromptBar";
+import DeepFlowPanel from "@/components/DeepFlowPanel";
 import TestPanel from "@/components/TestPanel";
 import PreviewPanel from "@/components/PreviewPanel";
 import PublishDialog from "@/components/PublishDialog";
@@ -12,12 +13,6 @@ import MemberInvite from "@/components/MemberInvite";
 import ProjectSwitcher from "@/components/ProjectSwitcher";
 import ProductionStatus from "@/components/ProductionStatus";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
-const conversations = [
-  "修复用户登录页表单验证 Bug",
-  "重构订单模块支付流程",
-  "搭建后台管理系统页面",
-];
 
 const ProjectWorkspace = () => {
   const { id } = useParams();
@@ -29,6 +24,7 @@ const ProjectWorkspace = () => {
   const [planFlow, setPlanFlow] = useState<{ active: boolean; requirement: string }>({ active: false, requirement: "" });
   const [testsPassed, setTestsPassed] = useState(false);
   const [previewConfirmed, setPreviewConfirmed] = useState(false);
+  const [showDeepFlow, setShowDeepFlow] = useState(false);
 
   const isDesktop = useIsDesktop();
 
@@ -48,10 +44,20 @@ const ProjectWorkspace = () => {
   }
 
   const handleSubmit = (data: { text: string; isPlanMode: boolean }) => {
+    setShowDeepFlow(false);
     if (data.isPlanMode && data.text.trim()) {
       setPlanFlow({ active: true, requirement: data.text });
     }
   };
+
+  const mainContent = showDeepFlow ? (
+    <DeepFlowPanel
+      onSubmit={handleSubmit}
+      onSelectConversation={() => setShowDeepFlow(false)}
+    />
+  ) : (
+    <ChatArea planFlow={planFlow} onSubmit={handleSubmit} onCancel={() => setPlanFlow({ active: false, requirement: "" })} />
+  );
 
   return (
     <div className="flex h-screen bg-background overflow-hidden">
@@ -84,7 +90,6 @@ const ProjectWorkspace = () => {
               </div>
             </div>
 
-
             {/* Preview entry */}
             <div className="px-3 py-2 border-b border-border">
               <button
@@ -96,17 +101,19 @@ const ProjectWorkspace = () => {
               </button>
             </div>
 
-            {/* Conversations */}
-            <div className="flex-1 overflow-y-auto px-3 py-3 scrollbar-hide">
-              <p className="px-2 text-xs text-muted-foreground font-medium mb-2">对话历史</p>
-              {conversations.map((c, i) => (
-                <button
-                  key={i}
-                  className="w-full text-left px-2 py-2 rounded-lg text-sm text-sidebar-foreground hover:bg-secondary/50 transition-colors mb-0.5 truncate"
-                >
-                  {c}
-                </button>
-              ))}
+            {/* DeepFlow AI Entry */}
+            <div className="px-3 py-2 flex-1">
+              <button
+                onClick={() => setShowDeepFlow(true)}
+                className={`w-full flex items-center gap-2 px-2 py-2 rounded-lg text-sm transition-colors ${
+                  showDeepFlow
+                    ? "bg-secondary text-foreground font-medium"
+                    : "text-sidebar-foreground hover:bg-secondary/50"
+                }`}
+              >
+                <Sparkles size={14} className="shrink-0" />
+                <span>DeepFlow AI</span>
+              </button>
             </div>
           </aside>
         </>
@@ -140,7 +147,7 @@ const ProjectWorkspace = () => {
           {rightPanelOpen && isDesktop ? (
             <ResizablePanelGroup direction="horizontal">
               <ResizablePanel defaultSize={60} minSize={40}>
-                <ChatArea planFlow={planFlow} onSubmit={handleSubmit} onCancel={() => setPlanFlow({ active: false, requirement: "" })} />
+                {mainContent}
               </ResizablePanel>
               <ResizableHandle withHandle />
               <ResizablePanel defaultSize={40} minSize={25}>
@@ -153,7 +160,7 @@ const ProjectWorkspace = () => {
               </ResizablePanel>
             </ResizablePanelGroup>
           ) : (
-            <ChatArea planFlow={planFlow} onSubmit={handleSubmit} onCancel={() => setPlanFlow({ active: false, requirement: "" })} />
+            mainContent
           )}
         </div>
       </div>
