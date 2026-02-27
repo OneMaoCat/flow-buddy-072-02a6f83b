@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Menu, PanelRightOpen, PanelRightClose, ExternalLink, Sparkles } from "lucide-react";
+import { Menu, PanelRightOpen, PanelRightClose, ExternalLink, Sparkles, Settings } from "lucide-react";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 import { mockProjects } from "@/data/projects";
 import PlanFlow from "@/components/PlanFlow";
@@ -9,7 +9,6 @@ import DeepFlowPanel from "@/components/DeepFlowPanel";
 import TestPanel from "@/components/TestPanel";
 import PreviewPanel from "@/components/PreviewPanel";
 import PublishDialog from "@/components/PublishDialog";
-import MemberInvite from "@/components/MemberInvite";
 import ProjectSwitcher from "@/components/ProjectSwitcher";
 import ProductionStatus from "@/components/ProductionStatus";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -71,25 +70,6 @@ const ProjectWorkspace = () => {
               <ProjectSwitcher currentProject={project} />
             </div>
 
-            {/* Members */}
-            <div className="px-4 py-3 border-b border-border">
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-xs text-muted-foreground font-medium">团队成员</p>
-                <MemberInvite members={project.members} />
-              </div>
-              <div className="flex -space-x-1.5">
-                {project.members.map((m) => (
-                  <div
-                    key={m.id}
-                    className="w-7 h-7 rounded-full bg-accent border-2 border-sidebar flex items-center justify-center text-[10px] font-medium text-accent-foreground"
-                    title={m.name}
-                  >
-                    {m.avatar}
-                  </div>
-                ))}
-              </div>
-            </div>
-
             {/* Preview entry */}
             <div className="px-3 py-2 border-b border-border">
               <button
@@ -113,6 +93,17 @@ const ProjectWorkspace = () => {
               >
                 <Sparkles size={14} className="shrink-0" />
                 <span>DeepFlow AI</span>
+              </button>
+            </div>
+
+            {/* Settings */}
+            <div className="px-3 py-2 border-t border-border">
+              <button
+                onClick={() => navigate(`/project/${id}/settings`)}
+                className="w-full flex items-center gap-2 px-2 py-2 rounded-lg text-sm text-sidebar-foreground hover:bg-secondary/50 transition-colors"
+              >
+                <Settings size={14} className="text-muted-foreground shrink-0" />
+                <span>设置</span>
               </button>
             </div>
           </aside>
