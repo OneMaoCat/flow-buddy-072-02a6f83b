@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Menu, PanelRightOpen, PanelRightClose } from "lucide-react";
+import { Menu, PanelRightOpen, PanelRightClose, Settings, UserPlus } from "lucide-react";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 import { mockProjects } from "@/data/projects";
 import PlanFlow from "@/components/PlanFlow";
@@ -9,6 +9,7 @@ import TestPanel from "@/components/TestPanel";
 import PreviewPanel from "@/components/PreviewPanel";
 import PublishDialog from "@/components/PublishDialog";
 import MemberInvite from "@/components/MemberInvite";
+import ProjectSwitcher from "@/components/ProjectSwitcher";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const conversations = [
@@ -58,14 +59,9 @@ const ProjectWorkspace = () => {
         <>
           {!isDesktop && <div className="fixed inset-0 bg-foreground/20 z-30" onClick={() => setSidebarOpen(false)} />}
           <aside className={`${isDesktop ? "relative" : "fixed left-0 top-0 h-full z-40"} w-[260px] bg-sidebar border-r border-border flex flex-col shrink-0`}>
-            <div className="px-4 py-4 flex items-center gap-2 border-b border-border">
-              <button onClick={() => navigate("/")} className="p-1 rounded-md hover:bg-secondary transition-colors">
-                <ArrowLeft size={16} className="text-muted-foreground" />
-              </button>
-              <span className="text-sm font-semibold text-foreground truncate flex-1">{project.name}</span>
-              <button onClick={() => setSidebarOpen(false)} className="p-1 rounded-md hover:bg-secondary transition-colors lg:hidden">
-                <Menu size={16} className="text-muted-foreground" />
-              </button>
+            {/* Project Switcher */}
+            <div className="px-3 py-3 border-b border-border">
+              <ProjectSwitcher currentProject={project} />
             </div>
 
             {/* Members */}
