@@ -70,19 +70,8 @@ const ProjectWorkspace = () => {
               <ProjectSwitcher currentProject={project} />
             </div>
 
-            {/* Preview entry */}
-            <div className="px-3 py-2 border-b border-border">
-              <button
-                onClick={() => window.open(`/project/${id}/preview`, '_blank')}
-                className="w-full flex items-center gap-2 px-2 py-2 rounded-lg text-sm text-sidebar-foreground hover:bg-secondary/50 transition-colors"
-              >
-                <ExternalLink size={14} className="text-muted-foreground shrink-0" />
-                <span>预览产品</span>
-              </button>
-            </div>
-
             {/* DeepFlow AI Entry */}
-            <div className="px-3 py-2 flex-1">
+            <div className="px-3 py-2 border-b border-border">
               <button
                 onClick={() => setShowDeepFlow(true)}
                 className={`w-full flex items-center gap-2 px-2 py-2 rounded-lg text-sm transition-colors ${
@@ -93,6 +82,17 @@ const ProjectWorkspace = () => {
               >
                 <Sparkles size={14} className="shrink-0" />
                 <span>DeepFlow AI</span>
+              </button>
+            </div>
+
+            {/* Preview entry */}
+            <div className="px-3 py-2 flex-1">
+              <button
+                onClick={() => window.open(`/project/${id}/preview`, '_blank')}
+                className="w-full flex items-center gap-2 px-2 py-2 rounded-lg text-sm text-sidebar-foreground hover:bg-secondary/50 transition-colors"
+              >
+                <ExternalLink size={14} className="text-muted-foreground shrink-0" />
+                <span>预览产品</span>
               </button>
             </div>
 
