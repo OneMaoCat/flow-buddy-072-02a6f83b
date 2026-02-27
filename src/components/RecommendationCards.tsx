@@ -64,7 +64,7 @@ const RecommendationCards = () => {
               key={`${activeTab}-${i}`}
               className="shrink-0 w-[220px] rounded-[14px] border border-border bg-card hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group overflow-hidden"
             >
-              <div className={`h-[130px] bg-gradient-to-br ${card.gradient} flex items-center justify-center relative`}>
+              <div className="h-[130px] bg-background flex items-center justify-center relative">
                 {/* Decorative pattern */}
                 <div className="absolute inset-0 opacity-[0.03]" style={{
                   backgroundImage: `radial-gradient(circle at 1px 1px, currentColor 1px, transparent 0)`,
