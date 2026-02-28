@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import ClarifyCards, { type ClarifyQuestion } from "./ClarifyCards";
 import PlanCard, { type PlanStep } from "./PlanCard";
 import { Loader2 } from "lucide-react";
@@ -68,6 +69,8 @@ interface PlanFlowProps {
 }
 
 const PlanFlow = ({ requirement, onCancel, onStartDev }: PlanFlowProps) => {
+  const { id } = useParams();
+  const navigate = useNavigate();
   const [stage, setStage] = useState<FlowStage>("clarifying");
   const [clarifyAnswers, setClarifyAnswers] = useState<Record<string, string> | null>(null);
 
@@ -121,6 +124,7 @@ const PlanFlow = ({ requirement, onCancel, onStartDev }: PlanFlowProps) => {
             onConfirm={() => {
               setStage("confirmed");
               onStartDev();
+              setTimeout(() => navigate(`/project/${id}/dev`), 1000);
             }}
             onRevise={onCancel}
           />
