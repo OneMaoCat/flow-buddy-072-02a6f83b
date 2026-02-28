@@ -1,0 +1,154 @@
+import { useState, useEffect } from "react";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { Menu, ExternalLink, Sparkles, Settings, Pin, PinOff, Cpu } from "lucide-react";
+import { mockProjects } from "@/data/projects";
+import ProjectSwitcher from "@/components/ProjectSwitcher";
+
+const useIsDesktop = () => {
+  const [d, setD] = useState(window.innerWidth >= 1024);
+  useEffect(() => {
+    const h = () => setD(window.innerWidth >= 1024);
+    window.addEventListener("resize", h);
+    return () => window.removeEventListener("resize", h);
+  }, []);
+  return d;
+};
+
+interface ProjectSidebarLayoutProps {
+  children: (props: {
+    sidebarOpen: boolean;
+    sidebarPinned: boolean;
+    isDesktop: boolean;
+    setSidebarOpen: (v: boolean) => void;
+  }) => React.ReactNode;
+  onDeepFlowClick?: () => void;
+  deepFlowActive?: boolean;
+  headerRight?: React.ReactNode;
+}
+
+const ProjectSidebarLayout = ({
+  children,
+  onDeepFlowClick,
+  deepFlowActive = false,
+  headerRight,
+}: ProjectSidebarLayoutProps) => {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const project = mockProjects.find((p) => p.id === id);
+  const isDesktop = useIsDesktop();
+
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarPinned, setSidebarPinned] = useState(true);
+
+  useEffect(() => {
+    if (!isDesktop) {
+      setSidebarOpen(false);
+      setSidebarPinned(false);
+    }
+  }, [isDesktop]);
+
+  if (!project) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <p className="text-muted-foreground">项目不存在</p>
+      </div>
+    );
+  }
+
+  const isDevPage = location.pathname.includes("/dev");
+
+  const navItems = [
+    ...(onDeepFlowClick
+      ? [{ label: "DeepFlow AI", icon: <Sparkles size={14} className="shrink-0" />, onClick: onDeepFlowClick, active: deepFlowActive, separator: true }]
+      : []),
+    { label: "预览产品", icon: <ExternalLink size={14} className="text-muted-foreground shrink-0" />, onClick: () => window.open(`/project/${id}/preview`, '_blank'), active: false },
+    { label: "开发执行中心", icon: <Cpu size={14} className="text-muted-foreground shrink-0" />, onClick: () => navigate(`/project/${id}/dev`), active: isDevPage },
+  ];
+
+  return (
+    <div className="flex h-screen bg-background overflow-hidden">
+      {/* Sidebar */}
+      {sidebarOpen && (
+        <>
+          {(!isDesktop || !sidebarPinned) && (
+            <div className="fixed inset-0 bg-foreground/20 z-30" onClick={() => setSidebarOpen(false)} />
+          )}
+          <aside className={`${isDesktop && sidebarPinned ? "relative" : "fixed left-0 top-0 h-full z-40"} w-[260px] bg-sidebar border-r border-border flex flex-col shrink-0`}>
+            {/* Project Switcher */}
+            <div className="px-3 py-3 border-b border-border flex items-center gap-2">
+              <div className="flex-1 min-w-0">
+                <ProjectSwitcher currentProject={project} />
+              </div>
+              {isDesktop && (
+                <button
+                  onClick={() => {
+                    setSidebarPinned(!sidebarPinned);
+                    if (sidebarPinned) setSidebarOpen(false);
+                  }}
+                  className="p-1.5 rounded-md hover:bg-secondary transition-colors text-muted-foreground shrink-0"
+                  title={sidebarPinned ? "取消固定" : "固定侧边栏"}
+                >
+                  {sidebarPinned ? <Pin size={14} /> : <PinOff size={14} />}
+                </button>
+              )}
+            </div>
+
+            {/* Nav items */}
+            <div className="flex-1 flex flex-col">
+              {navItems.map((item, i) => (
+                <div key={i} className={`px-3 ${item.separator ? "py-2 border-b border-border" : "py-1"}`}>
+                  <button
+                    onClick={item.onClick}
+                    className={`w-full flex items-center gap-2 px-2 py-2 rounded-lg text-sm transition-colors ${
+                      item.active
+                        ? "bg-secondary text-foreground font-medium"
+                        : "text-sidebar-foreground hover:bg-secondary/50"
+                    }`}
+                  >
+                    {item.icon}
+                    <span>{item.label}</span>
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            {/* Settings */}
+            <div className="px-3 py-2 border-t border-border">
+              <button
+                onClick={() => navigate(`/project/${id}/settings`)}
+                className="w-full flex items-center gap-2 px-2 py-2 rounded-lg text-sm text-sidebar-foreground hover:bg-secondary/50 transition-colors"
+              >
+                <Settings size={14} className="text-muted-foreground shrink-0" />
+                <span>设置</span>
+              </button>
+            </div>
+          </aside>
+        </>
+      )}
+
+      {/* Main area */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Topbar */}
+        <header className="h-12 flex items-center justify-between px-4 border-b border-border shrink-0">
+          <div className="flex items-center gap-2">
+            {(!sidebarOpen || !sidebarPinned) && (
+              <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 rounded-lg hover:bg-secondary transition-colors">
+                <Menu size={16} />
+              </button>
+            )}
+            <span className="text-sm font-medium text-foreground">{project.name}</span>
+          </div>
+          {headerRight && <div className="flex items-center gap-2">{headerRight}</div>}
+        </header>
+
+        {/* Content */}
+        <div className="flex-1 min-h-0">
+          {children({ sidebarOpen, sidebarPinned, isDesktop, setSidebarOpen })}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ProjectSidebarLayout;
