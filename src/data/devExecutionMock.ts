@@ -18,6 +18,7 @@ export interface Requirement {
   status: RequirementStatus;
   agents: Agent[];
   rejectReason?: string;
+  previewPath?: string;
 }
 
 export interface LogEntry {
@@ -28,60 +29,60 @@ export interface LogEntry {
 }
 
 // ---------- Templates for generating requirements ----------
-const categories: { prefix: string; items: { title: string; agents: Omit<Agent, "id" | "progress" | "status">[] }[] }[] = [
+const categories: { prefix: string; items: { title: string; previewPath?: string; agents: Omit<Agent, "id" | "progress" | "status">[] }[] }[] = [
   {
     prefix: "用户模块",
     items: [
-      { title: "用户登录表单验证修复", agents: [{ name: "代码生成", icon: "code", currentFile: "LoginForm.tsx" }, { name: "测试编写", icon: "test", currentFile: "login.test.ts" }, { name: "代码审查", icon: "review", currentFile: "review" }] },
-      { title: "创建用户认证 API", agents: [{ name: "Schema 设计", icon: "db", currentFile: "users.sql" }, { name: "API 开发", icon: "api", currentFile: "auth/login" }, { name: "接口测试", icon: "test", currentFile: "auth.test.ts" }] },
-      { title: "用户个人中心页面", agents: [{ name: "UI 开发", icon: "ui", currentFile: "Profile.tsx" }, { name: "逻辑开发", icon: "code", currentFile: "useProfile.ts" }, { name: "测试编写", icon: "test", currentFile: "profile.test.ts" }] },
-      { title: "密码重置功能", agents: [{ name: "API 开发", icon: "api", currentFile: "reset-password" }, { name: "邮件模板", icon: "ui", currentFile: "ResetEmail.tsx" }, { name: "测试编写", icon: "test", currentFile: "reset.test.ts" }] },
-      { title: "用户头像上传", agents: [{ name: "存储接入", icon: "api", currentFile: "storage.ts" }, { name: "UI 组件", icon: "ui", currentFile: "AvatarUpload.tsx" }] },
-      { title: "用户权限管理", agents: [{ name: "Schema 设计", icon: "db", currentFile: "roles.sql" }, { name: "权限中间件", icon: "code", currentFile: "rbac.ts" }, { name: "测试编写", icon: "test", currentFile: "rbac.test.ts" }, { name: "代码审查", icon: "review", currentFile: "review" }] },
-      { title: "第三方登录集成", agents: [{ name: "OAuth 接入", icon: "api", currentFile: "oauth.ts" }, { name: "UI 按钮", icon: "ui", currentFile: "SocialLogin.tsx" }] },
+      { title: "用户登录表单验证修复", previewPath: "/preview/login-form", agents: [{ name: "代码生成", icon: "code", currentFile: "LoginForm.tsx" }, { name: "测试编写", icon: "test", currentFile: "login.test.ts" }, { name: "代码审查", icon: "review", currentFile: "review" }] },
+      { title: "创建用户认证 API", previewPath: "/preview/auth-api", agents: [{ name: "Schema 设计", icon: "db", currentFile: "users.sql" }, { name: "API 开发", icon: "api", currentFile: "auth/login" }, { name: "接口测试", icon: "test", currentFile: "auth.test.ts" }] },
+      { title: "用户个人中心页面", previewPath: "/preview/profile", agents: [{ name: "UI 开发", icon: "ui", currentFile: "Profile.tsx" }, { name: "逻辑开发", icon: "code", currentFile: "useProfile.ts" }, { name: "测试编写", icon: "test", currentFile: "profile.test.ts" }] },
+      { title: "密码重置功能", previewPath: "/preview/reset-password", agents: [{ name: "API 开发", icon: "api", currentFile: "reset-password" }, { name: "邮件模板", icon: "ui", currentFile: "ResetEmail.tsx" }, { name: "测试编写", icon: "test", currentFile: "reset.test.ts" }] },
+      { title: "用户头像上传", previewPath: "/preview/avatar-upload", agents: [{ name: "存储接入", icon: "api", currentFile: "storage.ts" }, { name: "UI 组件", icon: "ui", currentFile: "AvatarUpload.tsx" }] },
+      { title: "用户权限管理", previewPath: "/preview/rbac", agents: [{ name: "Schema 设计", icon: "db", currentFile: "roles.sql" }, { name: "权限中间件", icon: "code", currentFile: "rbac.ts" }, { name: "测试编写", icon: "test", currentFile: "rbac.test.ts" }, { name: "代码审查", icon: "review", currentFile: "review" }] },
+      { title: "第三方登录集成", previewPath: "/preview/social-login", agents: [{ name: "OAuth 接入", icon: "api", currentFile: "oauth.ts" }, { name: "UI 按钮", icon: "ui", currentFile: "SocialLogin.tsx" }] },
       { title: "用户注销流程优化", agents: [{ name: "逻辑开发", icon: "code", currentFile: "logout.ts" }, { name: "测试编写", icon: "test", currentFile: "logout.test.ts" }] },
     ],
   },
   {
     prefix: "支付模块",
     items: [
-      { title: "支付模块集成", agents: [{ name: "支付接入", icon: "api", currentFile: "payment.ts" }, { name: "UI 组件", icon: "ui", currentFile: "PaymentForm.tsx" }, { name: "支付测试", icon: "test", currentFile: "payment.test.ts" }, { name: "安全审查", icon: "review", currentFile: "review" }] },
-      { title: "订单列表页面", agents: [{ name: "UI 开发", icon: "ui", currentFile: "OrderList.tsx" }, { name: "API 对接", icon: "api", currentFile: "orders" }, { name: "测试编写", icon: "test", currentFile: "orders.test.ts" }] },
-      { title: "退款处理流程", agents: [{ name: "API 开发", icon: "api", currentFile: "refund" }, { name: "逻辑开发", icon: "code", currentFile: "refund.ts" }, { name: "测试编写", icon: "test", currentFile: "refund.test.ts" }] },
-      { title: "发票生成功能", agents: [{ name: "PDF 生成", icon: "code", currentFile: "invoice.ts" }, { name: "模板设计", icon: "ui", currentFile: "InvoiceTemplate.tsx" }] },
-      { title: "优惠券系统", agents: [{ name: "Schema 设计", icon: "db", currentFile: "coupons.sql" }, { name: "API 开发", icon: "api", currentFile: "coupons" }, { name: "UI 组件", icon: "ui", currentFile: "CouponInput.tsx" }] },
+      { title: "支付模块集成", previewPath: "/preview/payment-form", agents: [{ name: "支付接入", icon: "api", currentFile: "payment.ts" }, { name: "UI 组件", icon: "ui", currentFile: "PaymentForm.tsx" }, { name: "支付测试", icon: "test", currentFile: "payment.test.ts" }, { name: "安全审查", icon: "review", currentFile: "review" }] },
+      { title: "订单列表页面", previewPath: "/preview/order-list", agents: [{ name: "UI 开发", icon: "ui", currentFile: "OrderList.tsx" }, { name: "API 对接", icon: "api", currentFile: "orders" }, { name: "测试编写", icon: "test", currentFile: "orders.test.ts" }] },
+      { title: "退款处理流程", previewPath: "/preview/refund", agents: [{ name: "API 开发", icon: "api", currentFile: "refund" }, { name: "逻辑开发", icon: "code", currentFile: "refund.ts" }, { name: "测试编写", icon: "test", currentFile: "refund.test.ts" }] },
+      { title: "发票生成功能", previewPath: "/preview/invoice", agents: [{ name: "PDF 生成", icon: "code", currentFile: "invoice.ts" }, { name: "模板设计", icon: "ui", currentFile: "InvoiceTemplate.tsx" }] },
+      { title: "优惠券系统", previewPath: "/preview/coupon", agents: [{ name: "Schema 设计", icon: "db", currentFile: "coupons.sql" }, { name: "API 开发", icon: "api", currentFile: "coupons" }, { name: "UI 组件", icon: "ui", currentFile: "CouponInput.tsx" }] },
       { title: "支付回调处理", agents: [{ name: "Webhook 开发", icon: "api", currentFile: "webhook.ts" }, { name: "测试编写", icon: "test", currentFile: "webhook.test.ts" }] },
     ],
   },
   {
     prefix: "通知模块",
     items: [
-      { title: "站内通知系统", agents: [{ name: "Schema 设计", icon: "db", currentFile: "notifications.sql" }, { name: "API 开发", icon: "api", currentFile: "notifications" }, { name: "UI 组件", icon: "ui", currentFile: "NotifBell.tsx" }] },
-      { title: "邮件通知服务", agents: [{ name: "邮件接入", icon: "api", currentFile: "mailer.ts" }, { name: "模板设计", icon: "ui", currentFile: "EmailTemplate.tsx" }, { name: "测试编写", icon: "test", currentFile: "mailer.test.ts" }] },
+      { title: "站内通知系统", previewPath: "/preview/notifications", agents: [{ name: "Schema 设计", icon: "db", currentFile: "notifications.sql" }, { name: "API 开发", icon: "api", currentFile: "notifications" }, { name: "UI 组件", icon: "ui", currentFile: "NotifBell.tsx" }] },
+      { title: "邮件通知服务", previewPath: "/preview/email-template", agents: [{ name: "邮件接入", icon: "api", currentFile: "mailer.ts" }, { name: "模板设计", icon: "ui", currentFile: "EmailTemplate.tsx" }, { name: "测试编写", icon: "test", currentFile: "mailer.test.ts" }] },
       { title: "推送通知集成", agents: [{ name: "推送接入", icon: "api", currentFile: "push.ts" }, { name: "测试编写", icon: "test", currentFile: "push.test.ts" }] },
-      { title: "通知偏好设置", agents: [{ name: "UI 开发", icon: "ui", currentFile: "NotifSettings.tsx" }, { name: "API 对接", icon: "api", currentFile: "preferences" }] },
+      { title: "通知偏好设置", previewPath: "/preview/notif-settings", agents: [{ name: "UI 开发", icon: "ui", currentFile: "NotifSettings.tsx" }, { name: "API 对接", icon: "api", currentFile: "preferences" }] },
       { title: "消息已读状态同步", agents: [{ name: "实时同步", icon: "code", currentFile: "realtime.ts" }, { name: "测试编写", icon: "test", currentFile: "realtime.test.ts" }] },
     ],
   },
   {
     prefix: "报表模块",
     items: [
-      { title: "数据仪表盘", agents: [{ name: "图表组件", icon: "ui", currentFile: "Dashboard.tsx" }, { name: "数据聚合", icon: "code", currentFile: "aggregate.ts" }, { name: "API 开发", icon: "api", currentFile: "analytics" }] },
+      { title: "数据仪表盘", previewPath: "/preview/dashboard", agents: [{ name: "图表组件", icon: "ui", currentFile: "Dashboard.tsx" }, { name: "数据聚合", icon: "code", currentFile: "aggregate.ts" }, { name: "API 开发", icon: "api", currentFile: "analytics" }] },
       { title: "导出 CSV 功能", agents: [{ name: "导出逻辑", icon: "code", currentFile: "export.ts" }, { name: "测试编写", icon: "test", currentFile: "export.test.ts" }] },
-      { title: "实时数据监控", agents: [{ name: "WebSocket 接入", icon: "api", currentFile: "ws.ts" }, { name: "图表组件", icon: "ui", currentFile: "LiveChart.tsx" }, { name: "测试编写", icon: "test", currentFile: "ws.test.ts" }] },
+      { title: "实时数据监控", previewPath: "/preview/live-monitor", agents: [{ name: "WebSocket 接入", icon: "api", currentFile: "ws.ts" }, { name: "图表组件", icon: "ui", currentFile: "LiveChart.tsx" }, { name: "测试编写", icon: "test", currentFile: "ws.test.ts" }] },
       { title: "报表定时任务", agents: [{ name: "调度器", icon: "code", currentFile: "scheduler.ts" }, { name: "API 开发", icon: "api", currentFile: "schedules" }, { name: "测试编写", icon: "test", currentFile: "scheduler.test.ts" }] },
-      { title: "用户行为分析", agents: [{ name: "埋点采集", icon: "code", currentFile: "tracking.ts" }, { name: "分析面板", icon: "ui", currentFile: "Analytics.tsx" }] },
+      { title: "用户行为分析", previewPath: "/preview/analytics", agents: [{ name: "埋点采集", icon: "code", currentFile: "tracking.ts" }, { name: "分析面板", icon: "ui", currentFile: "Analytics.tsx" }] },
       { title: "日报周报自动生成", agents: [{ name: "模板引擎", icon: "code", currentFile: "report-gen.ts" }, { name: "UI 展示", icon: "ui", currentFile: "ReportView.tsx" }, { name: "测试编写", icon: "test", currentFile: "report.test.ts" }] },
     ],
   },
   {
     prefix: "系统模块",
     items: [
-      { title: "系统设置页面", agents: [{ name: "UI 开发", icon: "ui", currentFile: "Settings.tsx" }, { name: "API 对接", icon: "api", currentFile: "settings" }] },
+      { title: "系统设置页面", previewPath: "/preview/settings", agents: [{ name: "UI 开发", icon: "ui", currentFile: "Settings.tsx" }, { name: "API 对接", icon: "api", currentFile: "settings" }] },
       { title: "操作日志审计", agents: [{ name: "Schema 设计", icon: "db", currentFile: "audit_logs.sql" }, { name: "API 开发", icon: "api", currentFile: "audit" }, { name: "UI 组件", icon: "ui", currentFile: "AuditLog.tsx" }, { name: "测试编写", icon: "test", currentFile: "audit.test.ts" }] },
-      { title: "文件管理系统", agents: [{ name: "存储接入", icon: "api", currentFile: "file-storage.ts" }, { name: "UI 组件", icon: "ui", currentFile: "FileManager.tsx" }, { name: "测试编写", icon: "test", currentFile: "file.test.ts" }] },
+      { title: "文件管理系统", previewPath: "/preview/file-manager", agents: [{ name: "存储接入", icon: "api", currentFile: "file-storage.ts" }, { name: "UI 组件", icon: "ui", currentFile: "FileManager.tsx" }, { name: "测试编写", icon: "test", currentFile: "file.test.ts" }] },
       { title: "多语言国际化", agents: [{ name: "i18n 配置", icon: "code", currentFile: "i18n.ts" }, { name: "翻译文件", icon: "code", currentFile: "locales/zh.json" }, { name: "测试编写", icon: "test", currentFile: "i18n.test.ts" }] },
-      { title: "暗色主题支持", agents: [{ name: "主题系统", icon: "ui", currentFile: "theme.ts" }, { name: "组件适配", icon: "ui", currentFile: "ThemeProvider.tsx" }] },
+      { title: "暗色主题支持", previewPath: "/preview/theme", agents: [{ name: "主题系统", icon: "ui", currentFile: "theme.ts" }, { name: "组件适配", icon: "ui", currentFile: "ThemeProvider.tsx" }] },
       { title: "性能监控接入", agents: [{ name: "监控 SDK", icon: "code", currentFile: "monitor.ts" }, { name: "面板开发", icon: "ui", currentFile: "PerfPanel.tsx" }] },
       { title: "错误边界与降级", agents: [{ name: "ErrorBoundary", icon: "code", currentFile: "ErrorBoundary.tsx" }, { name: "降级 UI", icon: "ui", currentFile: "Fallback.tsx" }, { name: "测试编写", icon: "test", currentFile: "error.test.ts" }] },
       { title: "缓存策略优化", agents: [{ name: "缓存逻辑", icon: "code", currentFile: "cache.ts" }, { name: "测试编写", icon: "test", currentFile: "cache.test.ts" }] },
@@ -113,6 +114,7 @@ export const createInitialRequirements = (): Requirement[] => {
         title: item.title,
         status: "waiting",
         agents,
+        previewPath: item.previewPath,
       });
     }
   }

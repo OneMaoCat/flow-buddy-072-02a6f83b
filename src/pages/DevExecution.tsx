@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import ProjectSidebarLayout from "@/components/ProjectSidebarLayout";
+import RequirementPreview from "@/components/RequirementPreview";
 import { createInitialRequirements, formatTime, logTemplates } from "@/data/devExecutionMock";
 import type { Requirement, Agent, AgentStatus, RequirementStatus, LogEntry } from "@/data/devExecutionMock";
 
@@ -371,6 +372,15 @@ const DevExecution = () => {
                           <div className="mt-2 p-2 rounded-md bg-destructive/5 border border-destructive/20 text-xs text-destructive">
                             <span className="font-medium">打回原因：</span>{req.rejectReason}
                           </div>
+                        )}
+
+                        {/* Product preview for review status */}
+                        {isReview && req.previewPath && (
+                          <RequirementPreview
+                            previewPath={req.previewPath}
+                            requirementTitle={req.title}
+                            projectId={id || ""}
+                          />
                         )}
 
                         {/* Review actions */}
