@@ -140,12 +140,24 @@ const DevExecution = () => {
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const logEndRef = useRef<HTMLDivElement>(null);
 
+  const [allDone, setAllDone] = useState(false);
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const startTimeRef = useRef(Date.now());
+
   // compute totals
   const totalAgents = requirements.reduce((s, r) => s + r.agents.length, 0);
   const doneAgents = requirements.reduce((s, r) => s + r.agents.filter(a => a.status === "done").length, 0);
   const overallProgress = totalAgents ? Math.round((doneAgents / totalAgents) * 100) : 0;
   const runningCount = requirements.filter(r => r.status === "running").length;
   const doneCount = requirements.filter(r => r.status === "done").length;
+
+  // detect all done
+  useEffect(() => {
+    if (requirements.length > 0 && requirements.every(r => r.status === "done") && !allDone) {
+      setAllDone(true);
+      setElapsedSeconds(Math.round((Date.now() - startTimeRef.current) / 1000));
+    }
+  }, [requirements, allDone]);
 
   // auto-scroll logs
   useEffect(() => {
@@ -154,6 +166,7 @@ const DevExecution = () => {
 
   // simulation tick
   useEffect(() => {
+    if (allDone) return;
     const interval = setInterval(() => {
       setRequirements(prev => {
         const next = prev.map(req => ({ ...req, agents: req.agents.map(a => ({ ...a })) }));
@@ -217,7 +230,7 @@ const DevExecution = () => {
     }, 800);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [allDone]);
 
   const getReqProgress = (req: Requirement) => {
     if (req.agents.length === 0) return 0;
@@ -253,6 +266,32 @@ const DevExecution = () => {
         {/* Requirements list */}
         <ScrollArea className="flex-1 p-4">
           <div className="max-w-4xl mx-auto space-y-3">
+            {/* Completion banner */}
+            {allDone && (
+              <div className="rounded-lg border border-green-500/30 bg-green-500/5 p-5 animate-in slide-in-from-bottom-4 duration-500">
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-full bg-green-500/10 flex items-center justify-center shrink-0">
+                    <CheckCircle2 size={20} className="text-green-600" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-sm font-semibold text-foreground">🎉 所有需求已开发完成</h3>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      已完成 {requirements.length} 个需求 · {totalAgents} 个智能体参与 · 耗时 {elapsedSeconds} 秒
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      请返回工作区预览确认效果，确认无误后即可发布到线上
+                    </p>
+                    <Button
+                      size="sm"
+                      className="mt-3 gap-1.5"
+                      onClick={() => navigate(`/project/${id}?devComplete=true`)}
+                    >
+                      <ArrowLeft size={14} /> 返回工作区确认效果
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
             {requirements.map((req, idx) => (
               <Collapsible key={req.id} defaultOpen={req.status === "running"}>
                 <div className={cn(

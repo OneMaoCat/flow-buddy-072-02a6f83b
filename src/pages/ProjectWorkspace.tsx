@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { Menu, PanelRightOpen, PanelRightClose, ExternalLink, Sparkles, Settings, Pin, PinOff } from "lucide-react";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 import { mockProjects } from "@/data/projects";
@@ -16,6 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 const ProjectWorkspace = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const project = mockProjects.find((p) => p.id === id);
 
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -25,6 +26,7 @@ const ProjectWorkspace = () => {
   const [testsPassed, setTestsPassed] = useState(false);
   const [previewConfirmed, setPreviewConfirmed] = useState(false);
   const [showDeepFlow, setShowDeepFlow] = useState(false);
+  const [devCompleteMessage, setDevCompleteMessage] = useState(false);
 
   const isDesktop = useIsDesktop();
 
@@ -35,6 +37,20 @@ const ProjectWorkspace = () => {
       setRightPanelOpen(false);
     }
   }, [isDesktop]);
+
+  // Handle devComplete param
+  useEffect(() => {
+    if (searchParams.get("devComplete") === "true") {
+      setDevCompleteMessage(true);
+      setTestsPassed(true);
+      setRightPanelOpen(true);
+      setShowDeepFlow(false);
+      setPlanFlow({ active: false, requirement: "" });
+      // clean up URL
+      searchParams.delete("devComplete");
+      setSearchParams(searchParams, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   if (!project) {
     return (
@@ -57,7 +73,7 @@ const ProjectWorkspace = () => {
       onSelectConversation={() => setShowDeepFlow(false)}
     />
   ) : (
-    <ChatArea planFlow={planFlow} onSubmit={handleSubmit} onCancel={() => setPlanFlow({ active: false, requirement: "" })} />
+    <ChatArea planFlow={planFlow} onSubmit={handleSubmit} onCancel={() => setPlanFlow({ active: false, requirement: "" })} devCompleteMessage={devCompleteMessage} />
   );
 
   return (
@@ -182,14 +198,30 @@ const ChatArea = ({
   planFlow,
   onSubmit,
   onCancel,
+  devCompleteMessage,
 }: {
   planFlow: { active: boolean; requirement: string };
   onSubmit: (data: { text: string; isPlanMode: boolean }) => void;
   onCancel: () => void;
+  devCompleteMessage: boolean;
 }) => (
   <div className="flex flex-col h-full">
     <div className="flex-1 overflow-y-auto px-5 md:px-8 pt-8 pb-32 scrollbar-hide">
-      {planFlow.active ? (
+      {devCompleteMessage ? (
+        <div className="max-w-[800px] mx-auto">
+          <div className="flex gap-3 items-start">
+            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+              <span className="text-primary text-xs font-bold">AI</span>
+            </div>
+            <div className="rounded-lg bg-secondary/50 border border-border px-4 py-3 text-sm text-foreground leading-relaxed">
+              <p>🎉 <strong>所有需求已开发完成！</strong></p>
+              <p className="mt-1.5 text-muted-foreground text-xs">
+                请在右侧预览面板确认效果，确认无误后即可点击「发布」按钮发布到线上。
+              </p>
+            </div>
+          </div>
+        </div>
+      ) : planFlow.active ? (
         <div className="max-w-[800px] mx-auto">
           <PlanFlow requirement={planFlow.requirement} onCancel={onCancel} onStartDev={() => {}} />
         </div>
