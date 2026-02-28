@@ -164,8 +164,24 @@ export const createInitialRequirements = (): Requirement[] => {
     }
   }
 
-  // Start first 8 as running
-  for (let i = 0; i < Math.min(8, reqs.length); i++) {
+  // First 3 requirements: already reviewed (all agents done, tests passed)
+  const PRE_DONE = 3;
+  for (let i = 0; i < PRE_DONE && i < reqs.length; i++) {
+    reqs[i].status = "review";
+    for (const agent of reqs[i].agents) {
+      agent.status = "done";
+      agent.progress = 100;
+    }
+    const tests = generateTestsForRequirement(reqs[i]).map(t => ({
+      ...t,
+      status: "passed" as TestItemStatus,
+      duration: Math.floor(Math.random() * 300) + 50,
+    }));
+    reqs[i].testResult = { tests, retryCount: 0, isRetrying: false };
+  }
+
+  // Start next 8 as running
+  for (let i = PRE_DONE; i < Math.min(PRE_DONE + 8, reqs.length); i++) {
     reqs[i].status = "running";
     const first = reqs[i].agents.find(a => !a.dependsOn);
     if (first) first.status = "running";
