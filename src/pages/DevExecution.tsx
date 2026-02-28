@@ -241,21 +241,6 @@ const DevExecution = () => {
             </div>
           </div>
 
-          {/* Completion banner */}
-          {allDone && (
-            <div className="shrink-0 mx-4 mt-2 rounded-lg border border-green-500/30 bg-green-500/5 p-4 animate-in slide-in-from-bottom-4 duration-500">
-              <div className="flex items-center gap-3">
-                <CheckCircle2 size={18} className="text-green-600 shrink-0" />
-                <div className="flex-1">
-                  <span className="text-sm font-semibold">🎉 所有 {counts.total} 个需求已完成</span>
-                  <span className="text-xs text-muted-foreground ml-2">· {totalAgents} 个智能体 · 耗时 {elapsedSeconds}s</span>
-                </div>
-                <Button size="sm" className="gap-1.5 shrink-0" onClick={() => navigate(`/project/${id}?devComplete=true`)}>
-                  <ArrowLeft size={14} /> 返回工作区
-                </Button>
-              </div>
-            </div>
-          )}
 
           {/* Compact requirement rows */}
           <ScrollArea className="flex-1 min-h-0">
