@@ -1,6 +1,6 @@
 // ---------- Types ----------
 export type AgentStatus = "waiting" | "running" | "done" | "error";
-export type RequirementStatus = "waiting" | "running" | "done";
+export type RequirementStatus = "waiting" | "running" | "done" | "review" | "accepted" | "rejected";
 
 export interface Agent {
   id: string;
@@ -17,6 +17,7 @@ export interface Requirement {
   title: string;
   status: RequirementStatus;
   agents: Agent[];
+  rejectReason?: string;
 }
 
 export interface LogEntry {

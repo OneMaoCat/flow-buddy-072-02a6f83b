@@ -1,11 +1,12 @@
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Code2, TestTube2, Eye, Plug, Database, Palette, AlertCircle, CheckCircle2, Loader2, Clock, ArrowLeft, Search, ChevronDown, ChevronUp, ListFilter } from "lucide-react";
+import { Code2, TestTube2, Eye, Plug, Database, Palette, AlertCircle, CheckCircle2, Loader2, Clock, ArrowLeft, Search, ChevronDown, ChevronUp, ListFilter, ShieldCheck, RotateCcw, CheckCheck, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import ProjectSidebarLayout from "@/components/ProjectSidebarLayout";
 import { createInitialRequirements, formatTime, logTemplates } from "@/data/devExecutionMock";
@@ -35,17 +36,30 @@ const reqStatusIcon = (status: RequirementStatus) => {
   switch (status) {
     case "done": return <CheckCircle2 size={14} className="text-green-500" />;
     case "running": return <Loader2 size={14} className="text-primary animate-spin" />;
+    case "review": return <ShieldCheck size={14} className="text-orange-500" />;
+    case "accepted": return <CheckCheck size={14} className="text-green-600" />;
+    case "rejected": return <XCircle size={14} className="text-destructive" />;
     default: return <Clock size={14} className="text-muted-foreground/50" />;
   }
 };
 
-type FilterTab = "all" | "running" | "done" | "waiting";
+const reqStatusLabel = (status: RequirementStatus) => {
+  switch (status) {
+    case "review": return <Badge variant="outline" className="text-[10px] px-1.5 border-orange-500/40 text-orange-600 bg-orange-500/10">待验收</Badge>;
+    case "accepted": return <Badge variant="outline" className="text-[10px] px-1.5 border-green-500/40 text-green-600 bg-green-500/10">已通过</Badge>;
+    case "rejected": return <Badge variant="outline" className="text-[10px] px-1.5 border-destructive/40 text-destructive bg-destructive/10">已打回</Badge>;
+    default: return null;
+  }
+};
+
+type FilterTab = "all" | "running" | "done" | "waiting" | "review" | "accepted" | "rejected";
 
 // ---------- Stat Card ----------
-const StatCard = ({ label, value, active }: { label: string; value: number; active?: boolean }) => (
+const StatCard = ({ label, value, active, color }: { label: string; value: number; active?: boolean; color?: string }) => (
   <div className={cn(
-    "rounded-md border px-3 py-2 text-center min-w-[80px]",
-    active ? "border-primary/40 bg-primary/5" : "border-border bg-card"
+    "rounded-md border px-3 py-2 text-center min-w-[72px]",
+    active ? "border-primary/40 bg-primary/5" : "border-border bg-card",
+    color
   )}>
     <div className="text-lg font-bold font-mono leading-none">{value}</div>
     <div className="text-[10px] text-muted-foreground mt-1">{label}</div>
@@ -68,6 +82,8 @@ const DevExecution = () => {
   const [search, setSearch] = useState("");
   const [expandedReq, setExpandedReq] = useState<string | null>(null);
   const [logsOpen, setLogsOpen] = useState(false);
+  const [rejectingReq, setRejectingReq] = useState<string | null>(null);
+  const [rejectReason, setRejectReason] = useState("");
 
   // Computed stats
   const totalAgents = requirements.reduce((s, r) => s + r.agents.length, 0);
@@ -79,7 +95,14 @@ const DevExecution = () => {
     running: requirements.filter(r => r.status === "running").length,
     done: requirements.filter(r => r.status === "done").length,
     waiting: requirements.filter(r => r.status === "waiting").length,
+    review: requirements.filter(r => r.status === "review").length,
+    accepted: requirements.filter(r => r.status === "accepted").length,
+    rejected: requirements.filter(r => r.status === "rejected").length,
   }), [requirements]);
+
+  // Dev done = no waiting/running/done left (all are review/accepted/rejected)
+  const devPhaseComplete = counts.waiting === 0 && counts.running === 0 && counts.done === 0 && counts.total > 0;
+  const allAccepted = counts.accepted === counts.total && counts.total > 0;
 
   // Filtered list
   const filtered = useMemo(() => {
@@ -92,9 +115,18 @@ const DevExecution = () => {
     return list;
   }, [requirements, filter, search]);
 
-  // Detect all done
+  // When a requirement's agents all finish → auto-transition to "review"
   useEffect(() => {
-    if (requirements.length > 0 && requirements.every(r => r.status === "done") && !allDone) {
+    setRequirements(prev => {
+      const hasChange = prev.some(r => r.status === "done");
+      if (!hasChange) return prev;
+      return prev.map(r => r.status === "done" ? { ...r, status: "review" as RequirementStatus } : r);
+    });
+  }, [requirements.filter(r => r.status === "done").length]);
+
+  // Detect all dev done
+  useEffect(() => {
+    if (requirements.length > 0 && requirements.every(r => r.status !== "running" && r.status !== "waiting" && r.status !== "done") && !allDone) {
       setAllDone(true);
       setElapsedSeconds(Math.round((Date.now() - startTimeRef.current) / 1000));
     }
@@ -162,6 +194,33 @@ const DevExecution = () => {
     return () => clearInterval(interval);
   }, [allDone]);
 
+  // ---------- Review actions ----------
+  const handleAccept = useCallback((reqId: string) => {
+    setRequirements(prev => prev.map(r => r.id === reqId ? { ...r, status: "accepted" as RequirementStatus } : r));
+    setLogs(l => [...l, { time: formatTime(), reqId, agentName: "验收", message: "✅ 需求已通过验收" }]);
+  }, []);
+
+  const handleReject = useCallback((reqId: string) => {
+    if (!rejectReason.trim()) return;
+    setRequirements(prev => prev.map(r => {
+      if (r.id !== reqId) return r;
+      // Reset agents to re-run
+      const resetAgents = r.agents.map(a => ({ ...a, progress: 0, status: "waiting" as AgentStatus }));
+      const first = resetAgents.find(a => !a.dependsOn);
+      if (first) first.status = "running" as AgentStatus;
+      return { ...r, status: "running" as RequirementStatus, rejectReason: rejectReason.trim(), agents: resetAgents };
+    }));
+    setLogs(l => [...l, { time: formatTime(), reqId, agentName: "验收", message: `❌ 需求已打回: ${rejectReason.trim()}` }]);
+    setRejectingReq(null);
+    setRejectReason("");
+    setAllDone(false);
+  }, [rejectReason]);
+
+  const handleAcceptAll = useCallback(() => {
+    setRequirements(prev => prev.map(r => r.status === "review" ? { ...r, status: "accepted" as RequirementStatus } : r));
+    setLogs(l => [...l, { time: formatTime(), reqId: "all", agentName: "验收", message: "✅ 所有待验收需求已批量通过" }]);
+  }, []);
+
   const getReqProgress = (req: Requirement) => {
     if (req.agents.length === 0) return 0;
     return Math.round(req.agents.reduce((s, a) => s + a.progress, 0) / req.agents.length);
@@ -175,7 +234,9 @@ const DevExecution = () => {
   const filterTabs: { key: FilterTab; label: string; count: number }[] = [
     { key: "all", label: "全部", count: counts.total },
     { key: "running", label: "执行中", count: counts.running },
-    { key: "done", label: "已完成", count: counts.done },
+    { key: "review", label: "待验收", count: counts.review },
+    { key: "accepted", label: "已通过", count: counts.accepted },
+    { key: "rejected", label: "已打回", count: counts.rejected },
     { key: "waiting", label: "等待中", count: counts.waiting },
   ];
 
@@ -185,7 +246,7 @@ const DevExecution = () => {
         <div className="flex items-center gap-3 min-w-[200px]">
           <div className="text-right mr-2">
             <p className="text-xs text-muted-foreground">
-              {counts.done}/{counts.total} 完成 · {counts.running} 进行中
+              {counts.accepted}/{counts.total} 验收通过 · {counts.running} 进行中
             </p>
           </div>
           <Progress value={overallProgress} className="h-2 flex-1" />
@@ -200,7 +261,9 @@ const DevExecution = () => {
             <div className="flex items-center gap-2 flex-wrap">
               <StatCard label="总需求" value={counts.total} />
               <StatCard label="执行中" value={counts.running} active={counts.running > 0} />
-              <StatCard label="已完成" value={counts.done} />
+              <StatCard label="待验收" value={counts.review} color={counts.review > 0 ? "border-orange-500/30 bg-orange-500/5" : ""} />
+              <StatCard label="已通过" value={counts.accepted} color={counts.accepted > 0 ? "border-green-500/30 bg-green-500/5" : ""} />
+              <StatCard label="已打回" value={counts.rejected} color={counts.rejected > 0 ? "border-destructive/30 bg-destructive/5" : ""} />
               <StatCard label="等待中" value={counts.waiting} />
               <div className="flex-1 min-w-[120px] max-w-[240px] ml-auto">
                 <div className="text-[10px] text-muted-foreground mb-1 text-right">总体进度</div>
@@ -214,13 +277,13 @@ const DevExecution = () => {
 
           {/* Filter + Search */}
           <div className="shrink-0 px-4 py-2 flex items-center gap-2 border-b border-border">
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 overflow-x-auto">
               {filterTabs.map(tab => (
                 <button
                   key={tab.key}
                   onClick={() => setFilter(tab.key)}
                   className={cn(
-                    "px-2.5 py-1 rounded-md text-xs font-medium transition-colors",
+                    "px-2.5 py-1 rounded-md text-xs font-medium transition-colors whitespace-nowrap",
                     filter === tab.key
                       ? "bg-primary text-primary-foreground"
                       : "text-muted-foreground hover:bg-muted"
@@ -241,7 +304,6 @@ const DevExecution = () => {
             </div>
           </div>
 
-
           {/* Compact requirement rows */}
           <ScrollArea className="flex-1 min-h-0">
             <div className="px-4 py-2">
@@ -251,24 +313,28 @@ const DevExecution = () => {
                   无匹配需求
                 </div>
               )}
-              {filtered.map((req, idx) => {
+              {filtered.map((req) => {
                 const progress = getReqProgress(req);
                 const isExpanded = expandedReq === req.id;
                 const globalIdx = requirements.indexOf(req);
+                const isReview = req.status === "review";
+                const isRejecting = rejectingReq === req.id;
                 return (
-                  <div key={req.id} className={cn(req.status === "done" && !isExpanded && "opacity-60")}>
+                  <div key={req.id} className={cn(req.status === "accepted" && !isExpanded && "opacity-60")}>
                     {/* Row */}
                     <button
                       onClick={() => setExpandedReq(isExpanded ? null : req.id)}
                       className={cn(
                         "w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-left transition-colors hover:bg-muted/50",
                         isExpanded && "bg-muted/50",
-                        req.status === "running" && "bg-primary/[0.03]"
+                        req.status === "running" && "bg-primary/[0.03]",
+                        isReview && "bg-orange-500/[0.03]"
                       )}
                     >
                       <span className="text-[10px] font-mono text-muted-foreground w-8 shrink-0 text-right">#{globalIdx + 1}</span>
                       {reqStatusIcon(req.status)}
                       <span className="text-xs font-medium truncate flex-1 min-w-0">{req.title}</span>
+                      {reqStatusLabel(req.status)}
                       <div className="flex items-center gap-1.5 w-28 shrink-0">
                         <Progress value={progress} className="h-1 flex-1" />
                         <span className="text-[10px] font-mono text-muted-foreground w-7 text-right">{progress}%</span>
@@ -299,6 +365,47 @@ const DevExecution = () => {
                             </span>
                           </div>
                         ))}
+
+                        {/* Reject reason display */}
+                        {req.rejectReason && (
+                          <div className="mt-2 p-2 rounded-md bg-destructive/5 border border-destructive/20 text-xs text-destructive">
+                            <span className="font-medium">打回原因：</span>{req.rejectReason}
+                          </div>
+                        )}
+
+                        {/* Review actions */}
+                        {isReview && (
+                          <div className="mt-3 pt-3 border-t border-border">
+                            {!isRejecting ? (
+                              <div className="flex items-center gap-2">
+                                <Button size="sm" className="gap-1.5 h-7 text-xs bg-green-600 hover:bg-green-700" onClick={(e) => { e.stopPropagation(); handleAccept(req.id); }}>
+                                  <CheckCircle2 size={12} /> 通过
+                                </Button>
+                                <Button size="sm" variant="outline" className="gap-1.5 h-7 text-xs border-destructive/40 text-destructive hover:bg-destructive/10" onClick={(e) => { e.stopPropagation(); setRejectingReq(req.id); setRejectReason(""); }}>
+                                  <XCircle size={12} /> 打回
+                                </Button>
+                              </div>
+                            ) : (
+                              <div className="space-y-2" onClick={e => e.stopPropagation()}>
+                                <Textarea
+                                  placeholder="请填写打回原因..."
+                                  value={rejectReason}
+                                  onChange={e => setRejectReason(e.target.value)}
+                                  className="min-h-[60px] text-xs"
+                                  autoFocus
+                                />
+                                <div className="flex items-center gap-2">
+                                  <Button size="sm" variant="destructive" className="gap-1.5 h-7 text-xs" disabled={!rejectReason.trim()} onClick={() => handleReject(req.id)}>
+                                    <RotateCcw size={12} /> 确认打回
+                                  </Button>
+                                  <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => { setRejectingReq(null); setRejectReason(""); }}>
+                                    取消
+                                  </Button>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -306,6 +413,29 @@ const DevExecution = () => {
               })}
             </div>
           </ScrollArea>
+
+          {/* Bottom review action bar */}
+          {(counts.review > 0 || allAccepted) && (
+            <div className="shrink-0 border-t border-border bg-muted/30 px-4 py-3 animate-in slide-in-from-bottom-4 duration-300">
+              <div className="flex items-center gap-3">
+                <div className="flex-1 text-xs text-muted-foreground">
+                  {counts.review > 0 && <span className="text-orange-600 font-medium">{counts.review} 个待验收</span>}
+                  {counts.accepted > 0 && <span className="ml-2">· {counts.accepted} 已通过</span>}
+                  {counts.rejected > 0 && <span className="ml-2 text-destructive">· {counts.rejected} 已打回</span>}
+                </div>
+                {counts.review > 0 && (
+                  <Button size="sm" className="gap-1.5 bg-green-600 hover:bg-green-700" onClick={handleAcceptAll}>
+                    <CheckCheck size={14} /> 一键全部通过
+                  </Button>
+                )}
+                {allAccepted && (
+                  <Button size="sm" className="gap-1.5" onClick={() => navigate(`/project/${id}?devComplete=true`)}>
+                    <ArrowLeft size={14} /> 返回工作区发布
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Collapsible Logs */}
           <div className="shrink-0 border-t border-border">
