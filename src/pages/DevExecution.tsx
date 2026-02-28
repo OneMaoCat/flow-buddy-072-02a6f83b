@@ -1,42 +1,15 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Code2, TestTube2, Eye, Plug, Database, Palette, AlertCircle, CheckCircle2, Loader2, Clock, ArrowLeft } from "lucide-react";
+import { Code2, TestTube2, Eye, Plug, Database, Palette, AlertCircle, CheckCircle2, Loader2, Clock, ArrowLeft, Search, ChevronDown, ChevronUp, ListFilter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronDown } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import ProjectSidebarLayout from "@/components/ProjectSidebarLayout";
-
-// ---------- Types ----------
-type AgentStatus = "waiting" | "running" | "done" | "error";
-type RequirementStatus = "waiting" | "running" | "done";
-
-interface Agent {
-  id: string;
-  name: string;
-  icon: string;
-  progress: number;
-  status: AgentStatus;
-  currentFile: string;
-  dependsOn?: string; // agent id
-}
-
-interface Requirement {
-  id: string;
-  title: string;
-  status: RequirementStatus;
-  agents: Agent[];
-}
-
-interface LogEntry {
-  time: string;
-  reqId: string;
-  agentName: string;
-  message: string;
-}
+import { createInitialRequirements, formatTime, logTemplates } from "@/data/devExecutionMock";
+import type { Requirement, Agent, AgentStatus, RequirementStatus, LogEntry } from "@/data/devExecutionMock";
 
 // ---------- Icon map ----------
 const agentIcons: Record<string, React.ReactNode> = {
@@ -48,82 +21,7 @@ const agentIcons: Record<string, React.ReactNode> = {
   ui: <Palette size={14} />,
 };
 
-// ---------- Initial mock data ----------
-const createInitialRequirements = (): Requirement[] => [
-  {
-    id: "req-1",
-    title: "用户登录表单验证修复",
-    status: "running",
-    agents: [
-      { id: "r1-code", name: "代码生成", icon: "code", progress: 0, status: "running", currentFile: "LoginForm.tsx" },
-      { id: "r1-test", name: "测试编写", icon: "test", progress: 0, status: "waiting", currentFile: "form.test.ts", dependsOn: "r1-code" },
-      { id: "r1-review", name: "代码审查", icon: "review", progress: 0, status: "waiting", currentFile: "等待测试完成", dependsOn: "r1-test" },
-    ],
-  },
-  {
-    id: "req-2",
-    title: "创建用户认证 API",
-    status: "running",
-    agents: [
-      { id: "r2-db", name: "Schema 设计", icon: "db", progress: 0, status: "running", currentFile: "users.sql" },
-      { id: "r2-api", name: "API 开发", icon: "api", progress: 0, status: "waiting", currentFile: "auth/login", dependsOn: "r2-db" },
-      { id: "r2-test", name: "接口测试", icon: "test", progress: 0, status: "waiting", currentFile: "auth.test.ts", dependsOn: "r2-api" },
-    ],
-  },
-  {
-    id: "req-3",
-    title: "支付模块集成",
-    status: "waiting",
-    agents: [
-      { id: "r3-code", name: "支付接入", icon: "api", progress: 0, status: "waiting", currentFile: "payment.ts" },
-      { id: "r3-ui", name: "UI 组件", icon: "ui", progress: 0, status: "waiting", currentFile: "PaymentForm.tsx", dependsOn: "r3-code" },
-      { id: "r3-test", name: "支付测试", icon: "test", progress: 0, status: "waiting", currentFile: "payment.test.ts", dependsOn: "r3-ui" },
-      { id: "r3-review", name: "安全审查", icon: "review", progress: 0, status: "waiting", currentFile: "等待测试完成", dependsOn: "r3-test" },
-    ],
-  },
-  {
-    id: "req-4",
-    title: "用户个人中心页面",
-    status: "waiting",
-    agents: [
-      { id: "r4-ui", name: "UI 开发", icon: "ui", progress: 0, status: "waiting", currentFile: "Profile.tsx" },
-      { id: "r4-code", name: "逻辑开发", icon: "code", progress: 0, status: "waiting", currentFile: "useProfile.ts", dependsOn: "r4-ui" },
-      { id: "r4-test", name: "测试编写", icon: "test", progress: 0, status: "waiting", currentFile: "profile.test.ts", dependsOn: "r4-code" },
-    ],
-  },
-];
-
-// ---------- Log messages templates ----------
-const logTemplates: Record<string, string[]> = {
-  running: [
-    "开始处理 {file}",
-    "正在分析 {file} 的代码结构",
-    "生成代码中: {file}",
-    "正在编写 {file}",
-  ],
-  done: [
-    "✅ 完成 {file}",
-    "✅ {file} 已生成并通过基础验证",
-  ],
-};
-
-const formatTime = () => {
-  const now = new Date();
-  return `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}:${String(now.getSeconds()).padStart(2, "0")}`;
-};
-
-// ---------- Status badge ----------
-const StatusBadge = ({ status }: { status: AgentStatus | RequirementStatus }) => {
-  const config: Record<string, { label: string; className: string }> = {
-    waiting: { label: "等待中", className: "bg-muted text-muted-foreground border-transparent" },
-    running: { label: "执行中", className: "bg-primary/10 text-primary border-primary/30 animate-pulse" },
-    done: { label: "已完成", className: "bg-green-500/10 text-green-600 border-green-500/30" },
-    error: { label: "出错", className: "bg-destructive/10 text-destructive border-destructive/30" },
-  };
-  const c = config[status];
-  return <Badge variant="outline" className={cn("text-[10px] px-1.5 py-0", c.className)}>{c.label}</Badge>;
-};
-
+// ---------- Status helpers ----------
 const StatusIcon = ({ status }: { status: AgentStatus }) => {
   switch (status) {
     case "done": return <CheckCircle2 size={14} className="text-green-500" />;
@@ -133,6 +31,27 @@ const StatusIcon = ({ status }: { status: AgentStatus }) => {
   }
 };
 
+const reqStatusIcon = (status: RequirementStatus) => {
+  switch (status) {
+    case "done": return <CheckCircle2 size={14} className="text-green-500" />;
+    case "running": return <Loader2 size={14} className="text-primary animate-spin" />;
+    default: return <Clock size={14} className="text-muted-foreground/50" />;
+  }
+};
+
+type FilterTab = "all" | "running" | "done" | "waiting";
+
+// ---------- Stat Card ----------
+const StatCard = ({ label, value, active }: { label: string; value: number; active?: boolean }) => (
+  <div className={cn(
+    "rounded-md border px-3 py-2 text-center min-w-[80px]",
+    active ? "border-primary/40 bg-primary/5" : "border-border bg-card"
+  )}>
+    <div className="text-lg font-bold font-mono leading-none">{value}</div>
+    <div className="text-[10px] text-muted-foreground mt-1">{label}</div>
+  </div>
+);
+
 // ---------- Component ----------
 const DevExecution = () => {
   const { id } = useParams();
@@ -140,19 +59,40 @@ const DevExecution = () => {
   const [requirements, setRequirements] = useState<Requirement[]>(createInitialRequirements);
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const logEndRef = useRef<HTMLDivElement>(null);
-
   const [allDone, setAllDone] = useState(false);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const startTimeRef = useRef(Date.now());
 
-  // compute totals
+  // UI state
+  const [filter, setFilter] = useState<FilterTab>("all");
+  const [search, setSearch] = useState("");
+  const [expandedReq, setExpandedReq] = useState<string | null>(null);
+  const [logsOpen, setLogsOpen] = useState(false);
+
+  // Computed stats
   const totalAgents = requirements.reduce((s, r) => s + r.agents.length, 0);
   const doneAgents = requirements.reduce((s, r) => s + r.agents.filter(a => a.status === "done").length, 0);
   const overallProgress = totalAgents ? Math.round((doneAgents / totalAgents) * 100) : 0;
-  const runningCount = requirements.filter(r => r.status === "running").length;
-  const doneCount = requirements.filter(r => r.status === "done").length;
 
-  // detect all done
+  const counts = useMemo(() => ({
+    total: requirements.length,
+    running: requirements.filter(r => r.status === "running").length,
+    done: requirements.filter(r => r.status === "done").length,
+    waiting: requirements.filter(r => r.status === "waiting").length,
+  }), [requirements]);
+
+  // Filtered list
+  const filtered = useMemo(() => {
+    let list = requirements;
+    if (filter !== "all") list = list.filter(r => r.status === filter);
+    if (search.trim()) {
+      const q = search.trim().toLowerCase();
+      list = list.filter(r => r.title.toLowerCase().includes(q));
+    }
+    return list;
+  }, [requirements, filter, search]);
+
+  // Detect all done
   useEffect(() => {
     if (requirements.length > 0 && requirements.every(r => r.status === "done") && !allDone) {
       setAllDone(true);
@@ -160,12 +100,12 @@ const DevExecution = () => {
     }
   }, [requirements, allDone]);
 
-  // auto-scroll logs
+  // Auto-scroll logs
   useEffect(() => {
-    logEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [logs]);
+    if (logsOpen) logEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [logs, logsOpen]);
 
-  // simulation tick
+  // Simulation tick (concurrency up to 8)
   useEffect(() => {
     if (allDone) return;
     const interval = setInterval(() => {
@@ -173,25 +113,24 @@ const DevExecution = () => {
         const next = prev.map(req => ({ ...req, agents: req.agents.map(a => ({ ...a })) }));
         const newLogs: LogEntry[] = [];
 
-        // activate waiting reqs if we have capacity (max 2 running)
+        // Activate waiting reqs up to 8 concurrent
         const runningReqs = next.filter(r => r.status === "running").length;
-        if (runningReqs < 2) {
-          const waitingReq = next.find(r => r.status === "waiting");
-          if (waitingReq) {
-            waitingReq.status = "running";
-            const firstAgent = waitingReq.agents.find(a => !a.dependsOn);
+        const slotsAvailable = 8 - runningReqs;
+        if (slotsAvailable > 0) {
+          const waitingReqs = next.filter(r => r.status === "waiting");
+          for (let i = 0; i < Math.min(slotsAvailable, waitingReqs.length); i++) {
+            waitingReqs[i].status = "running";
+            const firstAgent = waitingReqs[i].agents.find(a => !a.dependsOn);
             if (firstAgent) {
               firstAgent.status = "running";
-              newLogs.push({ time: formatTime(), reqId: waitingReq.id, agentName: firstAgent.name, message: `开始处理 ${firstAgent.currentFile}` });
+              newLogs.push({ time: formatTime(), reqId: waitingReqs[i].id, agentName: firstAgent.name, message: `开始处理 ${firstAgent.currentFile}` });
             }
           }
         }
 
         for (const req of next) {
           if (req.status !== "running") continue;
-
           for (const agent of req.agents) {
-            // check dependency
             if (agent.dependsOn && agent.status === "waiting") {
               const dep = req.agents.find(a => a.id === agent.dependsOn);
               if (dep && dep.status === "done") {
@@ -199,37 +138,27 @@ const DevExecution = () => {
                 newLogs.push({ time: formatTime(), reqId: req.id, agentName: agent.name, message: `开始处理 ${agent.currentFile}` });
               }
             }
-
             if (agent.status === "running") {
               const increment = Math.floor(Math.random() * 12) + 3;
               agent.progress = Math.min(100, agent.progress + increment);
-
               if (agent.progress >= 100) {
                 agent.status = "done";
                 agent.progress = 100;
                 const tpl = logTemplates.done[Math.floor(Math.random() * logTemplates.done.length)];
                 newLogs.push({ time: formatTime(), reqId: req.id, agentName: agent.name, message: tpl.replace("{file}", agent.currentFile) });
-              } else if (Math.random() < 0.3) {
+              } else if (Math.random() < 0.15) {
                 const tpl = logTemplates.running[Math.floor(Math.random() * logTemplates.running.length)];
                 newLogs.push({ time: formatTime(), reqId: req.id, agentName: agent.name, message: tpl.replace("{file}", agent.currentFile) });
               }
             }
           }
-
-          // check if all agents done
-          if (req.agents.every(a => a.status === "done")) {
-            req.status = "done";
-          }
+          if (req.agents.every(a => a.status === "done")) req.status = "done";
         }
 
-        if (newLogs.length > 0) {
-          setLogs(l => [...l, ...newLogs].slice(-100));
-        }
-
+        if (newLogs.length > 0) setLogs(l => [...l, ...newLogs].slice(-200));
         return next;
       });
-    }, 800);
-
+    }, 600);
     return () => clearInterval(interval);
   }, [allDone]);
 
@@ -241,13 +170,22 @@ const DevExecution = () => {
   const reqTitleMap: Record<string, string> = {};
   requirements.forEach(r => { reqTitleMap[r.id] = r.title; });
 
+  const lastLog = logs.length > 0 ? logs[logs.length - 1] : null;
+
+  const filterTabs: { key: FilterTab; label: string; count: number }[] = [
+    { key: "all", label: "全部", count: counts.total },
+    { key: "running", label: "执行中", count: counts.running },
+    { key: "done", label: "已完成", count: counts.done },
+    { key: "waiting", label: "等待中", count: counts.waiting },
+  ];
+
   return (
     <ProjectSidebarLayout
       headerRight={
         <div className="flex items-center gap-3 min-w-[200px]">
           <div className="text-right mr-2">
             <p className="text-xs text-muted-foreground">
-              {doneCount}/{requirements.length} 需求完成 · {runningCount} 进行中
+              {counts.done}/{counts.total} 完成 · {counts.running} 进行中
             </p>
           </div>
           <Progress value={overallProgress} className="h-2 flex-1" />
@@ -257,111 +195,168 @@ const DevExecution = () => {
     >
       {() => (
         <div className="flex flex-col h-full overflow-hidden">
-          {/* Requirements list */}
-          <ScrollArea className="flex-1 p-4">
-            <div className="max-w-4xl mx-auto space-y-3">
-              {/* Completion banner */}
-              {allDone && (
-                <div className="rounded-lg border border-green-500/30 bg-green-500/5 p-5 animate-in slide-in-from-bottom-4 duration-500">
-                  <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 rounded-full bg-green-500/10 flex items-center justify-center shrink-0">
-                      <CheckCircle2 size={20} className="text-green-600" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="text-sm font-semibold text-foreground">🎉 所有需求已开发完成</h3>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        已完成 {requirements.length} 个需求 · {totalAgents} 个智能体参与 · 耗时 {elapsedSeconds} 秒
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-0.5">
-                        请返回工作区预览确认效果，确认无误后即可发布到线上
-                      </p>
-                      <Button
-                        size="sm"
-                        className="mt-3 gap-1.5"
-                        onClick={() => navigate(`/project/${id}?devComplete=true`)}
-                      >
-                        <ArrowLeft size={14} /> 返回工作区确认效果
-                      </Button>
-                    </div>
-                  </div>
+          {/* Stats bar */}
+          <div className="shrink-0 px-4 pt-4 pb-2">
+            <div className="flex items-center gap-2 flex-wrap">
+              <StatCard label="总需求" value={counts.total} />
+              <StatCard label="执行中" value={counts.running} active={counts.running > 0} />
+              <StatCard label="已完成" value={counts.done} />
+              <StatCard label="等待中" value={counts.waiting} />
+              <div className="flex-1 min-w-[120px] max-w-[240px] ml-auto">
+                <div className="text-[10px] text-muted-foreground mb-1 text-right">总体进度</div>
+                <div className="flex items-center gap-2">
+                  <Progress value={overallProgress} className="h-2 flex-1" />
+                  <span className="text-sm font-mono font-bold">{overallProgress}%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Filter + Search */}
+          <div className="shrink-0 px-4 py-2 flex items-center gap-2 border-b border-border">
+            <div className="flex items-center gap-1">
+              {filterTabs.map(tab => (
+                <button
+                  key={tab.key}
+                  onClick={() => setFilter(tab.key)}
+                  className={cn(
+                    "px-2.5 py-1 rounded-md text-xs font-medium transition-colors",
+                    filter === tab.key
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:bg-muted"
+                  )}
+                >
+                  {tab.label} <span className="ml-1 opacity-70">{tab.count}</span>
+                </button>
+              ))}
+            </div>
+            <div className="relative ml-auto max-w-[200px]">
+              <Search size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="搜索需求..."
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                className="h-7 pl-7 text-xs"
+              />
+            </div>
+          </div>
+
+          {/* Completion banner */}
+          {allDone && (
+            <div className="shrink-0 mx-4 mt-2 rounded-lg border border-green-500/30 bg-green-500/5 p-4 animate-in slide-in-from-bottom-4 duration-500">
+              <div className="flex items-center gap-3">
+                <CheckCircle2 size={18} className="text-green-600 shrink-0" />
+                <div className="flex-1">
+                  <span className="text-sm font-semibold">🎉 所有 {counts.total} 个需求已完成</span>
+                  <span className="text-xs text-muted-foreground ml-2">· {totalAgents} 个智能体 · 耗时 {elapsedSeconds}s</span>
+                </div>
+                <Button size="sm" className="gap-1.5 shrink-0" onClick={() => navigate(`/project/${id}?devComplete=true`)}>
+                  <ArrowLeft size={14} /> 返回工作区
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Compact requirement rows */}
+          <ScrollArea className="flex-1 min-h-0">
+            <div className="px-4 py-2">
+              {filtered.length === 0 && (
+                <div className="flex items-center justify-center py-8 text-sm text-muted-foreground">
+                  <ListFilter size={16} className="mr-2" />
+                  无匹配需求
                 </div>
               )}
-              {requirements.map((req, idx) => (
-                <Collapsible key={req.id} defaultOpen={req.status === "running"}>
-                  <div className={cn(
-                    "rounded-lg border bg-card",
-                    req.status === "running" && "border-primary/30",
-                    req.status === "done" && "border-green-500/20 opacity-80",
-                  )}>
-                    <CollapsibleTrigger className="w-full">
-                      <div className="flex items-center gap-3 px-4 py-3">
-                        <span className="text-xs font-mono text-muted-foreground w-6">#{idx + 1}</span>
-                        <div className="flex-1 text-left min-w-0">
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm font-medium truncate">{req.title}</span>
-                            <StatusBadge status={req.status} />
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2 w-32">
-                          <Progress value={getReqProgress(req)} className="h-1.5 flex-1" />
-                          <span className="text-[10px] font-mono text-muted-foreground w-8 text-right">{getReqProgress(req)}%</span>
-                        </div>
-                        <ChevronDown size={14} className="text-muted-foreground transition-transform duration-200 [[data-state=open]>&]:rotate-180" />
+              {filtered.map((req, idx) => {
+                const progress = getReqProgress(req);
+                const isExpanded = expandedReq === req.id;
+                const globalIdx = requirements.indexOf(req);
+                return (
+                  <div key={req.id} className={cn(req.status === "done" && !isExpanded && "opacity-60")}>
+                    {/* Row */}
+                    <button
+                      onClick={() => setExpandedReq(isExpanded ? null : req.id)}
+                      className={cn(
+                        "w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-left transition-colors hover:bg-muted/50",
+                        isExpanded && "bg-muted/50",
+                        req.status === "running" && "bg-primary/[0.03]"
+                      )}
+                    >
+                      <span className="text-[10px] font-mono text-muted-foreground w-8 shrink-0 text-right">#{globalIdx + 1}</span>
+                      {reqStatusIcon(req.status)}
+                      <span className="text-xs font-medium truncate flex-1 min-w-0">{req.title}</span>
+                      <div className="flex items-center gap-1.5 w-28 shrink-0">
+                        <Progress value={progress} className="h-1 flex-1" />
+                        <span className="text-[10px] font-mono text-muted-foreground w-7 text-right">{progress}%</span>
                       </div>
-                    </CollapsibleTrigger>
-                    <CollapsibleContent>
-                      <div className="px-4 pb-3 space-y-2 border-t border-border pt-3">
+                      <ChevronDown size={12} className={cn(
+                        "text-muted-foreground transition-transform shrink-0",
+                        isExpanded && "rotate-180"
+                      )} />
+                    </button>
+
+                    {/* Expanded agent details */}
+                    {isExpanded && (
+                      <div className="ml-10 mr-2 mb-2 mt-1 border-l-2 border-primary/20 pl-3 space-y-1.5 animate-in slide-in-from-top-2 duration-200">
                         {req.agents.map(agent => (
-                          <div key={agent.id} className="flex items-center gap-3 py-1.5">
+                          <div key={agent.id} className="flex items-center gap-2 py-1">
                             <StatusIcon status={agent.status} />
                             <span className="text-muted-foreground">{agentIcons[agent.icon]}</span>
-                            <span className="text-xs font-medium w-20 shrink-0">{agent.name}</span>
-                            <div className="flex-1 min-w-0">
-                              <Progress
-                                value={agent.progress}
-                                className={cn("h-1.5", agent.status === "waiting" && "opacity-30")}
-                              />
-                            </div>
-                            <span className="text-[10px] font-mono text-muted-foreground w-8 text-right">
+                            <span className="text-[11px] font-medium w-16 shrink-0">{agent.name}</span>
+                            <Progress
+                              value={agent.progress}
+                              className={cn("h-1 flex-1", agent.status === "waiting" && "opacity-30")}
+                            />
+                            <span className="text-[10px] font-mono text-muted-foreground w-7 text-right">
                               {agent.status === "waiting" ? "—" : `${agent.progress}%`}
                             </span>
-                            <span className="text-[10px] text-muted-foreground truncate max-w-[140px]">
+                            <span className="text-[10px] text-muted-foreground truncate max-w-[120px]">
                               {agent.currentFile}
                             </span>
                           </div>
                         ))}
                       </div>
-                    </CollapsibleContent>
+                    )}
                   </div>
-                </Collapsible>
-              ))}
+                );
+              })}
             </div>
           </ScrollArea>
 
-          {/* Logs */}
-          <div className="h-48 border-t border-border flex flex-col shrink-0">
-            <div className="px-4 py-2 border-b border-border">
+          {/* Collapsible Logs */}
+          <div className="shrink-0 border-t border-border">
+            <button
+              onClick={() => setLogsOpen(o => !o)}
+              className="w-full flex items-center gap-2 px-4 py-2 hover:bg-muted/30 transition-colors"
+            >
               <span className="text-xs font-medium text-muted-foreground">实时日志</span>
-            </div>
-            <ScrollArea className="flex-1 px-4">
-              <div className="py-2 space-y-1">
-                {logs.map((log, i) => (
-                  <div key={i} className="flex items-start gap-2 text-[11px] font-mono leading-relaxed">
-                    <span className="text-muted-foreground shrink-0">[{log.time}]</span>
-                    <span className="text-primary/70 shrink-0">{reqTitleMap[log.reqId]?.slice(0, 6)}…</span>
-                    <span className="text-foreground/70 shrink-0">{log.agentName}</span>
-                    <span className="text-muted-foreground">{log.message}</span>
-                  </div>
-                ))}
-                <div ref={logEndRef} />
-                {logs.length === 0 && (
-                  <div className="flex items-center gap-2 py-4 justify-center">
-                    <Loader2 size={14} className="text-primary animate-spin" />
-                    <span className="text-xs text-muted-foreground">正在初始化智能体...</span>
-                  </div>
-                )}
-              </div>
-            </ScrollArea>
+              {lastLog && !logsOpen && (
+                <span className="flex-1 text-[11px] font-mono text-muted-foreground truncate text-left">
+                  [{lastLog.time}] {lastLog.agentName} — {lastLog.message}
+                </span>
+              )}
+              {!lastLog && !logsOpen && (
+                <span className="flex-1 text-[11px] text-muted-foreground text-left flex items-center gap-1">
+                  <Loader2 size={10} className="animate-spin" /> 初始化中...
+                </span>
+              )}
+              <Badge variant="outline" className="text-[10px] px-1.5">{logs.length}</Badge>
+              {logsOpen ? <ChevronDown size={12} className="text-muted-foreground" /> : <ChevronUp size={12} className="text-muted-foreground" />}
+            </button>
+            {logsOpen && (
+              <ScrollArea className="h-40 px-4 border-t border-border">
+                <div className="py-2 space-y-0.5">
+                  {logs.map((log, i) => (
+                    <div key={i} className="flex items-start gap-2 text-[11px] font-mono leading-relaxed">
+                      <span className="text-muted-foreground shrink-0">[{log.time}]</span>
+                      <span className="text-primary/70 shrink-0">{reqTitleMap[log.reqId]?.slice(0, 6)}…</span>
+                      <span className="text-foreground/70 shrink-0">{log.agentName}</span>
+                      <span className="text-muted-foreground">{log.message}</span>
+                    </div>
+                  ))}
+                  <div ref={logEndRef} />
+                </div>
+              </ScrollArea>
+            )}
           </div>
         </div>
       )}
