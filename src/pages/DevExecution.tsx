@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Code2, TestTube2, Eye, Plug, Database, Palette, AlertCircle, CheckCircle2, Loader2, Clock } from "lucide-react";
+import { Code2, TestTube2, Eye, Plug, Database, Palette, AlertCircle, CheckCircle2, Loader2, Clock, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
@@ -8,6 +8,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
+import ProjectSidebarLayout from "@/components/ProjectSidebarLayout";
 
 // ---------- Types ----------
 type AgentStatus = "waiting" | "running" | "done" | "error";
@@ -241,136 +242,130 @@ const DevExecution = () => {
   requirements.forEach(r => { reqTitleMap[r.id] = r.title; });
 
   return (
-    <div className="h-screen flex flex-col bg-background text-foreground">
-      {/* Header */}
-      <header className="h-14 flex items-center justify-between px-5 border-b border-border shrink-0">
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={() => navigate(`/project/${id}`)}>
-            <ArrowLeft size={18} />
-          </Button>
-          <div>
-            <h1 className="text-sm font-semibold">开发执行中心</h1>
+    <ProjectSidebarLayout
+      headerRight={
+        <div className="flex items-center gap-3 min-w-[200px]">
+          <div className="text-right mr-2">
             <p className="text-xs text-muted-foreground">
               {doneCount}/{requirements.length} 需求完成 · {runningCount} 进行中
             </p>
           </div>
-        </div>
-        <div className="flex items-center gap-3 min-w-[200px]">
           <Progress value={overallProgress} className="h-2 flex-1" />
           <span className="text-xs font-mono text-muted-foreground w-10 text-right">{overallProgress}%</span>
         </div>
-      </header>
-
-      {/* Main */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Requirements list */}
-        <ScrollArea className="flex-1 p-4">
-          <div className="max-w-4xl mx-auto space-y-3">
-            {/* Completion banner */}
-            {allDone && (
-              <div className="rounded-lg border border-green-500/30 bg-green-500/5 p-5 animate-in slide-in-from-bottom-4 duration-500">
-                <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-full bg-green-500/10 flex items-center justify-center shrink-0">
-                    <CheckCircle2 size={20} className="text-green-600" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-sm font-semibold text-foreground">🎉 所有需求已开发完成</h3>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      已完成 {requirements.length} 个需求 · {totalAgents} 个智能体参与 · 耗时 {elapsedSeconds} 秒
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      请返回工作区预览确认效果，确认无误后即可发布到线上
-                    </p>
-                    <Button
-                      size="sm"
-                      className="mt-3 gap-1.5"
-                      onClick={() => navigate(`/project/${id}?devComplete=true`)}
-                    >
-                      <ArrowLeft size={14} /> 返回工作区确认效果
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            )}
-            {requirements.map((req, idx) => (
-              <Collapsible key={req.id} defaultOpen={req.status === "running"}>
-                <div className={cn(
-                  "rounded-lg border bg-card",
-                  req.status === "running" && "border-primary/30",
-                  req.status === "done" && "border-green-500/20 opacity-80",
-                )}>
-                  <CollapsibleTrigger className="w-full">
-                    <div className="flex items-center gap-3 px-4 py-3">
-                      <span className="text-xs font-mono text-muted-foreground w-6">#{idx + 1}</span>
-                      <div className="flex-1 text-left min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-medium truncate">{req.title}</span>
-                          <StatusBadge status={req.status} />
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2 w-32">
-                        <Progress value={getReqProgress(req)} className="h-1.5 flex-1" />
-                        <span className="text-[10px] font-mono text-muted-foreground w-8 text-right">{getReqProgress(req)}%</span>
-                      </div>
-                      <ChevronDown size={14} className="text-muted-foreground transition-transform duration-200 [[data-state=open]>&]:rotate-180" />
+      }
+    >
+      {() => (
+        <div className="flex flex-col h-full overflow-hidden">
+          {/* Requirements list */}
+          <ScrollArea className="flex-1 p-4">
+            <div className="max-w-4xl mx-auto space-y-3">
+              {/* Completion banner */}
+              {allDone && (
+                <div className="rounded-lg border border-green-500/30 bg-green-500/5 p-5 animate-in slide-in-from-bottom-4 duration-500">
+                  <div className="flex items-start gap-4">
+                    <div className="w-10 h-10 rounded-full bg-green-500/10 flex items-center justify-center shrink-0">
+                      <CheckCircle2 size={20} className="text-green-600" />
                     </div>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent>
-                    <div className="px-4 pb-3 space-y-2 border-t border-border pt-3">
-                      {req.agents.map(agent => (
-                        <div key={agent.id} className="flex items-center gap-3 py-1.5">
-                          <StatusIcon status={agent.status} />
-                          <span className="text-muted-foreground">{agentIcons[agent.icon]}</span>
-                          <span className="text-xs font-medium w-20 shrink-0">{agent.name}</span>
-                          <div className="flex-1 min-w-0">
-                            <Progress
-                              value={agent.progress}
-                              className={cn("h-1.5", agent.status === "waiting" && "opacity-30")}
-                            />
-                          </div>
-                          <span className="text-[10px] font-mono text-muted-foreground w-8 text-right">
-                            {agent.status === "waiting" ? "—" : `${agent.progress}%`}
-                          </span>
-                          <span className="text-[10px] text-muted-foreground truncate max-w-[140px]">
-                            {agent.currentFile}
-                          </span>
-                        </div>
-                      ))}
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-sm font-semibold text-foreground">🎉 所有需求已开发完成</h3>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        已完成 {requirements.length} 个需求 · {totalAgents} 个智能体参与 · 耗时 {elapsedSeconds} 秒
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        请返回工作区预览确认效果，确认无误后即可发布到线上
+                      </p>
+                      <Button
+                        size="sm"
+                        className="mt-3 gap-1.5"
+                        onClick={() => navigate(`/project/${id}?devComplete=true`)}
+                      >
+                        <ArrowLeft size={14} /> 返回工作区确认效果
+                      </Button>
                     </div>
-                  </CollapsibleContent>
-                </div>
-              </Collapsible>
-            ))}
-          </div>
-        </ScrollArea>
-
-        {/* Logs */}
-        <div className="h-48 border-t border-border flex flex-col shrink-0">
-          <div className="px-4 py-2 border-b border-border">
-            <span className="text-xs font-medium text-muted-foreground">实时日志</span>
-          </div>
-          <ScrollArea className="flex-1 px-4">
-            <div className="py-2 space-y-1">
-              {logs.map((log, i) => (
-                <div key={i} className="flex items-start gap-2 text-[11px] font-mono leading-relaxed">
-                  <span className="text-muted-foreground shrink-0">[{log.time}]</span>
-                  <span className="text-primary/70 shrink-0">{reqTitleMap[log.reqId]?.slice(0, 6)}…</span>
-                  <span className="text-foreground/70 shrink-0">{log.agentName}</span>
-                  <span className="text-muted-foreground">{log.message}</span>
-                </div>
-              ))}
-              <div ref={logEndRef} />
-              {logs.length === 0 && (
-                <div className="flex items-center gap-2 py-4 justify-center">
-                  <Loader2 size={14} className="text-primary animate-spin" />
-                  <span className="text-xs text-muted-foreground">正在初始化智能体...</span>
+                  </div>
                 </div>
               )}
+              {requirements.map((req, idx) => (
+                <Collapsible key={req.id} defaultOpen={req.status === "running"}>
+                  <div className={cn(
+                    "rounded-lg border bg-card",
+                    req.status === "running" && "border-primary/30",
+                    req.status === "done" && "border-green-500/20 opacity-80",
+                  )}>
+                    <CollapsibleTrigger className="w-full">
+                      <div className="flex items-center gap-3 px-4 py-3">
+                        <span className="text-xs font-mono text-muted-foreground w-6">#{idx + 1}</span>
+                        <div className="flex-1 text-left min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium truncate">{req.title}</span>
+                            <StatusBadge status={req.status} />
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 w-32">
+                          <Progress value={getReqProgress(req)} className="h-1.5 flex-1" />
+                          <span className="text-[10px] font-mono text-muted-foreground w-8 text-right">{getReqProgress(req)}%</span>
+                        </div>
+                        <ChevronDown size={14} className="text-muted-foreground transition-transform duration-200 [[data-state=open]>&]:rotate-180" />
+                      </div>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <div className="px-4 pb-3 space-y-2 border-t border-border pt-3">
+                        {req.agents.map(agent => (
+                          <div key={agent.id} className="flex items-center gap-3 py-1.5">
+                            <StatusIcon status={agent.status} />
+                            <span className="text-muted-foreground">{agentIcons[agent.icon]}</span>
+                            <span className="text-xs font-medium w-20 shrink-0">{agent.name}</span>
+                            <div className="flex-1 min-w-0">
+                              <Progress
+                                value={agent.progress}
+                                className={cn("h-1.5", agent.status === "waiting" && "opacity-30")}
+                              />
+                            </div>
+                            <span className="text-[10px] font-mono text-muted-foreground w-8 text-right">
+                              {agent.status === "waiting" ? "—" : `${agent.progress}%`}
+                            </span>
+                            <span className="text-[10px] text-muted-foreground truncate max-w-[140px]">
+                              {agent.currentFile}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </CollapsibleContent>
+                  </div>
+                </Collapsible>
+              ))}
             </div>
           </ScrollArea>
+
+          {/* Logs */}
+          <div className="h-48 border-t border-border flex flex-col shrink-0">
+            <div className="px-4 py-2 border-b border-border">
+              <span className="text-xs font-medium text-muted-foreground">实时日志</span>
+            </div>
+            <ScrollArea className="flex-1 px-4">
+              <div className="py-2 space-y-1">
+                {logs.map((log, i) => (
+                  <div key={i} className="flex items-start gap-2 text-[11px] font-mono leading-relaxed">
+                    <span className="text-muted-foreground shrink-0">[{log.time}]</span>
+                    <span className="text-primary/70 shrink-0">{reqTitleMap[log.reqId]?.slice(0, 6)}…</span>
+                    <span className="text-foreground/70 shrink-0">{log.agentName}</span>
+                    <span className="text-muted-foreground">{log.message}</span>
+                  </div>
+                ))}
+                <div ref={logEndRef} />
+                {logs.length === 0 && (
+                  <div className="flex items-center gap-2 py-4 justify-center">
+                    <Loader2 size={14} className="text-primary animate-spin" />
+                    <span className="text-xs text-muted-foreground">正在初始化智能体...</span>
+                  </div>
+                )}
+              </div>
+            </ScrollArea>
+          </div>
         </div>
-      </div>
-    </div>
+      )}
+    </ProjectSidebarLayout>
   );
 };
 

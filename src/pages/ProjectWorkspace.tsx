@@ -1,42 +1,27 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate, useSearchParams } from "react-router-dom";
-import { Menu, PanelRightOpen, PanelRightClose, ExternalLink, Sparkles, Settings, Pin, PinOff, Cpu } from "lucide-react";
+import { useParams, useSearchParams } from "react-router-dom";
+import { PanelRightOpen, PanelRightClose } from "lucide-react";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
-import { mockProjects } from "@/data/projects";
 import PlanFlow from "@/components/PlanFlow";
 import PromptBar from "@/components/PromptBar";
 import DeepFlowPanel from "@/components/DeepFlowPanel";
 import TestPanel from "@/components/TestPanel";
 import PreviewPanel from "@/components/PreviewPanel";
 import PublishDialog from "@/components/PublishDialog";
-import ProjectSwitcher from "@/components/ProjectSwitcher";
 import ProductionStatus from "@/components/ProductionStatus";
+import ProjectSidebarLayout from "@/components/ProjectSidebarLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const ProjectWorkspace = () => {
   const { id } = useParams();
-  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const project = mockProjects.find((p) => p.id === id);
 
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [sidebarPinned, setSidebarPinned] = useState(true);
   const [rightPanelOpen, setRightPanelOpen] = useState(true);
   const [planFlow, setPlanFlow] = useState<{ active: boolean; requirement: string }>({ active: false, requirement: "" });
   const [testsPassed, setTestsPassed] = useState(false);
   const [previewConfirmed, setPreviewConfirmed] = useState(false);
   const [showDeepFlow, setShowDeepFlow] = useState(false);
   const [devCompleteMessage, setDevCompleteMessage] = useState(false);
-
-  const isDesktop = useIsDesktop();
-
-  useEffect(() => {
-    if (!isDesktop) {
-      setSidebarOpen(false);
-      setSidebarPinned(false);
-      setRightPanelOpen(false);
-    }
-  }, [isDesktop]);
 
   // Handle devComplete param
   useEffect(() => {
@@ -46,19 +31,10 @@ const ProjectWorkspace = () => {
       setRightPanelOpen(true);
       setShowDeepFlow(false);
       setPlanFlow({ active: false, requirement: "" });
-      // clean up URL
       searchParams.delete("devComplete");
       setSearchParams(searchParams, { replace: true });
     }
   }, [searchParams, setSearchParams]);
-
-  if (!project) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <p className="text-muted-foreground">项目不存在</p>
-      </div>
-    );
-  }
 
   const handleSubmit = (data: { text: string; isPlanMode: boolean }) => {
     setShowDeepFlow(false);
@@ -77,130 +53,40 @@ const ProjectWorkspace = () => {
   );
 
   return (
-    <div className="flex h-screen bg-background overflow-hidden">
-      {/* Sidebar */}
-      {sidebarOpen && (
+    <ProjectSidebarLayout
+      onDeepFlowClick={() => setShowDeepFlow(true)}
+      deepFlowActive={showDeepFlow}
+      headerRight={
         <>
-          {(!isDesktop || !sidebarPinned) && (
-            <div className="fixed inset-0 bg-foreground/20 z-30" onClick={() => setSidebarOpen(false)} />
-          )}
-          <aside className={`${isDesktop && sidebarPinned ? "relative" : "fixed left-0 top-0 h-full z-40"} w-[260px] bg-sidebar border-r border-border flex flex-col shrink-0`}>
-            {/* Project Switcher */}
-            <div className="px-3 py-3 border-b border-border flex items-center gap-2">
-              <div className="flex-1 min-w-0">
-                <ProjectSwitcher currentProject={project} />
-              </div>
-              {isDesktop && (
-                <button
-                  onClick={() => {
-                    setSidebarPinned(!sidebarPinned);
-                    if (sidebarPinned) setSidebarOpen(false);
-                  }}
-                  className="p-1.5 rounded-md hover:bg-secondary transition-colors text-muted-foreground shrink-0"
-                  title={sidebarPinned ? "取消固定" : "固定侧边栏"}
-                >
-                  {sidebarPinned ? <Pin size={14} /> : <PinOff size={14} />}
-                </button>
-              )}
-            </div>
-
-            {/* DeepFlow AI Entry */}
-            <div className="px-3 py-2 border-b border-border">
-              <button
-                onClick={() => setShowDeepFlow(true)}
-                className={`w-full flex items-center gap-2 px-2 py-2 rounded-lg text-sm transition-colors ${
-                  showDeepFlow
-                    ? "bg-secondary text-foreground font-medium"
-                    : "text-sidebar-foreground hover:bg-secondary/50"
-                }`}
-              >
-                <Sparkles size={14} className="shrink-0" />
-                <span>DeepFlow AI</span>
-              </button>
-            </div>
-
-            {/* Preview entry */}
-            <div className="px-3 py-1">
-              <button
-                onClick={() => window.open(`/project/${id}/preview`, '_blank')}
-                className="w-full flex items-center gap-2 px-2 py-2 rounded-lg text-sm text-sidebar-foreground hover:bg-secondary/50 transition-colors"
-              >
-                <ExternalLink size={14} className="text-muted-foreground shrink-0" />
-                <span>预览产品</span>
-              </button>
-            </div>
-
-            {/* Dev Execution entry */}
-            <div className="px-3 py-1 flex-1">
-              <button
-                onClick={() => navigate(`/project/${id}/dev`)}
-                className="w-full flex items-center gap-2 px-2 py-2 rounded-lg text-sm text-sidebar-foreground hover:bg-secondary/50 transition-colors"
-              >
-                <Cpu size={14} className="text-muted-foreground shrink-0" />
-                <span>开发执行中心</span>
-              </button>
-            </div>
-
-            {/* Settings */}
-            <div className="px-3 py-2 border-t border-border">
-              <button
-                onClick={() => navigate(`/project/${id}/settings`)}
-                className="w-full flex items-center gap-2 px-2 py-2 rounded-lg text-sm text-sidebar-foreground hover:bg-secondary/50 transition-colors"
-              >
-                <Settings size={14} className="text-muted-foreground shrink-0" />
-                <span>设置</span>
-              </button>
-            </div>
-          </aside>
+          <PublishDialog testsPassed={testsPassed} previewConfirmed={previewConfirmed} />
+          <button
+            onClick={() => setRightPanelOpen(!rightPanelOpen)}
+            className="p-2 rounded-lg hover:bg-secondary transition-colors text-muted-foreground"
+          >
+            {rightPanelOpen ? <PanelRightClose size={16} /> : <PanelRightOpen size={16} />}
+          </button>
         </>
+      }
+    >
+      {({ isDesktop }) => (
+        rightPanelOpen && isDesktop ? (
+          <ResizablePanelGroup direction="horizontal">
+            <ResizablePanel defaultSize={60} minSize={40}>
+              {mainContent}
+            </ResizablePanel>
+            <ResizableHandle withHandle />
+            <ResizablePanel defaultSize={40} minSize={25}>
+              <RightPanel
+                projectName=""
+                onTestsPassed={() => setTestsPassed(true)}
+                onPreviewConfirm={() => setPreviewConfirmed(true)}
+                previewConfirmed={previewConfirmed}
+              />
+            </ResizablePanel>
+          </ResizablePanelGroup>
+        ) : mainContent
       )}
-
-      {/* Main area */}
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Topbar */}
-        <header className="h-12 flex items-center justify-between px-4 border-b border-border shrink-0">
-          <div className="flex items-center gap-2">
-            {(!sidebarOpen || !sidebarPinned) && (
-              <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 rounded-lg hover:bg-secondary transition-colors">
-                <Menu size={16} />
-              </button>
-            )}
-            <span className="text-sm font-medium text-foreground">{project.name}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <PublishDialog testsPassed={testsPassed} previewConfirmed={previewConfirmed} />
-            <button
-              onClick={() => setRightPanelOpen(!rightPanelOpen)}
-              className="p-2 rounded-lg hover:bg-secondary transition-colors text-muted-foreground"
-            >
-              {rightPanelOpen ? <PanelRightClose size={16} /> : <PanelRightOpen size={16} />}
-            </button>
-          </div>
-        </header>
-
-        {/* Content with resizable panels */}
-        <div className="flex-1 min-h-0">
-          {rightPanelOpen && isDesktop ? (
-            <ResizablePanelGroup direction="horizontal">
-              <ResizablePanel defaultSize={60} minSize={40}>
-                {mainContent}
-              </ResizablePanel>
-              <ResizableHandle withHandle />
-              <ResizablePanel defaultSize={40} minSize={25}>
-                <RightPanel
-                  projectName={project.name}
-                  onTestsPassed={() => setTestsPassed(true)}
-                  onPreviewConfirm={() => setPreviewConfirmed(true)}
-                  previewConfirmed={previewConfirmed}
-                />
-              </ResizablePanel>
-            </ResizablePanelGroup>
-          ) : (
-            mainContent
-          )}
-        </div>
-      </div>
-    </div>
+    </ProjectSidebarLayout>
   );
 };
 
@@ -292,15 +178,5 @@ const RightPanel = ({
     </TabsContent>
   </Tabs>
 );
-
-const useIsDesktop = () => {
-  const [d, setD] = useState(window.innerWidth >= 1024);
-  useEffect(() => {
-    const h = () => setD(window.innerWidth >= 1024);
-    window.addEventListener("resize", h);
-    return () => window.removeEventListener("resize", h);
-  }, []);
-  return d;
-};
 
 export default ProjectWorkspace;
