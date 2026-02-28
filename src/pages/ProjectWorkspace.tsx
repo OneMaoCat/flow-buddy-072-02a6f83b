@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
-import { Menu, PanelRightOpen, PanelRightClose, ExternalLink, Sparkles, Settings, Pin, PinOff } from "lucide-react";
+import { Menu, PanelRightOpen, PanelRightClose, ExternalLink, Sparkles, Settings, Pin, PinOff, Cpu } from "lucide-react";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 import { mockProjects } from "@/data/projects";
 import PlanFlow from "@/components/PlanFlow";
@@ -120,13 +120,24 @@ const ProjectWorkspace = () => {
             </div>
 
             {/* Preview entry */}
-            <div className="px-3 py-2 flex-1">
+            <div className="px-3 py-1">
               <button
                 onClick={() => window.open(`/project/${id}/preview`, '_blank')}
                 className="w-full flex items-center gap-2 px-2 py-2 rounded-lg text-sm text-sidebar-foreground hover:bg-secondary/50 transition-colors"
               >
                 <ExternalLink size={14} className="text-muted-foreground shrink-0" />
                 <span>预览产品</span>
+              </button>
+            </div>
+
+            {/* Dev Execution entry */}
+            <div className="px-3 py-1 flex-1">
+              <button
+                onClick={() => navigate(`/project/${id}/dev`)}
+                className="w-full flex items-center gap-2 px-2 py-2 rounded-lg text-sm text-sidebar-foreground hover:bg-secondary/50 transition-colors"
+              >
+                <Cpu size={14} className="text-muted-foreground shrink-0" />
+                <span>开发执行中心</span>
               </button>
             </div>
 
