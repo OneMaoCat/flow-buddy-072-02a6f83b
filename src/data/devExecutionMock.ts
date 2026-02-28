@@ -1,6 +1,6 @@
 // ---------- Types ----------
 export type AgentStatus = "waiting" | "running" | "done" | "error";
-export type RequirementStatus = "waiting" | "running" | "done" | "review" | "accepted" | "rejected";
+export type RequirementStatus = "waiting" | "running" | "done" | "testing" | "review" | "accepted" | "rejected";
 
 export interface Agent {
   id: string;
@@ -12,6 +12,21 @@ export interface Agent {
   dependsOn?: string;
 }
 
+export type TestItemStatus = "pending" | "running" | "passed" | "failed";
+
+export interface TestItem {
+  id: string;
+  name: string;
+  status: TestItemStatus;
+  duration?: number;
+}
+
+export interface TestResult {
+  tests: TestItem[];
+  retryCount: number;
+  isRetrying: boolean;
+}
+
 export interface Requirement {
   id: string;
   title: string;
@@ -19,6 +34,7 @@ export interface Requirement {
   agents: Agent[];
   rejectReason?: string;
   previewPath?: string;
+  testResult?: TestResult;
 }
 
 export interface LogEntry {
@@ -27,6 +43,35 @@ export interface LogEntry {
   agentName: string;
   message: string;
 }
+
+// ---------- Test case templates per agent icon ----------
+const testTemplatesByIcon: Record<string, string[]> = {
+  code: ["{title} 核心逻辑验证", "{title} 边界条件测试", "{title} 异常处理测试"],
+  test: ["{title} 测试覆盖率检查"],
+  review: ["{title} 代码规范检查"],
+  api: ["{title} 接口响应验证", "{title} 接口错误处理", "{title} 参数校验测试"],
+  db: ["{title} 数据模型验证", "{title} 迁移脚本测试"],
+  ui: ["{title} 组件渲染测试", "{title} 交互行为测试", "{title} 响应式布局测试"],
+};
+
+export const generateTestsForRequirement = (req: { id: string; title: string; agents: { icon: string }[] }): TestItem[] => {
+  const tests: TestItem[] = [];
+  const usedNames = new Set<string>();
+  const shortTitle = req.title.slice(0, 6);
+  
+  for (const agent of req.agents) {
+    const templates = testTemplatesByIcon[agent.icon] || ["{title} 功能验证"];
+    for (const tpl of templates) {
+      const name = tpl.replace("{title}", shortTitle);
+      if (!usedNames.has(name)) {
+        usedNames.add(name);
+        tests.push({ id: `${req.id}-t${tests.length}`, name, status: "pending" });
+      }
+    }
+  }
+  // Cap at 3-6 tests
+  return tests.slice(0, Math.min(6, Math.max(3, tests.length)));
+};
 
 // ---------- Templates for generating requirements ----------
 const categories: { prefix: string; items: { title: string; previewPath?: string; agents: Omit<Agent, "id" | "progress" | "status">[] }[] }[] = [
