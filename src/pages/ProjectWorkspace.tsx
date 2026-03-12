@@ -103,6 +103,9 @@ const ProjectWorkspace = () => {
       setConversations((prev) => [newConv, ...prev]);
       setActiveConversationId(newConv.id);
       convId = newConv.id;
+    } else {
+      // Add user message to existing conversation
+      setConversations((prev) => addMessageToConversation(prev, convId!, data.text));
     }
 
     if (data.isPlanMode) {
