@@ -68,7 +68,6 @@ const ProjectSidebarLayout = ({
     ...(onDeepFlowClick
       ? [{ label: "DeepFlow AI", icon: <Sparkles size={14} className="shrink-0" />, onClick: onDeepFlowClick, active: deepFlowActive, separator: true }]
       : []),
-    { label: "预览产品", icon: <ExternalLink size={14} className="text-muted-foreground shrink-0" />, onClick: () => window.open(`/project/${id}/preview`, '_blank'), active: false },
     { label: "开发执行中心", icon: <Cpu size={14} className="text-muted-foreground shrink-0" />, onClick: () => navigate(`/project/${id}/dev`), active: isDevPage },
   ];
 
