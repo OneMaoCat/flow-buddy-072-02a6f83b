@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import ClarifyCards, { type ClarifyQuestion } from "./ClarifyCards";
-import PlanCard, { type PlanStep } from "./PlanCard";
+import RequirementDoc, { type RequirementDocData } from "./RequirementDoc";
 import { Loader2 } from "lucide-react";
 
 type FlowStage = "clarifying" | "generating" | "planning" | "confirmed";
@@ -24,18 +24,65 @@ const mockQuestions: ClarifyQuestion[] = [
   },
 ];
 
-const mockPlan: { title: string; steps: PlanStep[]; totalTime: string } = {
-  title: "用户登录页表单验证修复 & 单元测试",
-  steps: [
-    { title: "分析现有登录表单代码结构和验证逻辑", estimatedTime: "10 min" },
-    { title: "修复表单验证规则（邮箱格式、密码强度、必填项）", estimatedTime: "25 min" },
-    { title: "添加表单错误提示 UI 组件", estimatedTime: "15 min" },
-    { title: "编写表单验证单元测试（覆盖正常/异常场景）", estimatedTime: "30 min" },
-    { title: "集成测试 & 回归验证", estimatedTime: "15 min" },
-    { title: "代码审查 & 提交 PR", estimatedTime: "10 min" },
+const buildMockDoc = (requirement: string): RequirementDocData => ({
+  title: requirement.length > 30 ? requirement.slice(0, 30) + "…" : requirement,
+  background:
+    "当前系统的用户登录页面在表单验证方面存在若干问题，包括邮箱格式校验缺失、密码强度提示不明确、必填项未做前端拦截等。这些问题导致用户体验不佳，同时也增加了后端无效请求的处理压力。本次需求旨在全面修复登录表单验证逻辑，并补充对应的单元测试以防止回归。",
+  scenarios: [
+    {
+      id: "s1",
+      actor: "普通用户",
+      action: "在登录页输入不合法的邮箱格式后点击登录",
+      expectedResult: "表单即时显示「请输入有效的邮箱地址」错误提示，阻止表单提交",
+    },
+    {
+      id: "s2",
+      actor: "普通用户",
+      action: "在登录页仅填写邮箱、留空密码后点击登录",
+      expectedResult: "密码输入框下方显示「密码为必填项」提示，阻止表单提交",
+    },
+    {
+      id: "s3",
+      actor: "开发人员",
+      action: "运行单元测试套件",
+      expectedResult: "所有验证场景（正常/异常）测试用例通过，覆盖率 ≥ 90%",
+    },
   ],
-  totalTime: "约 1 小时 45 分钟",
-};
+  flowSteps: [
+    { id: "f1", label: "用户打开登录页" },
+    { id: "f2", label: "填写邮箱和密码" },
+    { id: "f3", label: "点击「登录」按钮" },
+    { id: "f4", label: "前端表单验证" },
+    { id: "f5", label: "验证通过 → 发送请求" },
+    { id: "f6", label: "验证失败 → 显示错误提示" },
+  ],
+  changePoints: [
+    {
+      id: "c1",
+      module: "LoginForm 组件",
+      description: "新增邮箱格式正则校验，添加密码强度检查（至少 8 位，含数字和字母）",
+      type: "modify",
+    },
+    {
+      id: "c2",
+      module: "FormErrorTip 组件",
+      description: "新建通用的表单行内错误提示组件，支持动态文案和动画效果",
+      type: "add",
+    },
+    {
+      id: "c3",
+      module: "LoginForm.test.ts",
+      description: "新增单元测试文件，覆盖邮箱/密码验证的正常与异常场景",
+      type: "add",
+    },
+    {
+      id: "c4",
+      module: "旧版 alert() 验证逻辑",
+      description: "移除原有的 window.alert 弹窗式验证提示，替换为行内提示",
+      type: "delete",
+    },
+  ],
+});
 
 /** A single chat bubble */
 const UserBubble = ({ text }: { text: string }) => (
@@ -73,6 +120,7 @@ const PlanFlow = ({ requirement, onCancel, onStartDev }: PlanFlowProps) => {
   const navigate = useNavigate();
   const [stage, setStage] = useState<FlowStage>("clarifying");
   const [clarifyAnswers, setClarifyAnswers] = useState<Record<string, string> | null>(null);
+  const [docData, setDocData] = useState<RequirementDocData>(() => buildMockDoc(requirement));
 
   const handleClarifyComplete = (answers: Record<string, string>) => {
     setClarifyAnswers(answers);
@@ -104,23 +152,25 @@ const PlanFlow = ({ requirement, onCancel, onStartDev }: PlanFlowProps) => {
         />
       )}
 
-      {/* 4. Generating / Plan */}
+      {/* 4. Generating spinner */}
       {stage === "generating" && (
         <AIBubbleWrapper>
           <div className="flex items-center gap-2 py-4">
             <Loader2 size={18} className="text-primary animate-spin" />
-            <span className="text-sm text-muted-foreground">正在生成开发计划...</span>
+            <span className="text-sm text-muted-foreground">正在生成需求文档...</span>
           </div>
         </AIBubbleWrapper>
       )}
 
+      {/* 5. Requirement Document */}
       {stage === "planning" && (
         <AIBubbleWrapper>
-          <p className="text-sm text-muted-foreground mb-3">根据你的需求，我制定了以下开发计划：</p>
-          <PlanCard
-            title={mockPlan.title}
-            steps={mockPlan.steps}
-            totalTime={mockPlan.totalTime}
+          <p className="text-sm text-muted-foreground mb-3">
+            根据你的需求，我生成了以下需求文档，你可以点击任意内容进行编辑：
+          </p>
+          <RequirementDoc
+            data={docData}
+            onChange={setDocData}
             onConfirm={() => {
               setStage("confirmed");
               onStartDev();
@@ -133,11 +183,11 @@ const PlanFlow = ({ requirement, onCancel, onStartDev }: PlanFlowProps) => {
 
       {stage === "confirmed" && (
         <>
-          <UserBubble text="确认，开始开发吧！" />
+          <UserBubble text="确认需求，开始开发！" />
           <AIBubbleWrapper>
             <div className="flex items-center gap-2 py-4">
               <Loader2 size={18} className="text-primary animate-spin" />
-              <span className="text-sm text-foreground font-medium">正在根据计划进行开发...</span>
+              <span className="text-sm text-foreground font-medium">正在根据需求文档进行开发...</span>
             </div>
           </AIBubbleWrapper>
         </>
