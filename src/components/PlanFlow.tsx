@@ -114,6 +114,7 @@ interface PlanFlowProps {
   onCancel: () => void;
   onStartDev: () => void;
   onOpenDocEditor?: (doc: RequirementDocData) => void;
+  onDevSubmitted?: () => void;
 }
 
 const PlanFlow = ({ requirement, onCancel, onStartDev, onOpenDocEditor }: PlanFlowProps) => {
