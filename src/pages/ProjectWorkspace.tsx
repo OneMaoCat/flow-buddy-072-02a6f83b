@@ -238,6 +238,7 @@ const ChatArea = ({
   const renderCard = (card: DevCompleteResult) => (
     <div
       key={card.id}
+      data-card-id={card.id}
       className="flex justify-start animate-in fade-in slide-in-from-bottom-2 duration-300"
     >
       <div className="flex items-start gap-3 max-w-[90%]">
