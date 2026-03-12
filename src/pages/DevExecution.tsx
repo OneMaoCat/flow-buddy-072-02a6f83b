@@ -75,6 +75,18 @@ const StatCard = ({ label, value, active, color }: { label: string; value: numbe
 const DevExecution = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  // Shared conversation sidebar state
+  const [mockData] = useState(() => buildMockConversations());
+  const [conversations] = useState<Conversation[]>(mockData.conversations);
+  const [deployedIds] = useState<Set<string>>(mockData.deployedIds);
+  const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
+  const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
+
+  const totalTaskCount = conversations.reduce(
+    (sum, c) => sum + c.tasks.length + (c.devInProgress ? 1 : 0),
+    0
+  );
+
   const [requirements, setRequirements] = useState<Requirement[]>(createInitialRequirements);
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const logEndRef = useRef<HTMLDivElement>(null);
