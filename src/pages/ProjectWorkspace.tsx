@@ -132,8 +132,8 @@ const ChatArea = ({
       )}
     </div>
     <div className="absolute bottom-0 left-0 right-0 bg-background/80 backdrop-blur-md border-t border-border p-3">
-      <div className="max-w-[800px] mx-auto">
-        <PromptBar onSubmit={onSubmit} />
+      <div className="mx-auto px-1">
+        <PromptBar onSubmit={onSubmit} compact />
       </div>
     </div>
   </div>
