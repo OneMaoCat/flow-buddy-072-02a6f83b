@@ -25,6 +25,7 @@ import {
   addTaskToConversation,
   setConversationDevInProgress,
   removeTaskFromConversation,
+  buildMockConversations,
 } from "@/data/conversations";
 
 const ProjectWorkspace = () => {
