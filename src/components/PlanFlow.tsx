@@ -117,9 +117,8 @@ interface PlanFlowProps {
   onDevSubmitted?: () => void;
 }
 
-const PlanFlow = ({ requirement, onCancel, onStartDev, onOpenDocEditor }: PlanFlowProps) => {
+const PlanFlow = ({ requirement, onCancel, onStartDev, onOpenDocEditor, onDevSubmitted }: PlanFlowProps) => {
   const { id } = useParams();
-  const navigate = useNavigate();
   const [stage, setStage] = useState<FlowStage>("clarifying");
   const [clarifyAnswers, setClarifyAnswers] = useState<Record<string, string> | null>(null);
   const [docData, setDocData] = useState<RequirementDocData>(() => buildMockDoc(requirement));
