@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useSyncExternalStore } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Menu, ExternalLink, Sparkles, Settings, Pin, PinOff, Cpu } from "lucide-react";
-import { mockProjects } from "@/data/projects";
+import { projectStore } from "@/data/projectStore";
 import ProjectSwitcher from "@/components/ProjectSwitcher";
 
 const useIsDesktop = () => {
