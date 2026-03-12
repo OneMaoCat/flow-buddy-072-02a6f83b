@@ -106,6 +106,20 @@ const ProjectWorkspace = () => {
     }, 3000 + Math.random() * 3000);
   };
 
+  const scrollToCard = useCallback((cardId: string) => {
+    setTimeout(() => {
+      const el = document.querySelector(`[data-card-id="${cardId}"]`);
+      el?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 100);
+  }, []);
+
+  const handleSelectCard = useCallback((cardId: string) => {
+    setSelectedCardId(cardId);
+    setEditingDoc(null);
+    setRightPanelOpen(true);
+    scrollToCard(cardId);
+  }, [scrollToCard]);
+
   const mainContent = showDeepFlow ? (
     <DeepFlowPanel
       onSubmit={handleSubmit}
@@ -124,7 +138,7 @@ const ProjectWorkspace = () => {
       onDeploy={handleDeploy}
       onReject={handleReject}
       selectedCardId={selectedCardId}
-      onSelectCard={(id) => { setSelectedCardId(id); setEditingDoc(null); setRightPanelOpen(true); }}
+      onSelectCard={handleSelectCard}
     />
   );
 
