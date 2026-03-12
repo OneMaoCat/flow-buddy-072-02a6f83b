@@ -13,38 +13,51 @@ import ProjectSidebarLayout from "@/components/ProjectSidebarLayout";
 import RequirementDocEditor from "@/components/RequirementDocEditor";
 import DevCompleteCard, { buildMockDevResult, type DevCompleteResult } from "@/components/DevCompleteCard";
 import DevCompleteDetailPanel from "@/components/DevCompleteDetailPanel";
-import SidebarTaskList from "@/components/SidebarTaskList";
+import SidebarConversationList from "@/components/SidebarConversationList";
 import { requestNotificationPermission, notifyDevComplete } from "@/components/DevNotification";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import type { RequirementDocData } from "@/components/RequirementDoc";
+import {
+  type Conversation,
+  createConversation,
+  addTaskToConversation,
+  setConversationDevInProgress,
+  removeTaskFromConversation,
+} from "@/data/conversations";
 
 const ProjectWorkspace = () => {
   const { id } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [rightPanelOpen, setRightPanelOpen] = useState(true);
-  const [planFlow, setPlanFlow] = useState<{ active: boolean; requirement: string }>({ active: false, requirement: "" });
   const [testsPassed, setTestsPassed] = useState(false);
   const [previewConfirmed, setPreviewConfirmed] = useState(false);
   const [showDeepFlow, setShowDeepFlow] = useState(false);
   const [editingDoc, setEditingDoc] = useState<RequirementDocData | null>(null);
 
-  // Dev complete cards in chat
-  const [devCards, setDevCards] = useState<DevCompleteResult[]>([]);
+  // Conversation-based state
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [deployedIds, setDeployedIds] = useState<Set<string>>(new Set());
-  const [devInProgress, setDevInProgress] = useState(false);
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
+  const [planFlow, setPlanFlow] = useState<{ active: boolean; requirement: string }>({ active: false, requirement: "" });
 
+  const activeConversation = conversations.find((c) => c.id === activeConversationId) || null;
+  const devCards = activeConversation?.tasks || [];
+  const devInProgress = activeConversation?.devInProgress || false;
   const selectedCard = devCards.find((c) => c.id === selectedCardId) || null;
 
-  // Request notification permission once
+  const totalTaskCount = conversations.reduce(
+    (sum, c) => sum + c.tasks.length + (c.devInProgress ? 1 : 0),
+    0
+  );
+
   useEffect(() => {
     requestNotificationPermission();
   }, []);
 
-  // Handle devComplete param (legacy)
   useEffect(() => {
     if (searchParams.get("devComplete") === "true") {
       setTestsPassed(true);
@@ -56,9 +69,30 @@ const ProjectWorkspace = () => {
     }
   }, [searchParams, setSearchParams]);
 
+  const handleNewConversation = useCallback(() => {
+    setShowDeepFlow(true);
+    setSelectedCardId(null);
+    setEditingDoc(null);
+  }, []);
+
+  const handleSelectConversation = useCallback((convId: string) => {
+    setActiveConversationId(convId);
+    setSelectedCardId(null);
+    setShowDeepFlow(false);
+    setEditingDoc(null);
+    const conv = conversations.find((c) => c.id === convId);
+    if (conv) {
+      setPlanFlow({ active: true, requirement: conv.currentRequirement });
+    }
+  }, [conversations]);
+
   const handleSubmit = (data: { text: string; isPlanMode: boolean }) => {
     setShowDeepFlow(false);
     if (data.isPlanMode && data.text.trim()) {
+      // Create new conversation
+      const newConv = createConversation(data.text);
+      setConversations((prev) => [newConv, ...prev]);
+      setActiveConversationId(newConv.id);
       setPlanFlow({ active: true, requirement: data.text });
     }
   };
@@ -72,21 +106,24 @@ const ProjectWorkspace = () => {
     setEditingDoc(null);
   };
 
-  // When plan is confirmed → start simulated async dev
   const handleDevSubmitted = useCallback(() => {
-    setDevInProgress(true);
-    const delay = 3000 + Math.random() * 4000; // 3-7s
+    if (!activeConversationId) return;
+    setConversations((prev) =>
+      setConversationDevInProgress(prev, activeConversationId, true)
+    );
+    const delay = 3000 + Math.random() * 4000;
+    const convId = activeConversationId;
+    const requirement = planFlow.requirement;
     setTimeout(() => {
       const result = buildMockDevResult(
         crypto.randomUUID(),
-        planFlow.requirement,
+        requirement,
         id || "demo"
       );
-      setDevCards((prev) => [...prev, result]);
-      setDevInProgress(false);
+      setConversations((prev) => addTaskToConversation(prev, convId, result));
       notifyDevComplete(result.requirementTitle);
     }, delay);
-  }, [planFlow.requirement, id]);
+  }, [activeConversationId, planFlow.requirement, id]);
 
   const handleDeploy = (cardId: string) => {
     setDeployedIds((prev) => new Set(prev).add(cardId));
@@ -94,14 +131,16 @@ const ProjectWorkspace = () => {
   };
 
   const handleReject = (cardId: string) => {
+    if (!activeConversationId) return;
     toast("已打回修改，AI 将重新处理", { icon: "🔄" });
-    // Remove card & re-trigger dev
-    setDevCards((prev) => prev.filter((c) => c.id !== cardId));
-    setDevInProgress(true);
+    const convId = activeConversationId;
+    setConversations((prev) => {
+      const updated = removeTaskFromConversation(prev, convId, cardId);
+      return setConversationDevInProgress(updated, convId, true);
+    });
     setTimeout(() => {
       const result = buildMockDevResult(cardId, planFlow.requirement || "需求修复", id || "demo");
-      setDevCards((prev) => [...prev, result]);
-      setDevInProgress(false);
+      setConversations((prev) => addTaskToConversation(prev, convId, result));
       notifyDevComplete(result.requirementTitle);
     }, 3000 + Math.random() * 3000);
   };
@@ -118,7 +157,14 @@ const ProjectWorkspace = () => {
     setEditingDoc(null);
     setRightPanelOpen(true);
     scrollToCard(cardId);
-  }, [scrollToCard]);
+    // Find which conversation owns this card
+    for (const conv of conversations) {
+      if (conv.tasks.some((t) => t.id === cardId)) {
+        setActiveConversationId(conv.id);
+        break;
+      }
+    }
+  }, [scrollToCard, conversations]);
 
   const mainContent = showDeepFlow ? (
     <DeepFlowPanel
@@ -146,15 +192,16 @@ const ProjectWorkspace = () => {
     <ProjectSidebarLayout
       onDeepFlowClick={() => setShowDeepFlow(true)}
       deepFlowActive={showDeepFlow}
-      taskCount={devCards.length + (devInProgress ? 1 : 0)}
+      taskCount={totalTaskCount}
       taskList={
-        <SidebarTaskList
-          devCards={devCards}
+        <SidebarConversationList
+          conversations={conversations}
           deployedIds={deployedIds}
-          devInProgress={devInProgress}
-          currentRequirement={planFlow.requirement}
+          activeConversationId={activeConversationId}
           selectedCardId={selectedCardId}
+          onSelectConversation={handleSelectConversation}
           onSelectCard={handleSelectCard}
+          onNewConversation={handleNewConversation}
         />
       }
       headerRight={
