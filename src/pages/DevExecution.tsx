@@ -334,34 +334,7 @@ const DevExecution = () => {
         <div className="flex h-full overflow-hidden">
           {/* Left: task list */}
           <div className={cn("flex flex-col h-full overflow-hidden min-w-0", selectedReq ? "flex-1" : "flex-1")}>
-            {/* Stats bar */}
-            <div className="shrink-0 px-4 pt-3 pb-2 flex items-center gap-2 flex-wrap">
-              {filterTabs.map(tab => (
-                <button
-                  key={tab.key}
-                  onClick={() => setFilter(tab.key)}
-                  className={cn(
-                    "px-2.5 py-1 rounded-md text-xs font-medium transition-colors whitespace-nowrap",
-                    filter === tab.key ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"
-                  )}
-                >
-                  {tab.label} <span className="ml-1 opacity-70">{tab.count}</span>
-                </button>
-              ))}
-              <div className="flex-1" />
-              <div className="flex items-center gap-1.5">
-                <div className="relative">
-                  <Search size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                  <Input placeholder="搜索..." value={search} onChange={e => setSearch(e.target.value)} className="h-7 pl-7 text-xs w-40" />
-                </div>
-                <button onClick={() => setViewMode("table")} className={cn("p-1.5 rounded-md transition-colors", viewMode === "table" ? "bg-secondary text-foreground" : "text-muted-foreground hover:bg-muted")}>
-                  <Table2 size={14} />
-                </button>
-                <button onClick={() => setViewMode("kanban")} className={cn("p-1.5 rounded-md transition-colors", viewMode === "kanban" ? "bg-secondary text-foreground" : "text-muted-foreground hover:bg-muted")}>
-                  <LayoutGrid size={14} />
-                </button>
-              </div>
-            </div>
+            
 
             {/* Content */}
             <ScrollArea className="flex-1 min-h-0">
