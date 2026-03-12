@@ -10,6 +10,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import ProjectSidebarLayout from "@/components/ProjectSidebarLayout";
 import RequirementPreview from "@/components/RequirementPreview";
+import SidebarConversationList from "@/components/SidebarConversationList";
+import { buildMockConversations, type Conversation } from "@/data/conversations";
 import { createInitialRequirements, formatTime, logTemplates, generateTestsForRequirement } from "@/data/devExecutionMock";
 import type { Requirement, Agent, AgentStatus, RequirementStatus, LogEntry, TestItem, TestItemStatus } from "@/data/devExecutionMock";
 
@@ -73,6 +75,18 @@ const StatCard = ({ label, value, active, color }: { label: string; value: numbe
 const DevExecution = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  // Shared conversation sidebar state
+  const [mockData] = useState(() => buildMockConversations());
+  const [conversations] = useState<Conversation[]>(mockData.conversations);
+  const [deployedIds] = useState<Set<string>>(mockData.deployedIds);
+  const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
+  const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
+
+  const totalTaskCount = conversations.reduce(
+    (sum, c) => sum + c.tasks.length + (c.devInProgress ? 1 : 0),
+    0
+  );
+
   const [requirements, setRequirements] = useState<Requirement[]>(createInitialRequirements);
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const logEndRef = useRef<HTMLDivElement>(null);
@@ -323,7 +337,32 @@ const DevExecution = () => {
 
   return (
     <ProjectSidebarLayout
-      onDeepFlowClick={() => navigate(`/project/${id}`)}
+      onDeepFlowClick={() => { navigate(`/project/${id}`); }}
+      taskList={
+        <SidebarConversationList
+          conversations={conversations}
+          deployedIds={deployedIds}
+          activeConversationId={activeConversationId}
+          selectedCardId={selectedCardId}
+          onSelectConversation={(cid) => {
+            setActiveConversationId(cid);
+            setSelectedCardId(null);
+          }}
+          onSelectCard={(cardId) => {
+            setSelectedCardId(cardId);
+            // Find parent conversation
+            for (const conv of conversations) {
+              if (conv.tasks.some((t) => t.id === cardId)) {
+                setActiveConversationId(conv.id);
+                break;
+              }
+            }
+            navigate(`/project/${id}`);
+          }}
+          onNewConversation={() => navigate(`/project/${id}`)}
+        />
+      }
+      taskCount={totalTaskCount}
       headerRight={
         <div className="flex items-center gap-3 min-w-[200px]">
           <div className="text-right mr-2">
