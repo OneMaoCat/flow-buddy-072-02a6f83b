@@ -180,7 +180,7 @@ interface RequirementDocEditorProps {
   onConfirm?: () => void;
 }
 
-const RequirementDocEditor = ({ data, onChange, onClose }: RequirementDocEditorProps) => {
+const RequirementDocEditor = ({ data, onChange, onClose, onConfirm }: RequirementDocEditorProps) => {
   const [doc, setDoc] = useState<RequirementDocData>(data);
   const [images, setImages] = useState<Map<string, string[]>>(new Map());
   const [reviewers, setReviewers] = useState<Reviewer[]>(mockReviewers);
