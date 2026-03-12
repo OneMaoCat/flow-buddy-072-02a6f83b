@@ -171,7 +171,6 @@ const ProjectWorkspace = () => {
   const mainContent = showDeepFlow ? (
     <DeepFlowPanel
       onSubmit={handleSubmit}
-      onSelectConversation={() => setShowDeepFlow(false)}
     />
   ) : (
     <ChatArea
