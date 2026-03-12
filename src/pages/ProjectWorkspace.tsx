@@ -22,7 +22,9 @@ import { cn } from "@/lib/utils";
 import type { RequirementDocData } from "@/components/RequirementDoc";
 import {
   type Conversation,
+  type ChatMessage,
   createConversation,
+  addMessageToConversation,
   addTaskToConversation,
   setConversationDevInProgress,
   removeTaskFromConversation,
