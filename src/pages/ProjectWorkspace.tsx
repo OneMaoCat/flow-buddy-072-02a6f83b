@@ -294,6 +294,7 @@ const ChatArea = ({
   onOpenDocEditor,
   onDevSubmitted,
   devCards,
+  chatMessages,
   deployedIds,
   devInProgress,
   onDeploy,
@@ -307,6 +308,7 @@ const ChatArea = ({
   onOpenDocEditor: (doc: RequirementDocData) => void;
   onDevSubmitted: () => void;
   devCards: DevCompleteResult[];
+  chatMessages: ChatMessage[];
   deployedIds: Set<string>;
   devInProgress: boolean;
   onDeploy: (id: string) => void;
@@ -314,6 +316,13 @@ const ChatArea = ({
   selectedCardId: string | null;
   onSelectCard: (id: string) => void;
 }) => {
+  const renderUserMessage = (msg: ChatMessage) => (
+    <div key={msg.id} className="flex justify-end animate-in fade-in slide-in-from-bottom-2 duration-300">
+      <div className="max-w-[80%] px-4 py-2.5 rounded-2xl rounded-br-md bg-primary text-primary-foreground text-sm">
+        {msg.text}
+      </div>
+    </div>
+  );
   const renderCard = (card: DevCompleteResult) => (
     <div
       key={card.id}
