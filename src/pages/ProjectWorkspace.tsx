@@ -315,9 +315,12 @@ const ChatArea = ({
   onSelectCard: (id: string) => void;
 }) => {
   const renderUserMessage = (msg: ChatMessage) => (
-    <div key={msg.id} className="flex justify-end animate-in fade-in slide-in-from-bottom-2 duration-300">
+    <div key={msg.id} className="flex justify-end gap-2 animate-in fade-in slide-in-from-bottom-2 duration-300">
       <div className="max-w-[80%] px-4 py-2.5 rounded-2xl rounded-br-md bg-primary text-primary-foreground text-sm">
         {msg.text}
+      </div>
+      <div className="w-7 h-7 rounded-full bg-secondary border border-border flex items-center justify-center shrink-0 text-xs font-medium text-foreground">
+        我
       </div>
     </div>
   );
