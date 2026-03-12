@@ -1,10 +1,17 @@
 import type { DevCompleteResult } from "@/components/DevCompleteCard";
 import { buildMockDevResult } from "@/components/DevCompleteCard";
 
+export interface ChatMessage {
+  id: string;
+  text: string;
+  timestamp: number;
+}
+
 export interface Conversation {
   id: string;
   title: string;
   createdAt: Date;
+  messages: ChatMessage[];
   tasks: DevCompleteResult[];
   devInProgress: boolean;
   currentRequirement: string;
