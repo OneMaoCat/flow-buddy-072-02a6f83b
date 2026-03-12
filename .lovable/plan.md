@@ -1,28 +1,20 @@
-# 需求平台 + 异步开发 + 消息卡片验收
 
-## 已完成
 
-### 1. DevCompleteCard — 聊天区验收卡片 ✅
-- 代码变更 Tab（文件列表 + diff 视图）
-- 产品预览 Tab（复用 RequirementPreview）
-- 自测报告 Tab（测试用例列表 + 通过率）
-- 操作栏（发布到测试环境 / 打回修改）
+## Plan: Add Task Manager Popover to Chat Area
 
-### 2. PlanFlow 改造 ✅
-- 确认需求后不再跳转 /dev 页面
-- 触发 onDevSubmitted 回调启动异步模拟
+### What
+Add a task management icon button above the chat input area. Clicking it opens a popover/dropdown listing all tasks in the current conversation with their statuses (in-progress, pending review, deployed). Clicking a task scrolls to it and opens the detail panel.
 
-### 3. ProjectWorkspace 状态管理 ✅
-- devCards 数组管理已完成的开发结果
-- 异步模拟 3-7s 后推送 DevCompleteCard 到聊天区
-- 发布/打回操作 + toast 反馈
+### How
 
-### 4. DevNotification 浏览器通知 ✅
-- Notification API 权限请求
-- 后台标签页系统通知 + sonner toast
+**Modify `src/pages/ProjectWorkspace.tsx` — ChatArea component:**
 
-### 5. 侧边栏任务追踪列表 ✅
-- SidebarTaskList 组件：按状态分组（开发中/待验收/已发布）
-- ProjectSidebarLayout 增加 taskList/taskCount props，Collapsible 区域
-- ProjectWorkspace 连接数据，点击任务项定位卡片+打开详情面板
-- 聊天区卡片增加 data-card-id，支持 scrollIntoView 定位
+1. Add a `ListTodo` icon button in the chat area header (top of the chat, sticky bar or above the prompt bar area).
+2. Use a `Popover` from radix to show a task list panel when clicked.
+3. The popover lists all `devCards` with status indicators (same style as sidebar task items) plus an in-progress indicator if `devInProgress` is true.
+4. Clicking a task in the popover calls `onSelectCard(id)` and closes the popover.
+
+**Layout:** Add a small toolbar row at the top of the ChatArea with the task icon + count badge. The popover contains a scrollable list of tasks with status icons matching the existing `SidebarTaskList` pattern (Loader2 for in-progress, orange circle for pending, green check for deployed).
+
+No new files needed — all changes within `ProjectWorkspace.tsx`'s ChatArea component, reusing existing UI primitives (`Popover`, `Badge`, lucide icons).
+
