@@ -89,13 +89,33 @@ const ProjectWorkspace = () => {
   }, [conversations]);
 
   const handleSubmit = (data: { text: string; isPlanMode: boolean }) => {
+    if (!data.text.trim()) return;
     setShowDeepFlow(false);
-    if (data.isPlanMode && data.text.trim()) {
-      // Create new conversation
-      const newConv = createConversation(data.text);
-      setConversations((prev) => [newConv, ...prev]);
-      setActiveConversationId(newConv.id);
+
+    // Create new conversation
+    const newConv = createConversation(data.text);
+    setConversations((prev) => [newConv, ...prev]);
+    setActiveConversationId(newConv.id);
+
+    if (data.isPlanMode) {
+      // Plan mode: show plan flow first
       setPlanFlow({ active: true, requirement: data.text });
+    } else {
+      // Direct mode: skip plan, start dev immediately
+      setPlanFlow({ active: false, requirement: data.text });
+      setConversations((prev) =>
+        setConversationDevInProgress(prev, newConv.id, true)
+      );
+      const delay = 3000 + Math.random() * 4000;
+      setTimeout(() => {
+        const result = buildMockDevResult(
+          crypto.randomUUID(),
+          data.text,
+          id || "demo"
+        );
+        setConversations((prev) => addTaskToConversation(prev, newConv.id, result));
+        notifyDevComplete(result.requirementTitle);
+      }, delay);
     }
   };
 
