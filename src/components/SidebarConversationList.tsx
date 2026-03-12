@@ -34,13 +34,6 @@ const SidebarConversationList = ({
 }: SidebarConversationListProps) => {
   return (
     <div className="flex flex-col gap-0.5">
-      <button
-        onClick={onNewConversation}
-        className="w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-xs text-muted-foreground hover:bg-secondary/50 transition-colors mb-1"
-      >
-        <Plus size={12} />
-        <span>新建对话</span>
-      </button>
 
       {conversations.map((conv) => {
         const status = getConversationStatus(conv, deployedIds);
