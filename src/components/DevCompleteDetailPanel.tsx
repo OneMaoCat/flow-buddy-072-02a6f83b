@@ -36,43 +36,39 @@ const DevCompleteDetailPanel = ({
 
   return (
     <div className="flex flex-col h-full bg-background">
-      {/* Header */}
-      <div className="flex items-center gap-3 px-4 py-3 border-b border-border">
-        <div className="w-8 h-8 rounded-full bg-green-500/15 flex items-center justify-center shrink-0">
-          <CheckCircle2 size={16} className="text-green-500" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-foreground truncate">
-            {result.requirementTitle}
-          </p>
-          <p className="text-[11px] text-muted-foreground">
-            {result.files.length} 个文件变更 · {result.tests.length} 个测试 · 耗时{result.elapsed}s
-          </p>
-        </div>
-        {deployed && (
-          <Badge className="text-[10px] bg-green-500/15 text-green-500 border-0">已发布</Badge>
-        )}
-        <button
-          onClick={onClose}
-          className="p-1.5 rounded-md hover:bg-muted transition-colors text-muted-foreground"
-        >
-          <X size={14} />
-        </button>
-      </div>
-
       {/* Tabs */}
       <Tabs defaultValue="preview" className="flex-1 flex flex-col min-h-0">
-        <TabsList className="mx-4 mt-3 mb-0">
-          <TabsTrigger value="preview" className="text-xs gap-1.5">
-            <Eye size={13} /> 产品预览
-          </TabsTrigger>
-          <TabsTrigger value="diff" className="text-xs gap-1.5">
-            <FileCode2 size={13} /> 代码变更
-          </TabsTrigger>
-          <TabsTrigger value="tests" className="text-xs gap-1.5">
-            <TestTube2 size={13} /> 自测报告
-          </TabsTrigger>
-        </TabsList>
+        {/* Header with title + tabs on same row */}
+        <div className="flex items-center gap-3 px-4 py-2 border-b border-border shrink-0">
+          <div className="w-7 h-7 rounded-full bg-green-500/15 flex items-center justify-center shrink-0">
+            <CheckCircle2 size={14} className="text-green-500" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-foreground truncate">
+              {result.requirementTitle}
+            </p>
+          </div>
+          <TabsList className="h-8">
+            <TabsTrigger value="preview" className="text-xs gap-1 h-7 px-2.5">
+              <Eye size={12} /> 预览
+            </TabsTrigger>
+            <TabsTrigger value="diff" className="text-xs gap-1 h-7 px-2.5">
+              <FileCode2 size={12} /> 变更
+            </TabsTrigger>
+            <TabsTrigger value="tests" className="text-xs gap-1 h-7 px-2.5">
+              <TestTube2 size={12} /> 测试
+            </TabsTrigger>
+          </TabsList>
+          {deployed && (
+            <Badge className="text-[10px] bg-green-500/15 text-green-500 border-0">已发布</Badge>
+          )}
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded-md hover:bg-muted transition-colors text-muted-foreground"
+          >
+            <X size={14} />
+          </button>
+        </div>
 
         {/* Preview */}
         <TabsContent value="preview" className="flex-1 min-h-0 m-0">
