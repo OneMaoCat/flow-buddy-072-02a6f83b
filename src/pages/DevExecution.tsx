@@ -323,6 +323,7 @@ const DevExecution = () => {
 
   return (
     <ProjectSidebarLayout
+      onDeepFlowClick={() => navigate(`/project/${id}`)}
       headerRight={
         <div className="flex items-center gap-3 min-w-[200px]">
           <div className="text-right mr-2">
