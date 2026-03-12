@@ -92,20 +92,23 @@ const ProjectWorkspace = () => {
     if (!data.text.trim()) return;
     setShowDeepFlow(false);
 
-    // Create new conversation
-    const newConv = createConversation(data.text);
-    setConversations((prev) => [newConv, ...prev]);
-    setActiveConversationId(newConv.id);
+    // Reuse active conversation or create a new one
+    let convId = activeConversationId;
+    if (!convId) {
+      const newConv = createConversation(data.text);
+      setConversations((prev) => [newConv, ...prev]);
+      setActiveConversationId(newConv.id);
+      convId = newConv.id;
+    }
 
     if (data.isPlanMode) {
-      // Plan mode: show plan flow first
       setPlanFlow({ active: true, requirement: data.text });
     } else {
-      // Direct mode: skip plan, start dev immediately
       setPlanFlow({ active: false, requirement: data.text });
       setConversations((prev) =>
-        setConversationDevInProgress(prev, newConv.id, true)
+        setConversationDevInProgress(prev, convId!, true)
       );
+      const capturedConvId = convId;
       const delay = 3000 + Math.random() * 4000;
       setTimeout(() => {
         const result = buildMockDevResult(
@@ -113,7 +116,7 @@ const ProjectWorkspace = () => {
           data.text,
           id || "demo"
         );
-        setConversations((prev) => addTaskToConversation(prev, newConv.id, result));
+        setConversations((prev) => addTaskToConversation(prev, capturedConvId, result));
         notifyDevComplete(result.requirementTitle);
       }, delay);
     }
