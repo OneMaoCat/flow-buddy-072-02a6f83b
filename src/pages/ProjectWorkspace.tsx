@@ -102,7 +102,7 @@ const ChatArea = ({
   onCancel: () => void;
   devCompleteMessage: boolean;
 }) => (
-  <div className="flex flex-col h-full">
+  <div className="relative flex flex-col h-full">
     <div className="flex-1 overflow-y-auto px-5 md:px-8 pt-8 pb-32 scrollbar-hide">
       {devCompleteMessage ? (
         <div className="max-w-[800px] mx-auto">
@@ -131,10 +131,8 @@ const ChatArea = ({
         </div>
       )}
     </div>
-    <div className="absolute bottom-0 left-0 right-0 bg-background/80 backdrop-blur-md border-t border-border p-3">
-      <div className="mx-auto px-1">
-        <PromptBar onSubmit={onSubmit} compact />
-      </div>
+    <div className="sticky bottom-0 bg-background/80 backdrop-blur-md border-t border-border p-3">
+      <PromptBar onSubmit={onSubmit} compact />
     </div>
   </div>
 );
