@@ -71,11 +71,11 @@ const ProjectWorkspace = () => {
       {({ isDesktop }) => (
         rightPanelOpen && isDesktop ? (
           <ResizablePanelGroup direction="horizontal">
-            <ResizablePanel defaultSize={60} minSize={40}>
+            <ResizablePanel defaultSize={40} minSize={30}>
               {mainContent}
             </ResizablePanel>
             <ResizableHandle withHandle />
-            <ResizablePanel defaultSize={40} minSize={25}>
+            <ResizablePanel defaultSize={60} minSize={30}>
               <RightPanel
                 projectName=""
                 onTestsPassed={() => setTestsPassed(true)}
