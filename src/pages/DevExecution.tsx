@@ -337,7 +337,32 @@ const DevExecution = () => {
 
   return (
     <ProjectSidebarLayout
-      onDeepFlowClick={() => navigate(`/project/${id}`)}
+      onDeepFlowClick={() => { navigate(`/project/${id}`); }}
+      taskList={
+        <SidebarConversationList
+          conversations={conversations}
+          deployedIds={deployedIds}
+          activeConversationId={activeConversationId}
+          selectedCardId={selectedCardId}
+          onSelectConversation={(cid) => {
+            setActiveConversationId(cid);
+            setSelectedCardId(null);
+          }}
+          onSelectCard={(cardId) => {
+            setSelectedCardId(cardId);
+            // Find parent conversation
+            for (const conv of conversations) {
+              if (conv.tasks.some((t) => t.id === cardId)) {
+                setActiveConversationId(conv.id);
+                break;
+              }
+            }
+            navigate(`/project/${id}`);
+          }}
+          onNewConversation={() => navigate(`/project/${id}`)}
+        />
+      }
+      taskCount={totalTaskCount}
       headerRight={
         <div className="flex items-center gap-3 min-w-[200px]">
           <div className="text-right mr-2">
