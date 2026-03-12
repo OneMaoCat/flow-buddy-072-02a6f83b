@@ -1,22 +1,18 @@
-import { useState } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
+import { useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
-import RequirementPreview from "@/components/RequirementPreview";
 import {
   FileCode2,
-  Eye,
-  TestTube2,
   CheckCircle2,
-  XCircle,
-  ChevronDown,
-  ChevronUp,
-  Rocket,
-  RotateCcw,
+  ChevronRight,
+  Loader2,
+  Search,
+  Code2,
+  TestTube2,
+  Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-/* ── Mock data ── */
+/* ── Types ── */
 
 interface DiffFile {
   path: string;
@@ -109,177 +105,175 @@ export const buildMockDevResult = (
   ],
 });
 
-/* ── Sub-components ── */
+/* ── Process step definition ── */
 
-const DiffView = ({ files }: { files: DiffFile[] }) => {
-  const totalAdds = files.reduce((s, f) => s + f.additions, 0);
-  const totalDels = files.reduce((s, f) => s + f.deletions, 0);
+interface ProcessStep {
+  icon: React.ReactNode;
+  label: string;
+  detail?: string;
+}
+
+const buildProcessSteps = (result: DevCompleteResult): ProcessStep[] => {
+  const totalAdds = result.files.reduce((s, f) => s + f.additions, 0);
+  const totalDels = result.files.reduce((s, f) => s + f.deletions, 0);
+  const passedTests = result.tests.filter((t) => t.passed).length;
+
+  return [
+    {
+      icon: <Search size={12} />,
+      label: "分析需求",
+      detail: `理解「${result.requirementTitle}」`,
+    },
+    {
+      icon: <Sparkles size={12} />,
+      label: "制定方案",
+      detail: `规划 ${result.files.length} 个文件的修改方案`,
+    },
+    {
+      icon: <Code2 size={12} />,
+      label: "编写代码",
+      detail: `${result.files.map((f) => f.path.split("/").pop()).join("、")}`,
+    },
+    {
+      icon: <FileCode2 size={12} />,
+      label: "代码变更",
+      detail: `${result.files.length} 个文件 · +${totalAdds} -${totalDels}`,
+    },
+    {
+      icon: <TestTube2 size={12} />,
+      label: "运行测试",
+      detail: `${passedTests}/${result.tests.length} 用例通过`,
+    },
+  ];
+};
+
+/* ── DevProcessLog: Codex-style generation log ── */
+
+const DevProcessLog = ({ result }: { result: DevCompleteResult }) => {
+  const steps = buildProcessSteps(result);
 
   return (
-    <div className="space-y-3 p-3">
-      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-        <span>{files.length} 个文件变更</span>
-        <span className="text-green-500">+{totalAdds}</span>
-        <span className="text-destructive">-{totalDels}</span>
-      </div>
-      {files.map((f) => (
-        <div key={f.path} className="rounded-md border border-border overflow-hidden">
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-muted/40 border-b border-border">
-            <FileCode2 size={12} className="text-muted-foreground" />
-            <span className="text-xs font-mono text-foreground">{f.path}</span>
-            <span className="ml-auto text-[10px] text-green-500">+{f.additions}</span>
-            <span className="text-[10px] text-destructive">-{f.deletions}</span>
+    <div className="flex flex-col gap-0">
+      {steps.map((step, i) => (
+        <div key={i} className="flex items-start gap-2.5 py-1">
+          <div className="mt-0.5 w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center shrink-0 text-primary">
+            {step.icon}
           </div>
-          <div className="text-[11px] font-mono leading-5 bg-card">
-            {f.lines.map((l, i) => (
-              <div
-                key={i}
-                className={cn(
-                  "px-3",
-                  l.type === "add" && "bg-green-500/10 text-green-400",
-                  l.type === "del" && "bg-destructive/10 text-destructive line-through",
-                  l.type === "ctx" && "text-muted-foreground"
-                )}
-              >
-                <span className="inline-block w-4 select-none opacity-50">
-                  {l.type === "add" ? "+" : l.type === "del" ? "-" : " "}
-                </span>
-                {l.content}
-              </div>
-            ))}
+          <div className="flex-1 min-w-0">
+            <span className="text-xs font-medium text-foreground">{step.label}</span>
+            {step.detail && (
+              <span className="text-xs text-muted-foreground ml-1.5">{step.detail}</span>
+            )}
           </div>
+          <CheckCircle2 size={12} className="text-primary/60 shrink-0 mt-0.5" />
         </div>
       ))}
     </div>
   );
 };
 
-const TestReport = ({ tests }: { tests: TestCase[] }) => {
-  const passed = tests.filter((t) => t.passed).length;
+/* ── DevInProgressLog: Animated live generation steps ── */
+
+export const DevInProgressCard = ({ requirement }: { requirement: string }) => {
+  const [visibleSteps, setVisibleSteps] = useState(0);
+
+  const steps = [
+    { icon: <Search size={12} />, label: "分析需求", detail: `理解「${requirement.slice(0, 30)}…」` },
+    { icon: <Sparkles size={12} />, label: "制定方案", detail: "规划实现路径与文件变更…" },
+    { icon: <Code2 size={12} />, label: "编写代码", detail: "正在生成代码…" },
+  ];
+
+  useEffect(() => {
+    const timers: NodeJS.Timeout[] = [];
+    steps.forEach((_, i) => {
+      timers.push(setTimeout(() => setVisibleSteps(i + 1), (i + 1) * 1200));
+    });
+    return () => timers.forEach(clearTimeout);
+  }, []);
+
   return (
-    <div className="p-3 space-y-2">
-      <div className="flex items-center gap-2">
-        <Badge variant={passed === tests.length ? "default" : "destructive"} className="text-[10px]">
-          {passed}/{tests.length} 通过
-        </Badge>
-        <span className="text-[10px] text-muted-foreground">
-          总耗时 {tests.reduce((s, t) => s + t.duration, 0)}ms
-        </span>
+    <div className="rounded-xl border border-border bg-card p-4 animate-in fade-in slide-in-from-bottom-3 duration-500">
+      <div className="flex flex-col gap-0">
+        {steps.slice(0, visibleSteps).map((step, i) => {
+          const isLast = i === visibleSteps - 1;
+          return (
+            <div key={i} className="flex items-start gap-2.5 py-1 animate-in fade-in slide-in-from-bottom-1 duration-300">
+              <div className={cn(
+                "mt-0.5 w-5 h-5 rounded-full flex items-center justify-center shrink-0",
+                isLast ? "bg-primary/15 text-primary" : "bg-primary/10 text-primary"
+              )}>
+                {isLast ? <Loader2 size={12} className="animate-spin" /> : step.icon}
+              </div>
+              <div className="flex-1 min-w-0">
+                <span className="text-xs font-medium text-foreground">{step.label}</span>
+                <span className="text-xs text-muted-foreground ml-1.5">{step.detail}</span>
+              </div>
+              {!isLast && <CheckCircle2 size={12} className="text-primary/60 shrink-0 mt-0.5" />}
+            </div>
+          );
+        })}
       </div>
-      <div className="rounded-md border border-border bg-card overflow-hidden">
-        {tests.map((t, i) => (
-          <div
-            key={i}
-            className="flex items-center gap-2 px-3 py-1.5 text-xs border-b border-border last:border-0"
-          >
-            {t.passed ? (
-              <CheckCircle2 size={13} className="text-green-500 shrink-0" />
-            ) : (
-              <XCircle size={13} className="text-destructive shrink-0" />
-            )}
-            <span className="flex-1 text-foreground">{t.name}</span>
-            <span className="text-[10px] text-muted-foreground">{t.duration}ms</span>
-          </div>
-        ))}
-      </div>
+      {visibleSteps > 0 && (
+        <div className="flex items-center gap-2 mt-3 pt-2 border-t border-border">
+          <Loader2 size={12} className="animate-spin text-primary" />
+          <span className="text-[11px] text-muted-foreground">AI 正在开发中，完成后将自动通知你…</span>
+        </div>
+      )}
     </div>
   );
 };
 
-/* ── Main Card ── */
+/* ── Main Card: Compact completion card ── */
 
 interface DevCompleteCardProps {
   result: DevCompleteResult;
   onDeploy: (id: string) => void;
   onReject: (id: string) => void;
   deployed?: boolean;
+  selected?: boolean;
+  onClick?: () => void;
 }
 
-const DevCompleteCard = ({ result, onDeploy, onReject, deployed }: DevCompleteCardProps) => {
-  const [expanded, setExpanded] = useState(true);
+const DevCompleteCard = ({ result, deployed, selected, onClick }: DevCompleteCardProps) => {
+  const totalAdds = result.files.reduce((s, f) => s + f.additions, 0);
+  const totalDels = result.files.reduce((s, f) => s + f.deletions, 0);
+  const passedTests = result.tests.filter((t) => t.passed).length;
 
   return (
-    <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden animate-in fade-in slide-in-from-bottom-3 duration-500">
-      {/* Header */}
-      <button
-        onClick={() => setExpanded(!expanded)}
-        className="w-full flex items-center gap-3 px-4 py-3 hover:bg-muted/30 transition-colors text-left"
-      >
-        <div className="w-8 h-8 rounded-full bg-green-500/15 flex items-center justify-center shrink-0">
-          <CheckCircle2 size={16} className="text-green-500" />
+    <div
+      onClick={onClick}
+      className={cn(
+        "rounded-xl border bg-card overflow-hidden animate-in fade-in slide-in-from-bottom-3 duration-500 transition-all",
+        selected ? "border-primary ring-1 ring-primary/30" : "border-border hover:border-muted-foreground/30",
+        onClick && "cursor-pointer"
+      )}
+    >
+      {/* Process log */}
+      <div className="px-4 pt-3 pb-2">
+        <DevProcessLog result={result} />
+      </div>
+
+      {/* Completion summary footer */}
+      <div className={cn(
+        "flex items-center gap-3 px-4 py-2.5 border-t border-border bg-muted/30",
+      )}>
+        <div className="w-6 h-6 rounded-full bg-green-500/15 flex items-center justify-center shrink-0">
+          <CheckCircle2 size={14} className="text-green-500" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-foreground truncate">
-            开发完成：{result.requirementTitle}
-          </p>
-          <p className="text-[11px] text-muted-foreground">
-            {result.files.length} 个文件变更 · {result.tests.length} 个测试全部通过 · 耗时{result.elapsed}s
+          <p className="text-xs font-medium text-foreground">开发完成</p>
+          <p className="text-[10px] text-muted-foreground">
+            {result.files.length} 文件 · <span className="text-green-500">+{totalAdds}</span> <span className="text-destructive">-{totalDels}</span> · {passedTests}/{result.tests.length} 测试通过 · {result.elapsed}s
           </p>
         </div>
         {deployed && (
           <Badge className="text-[10px] bg-green-500/15 text-green-500 border-0">已发布</Badge>
         )}
-        {expanded ? <ChevronUp size={14} className="text-muted-foreground" /> : <ChevronDown size={14} className="text-muted-foreground" />}
-      </button>
-
-      {expanded && (
-        <>
-          <Tabs defaultValue="diff" className="border-t border-border">
-            <TabsList className="mx-3 mt-2 mb-0 h-8">
-              <TabsTrigger value="diff" className="text-[11px] h-6 gap-1">
-                <FileCode2 size={12} /> 代码变更
-              </TabsTrigger>
-              <TabsTrigger value="preview" className="text-[11px] h-6 gap-1">
-                <Eye size={12} /> 产品预览
-              </TabsTrigger>
-              <TabsTrigger value="tests" className="text-[11px] h-6 gap-1">
-                <TestTube2 size={12} /> 自测报告
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="diff" className="m-0 max-h-[360px] overflow-y-auto scrollbar-hide">
-              <DiffView files={result.files} />
-            </TabsContent>
-
-            <TabsContent value="preview" className="m-0">
-              <div className="p-3">
-                <RequirementPreview
-                  previewPath={result.previewPath}
-                  requirementTitle={result.requirementTitle}
-                  projectId={result.projectId}
-                />
-              </div>
-            </TabsContent>
-
-            <TabsContent value="tests" className="m-0 max-h-[360px] overflow-y-auto scrollbar-hide">
-              <TestReport tests={result.tests} />
-            </TabsContent>
-          </Tabs>
-
-          {/* Action bar */}
-          {!deployed && (
-            <div className="flex items-center gap-2 px-4 py-3 border-t border-border bg-muted/20">
-              <Button
-                size="sm"
-                className="flex-1 gap-1.5 h-8 text-xs"
-                onClick={() => onDeploy(result.id)}
-              >
-                <Rocket size={13} />
-                确认无误，发布到测试环境
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-8 text-xs gap-1"
-                onClick={() => onReject(result.id)}
-              >
-                <RotateCcw size={12} />
-                打回修改
-              </Button>
-            </div>
-          )}
-        </>
-      )}
+        <div className="flex items-center gap-1 text-xs text-primary font-medium shrink-0">
+          <span>查看详情</span>
+          <ChevronRight size={14} />
+        </div>
+      </div>
     </div>
   );
 };

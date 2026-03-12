@@ -11,7 +11,7 @@ import PublishDialog from "@/components/PublishDialog";
 import ProductionStatus from "@/components/ProductionStatus";
 import ProjectSidebarLayout from "@/components/ProjectSidebarLayout";
 import RequirementDocEditor from "@/components/RequirementDocEditor";
-import DevCompleteCard, { buildMockDevResult, type DevCompleteResult } from "@/components/DevCompleteCard";
+import DevCompleteCard, { DevInProgressCard, buildMockDevResult, type DevCompleteResult } from "@/components/DevCompleteCard";
 import DevCompleteDetailPanel from "@/components/DevCompleteDetailPanel";
 import SidebarConversationList from "@/components/SidebarConversationList";
 import { requestNotificationPermission, notifyDevComplete } from "@/components/DevNotification";
@@ -295,21 +295,28 @@ const ChatArea = ({
           <span className="text-foreground text-xs font-bold">DF</span>
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm text-muted-foreground mb-2">开发已完成，请验收：</p>
-          <div
+          <p className="text-sm text-muted-foreground mb-2">开发已完成，点击查看详情：</p>
+          <DevCompleteCard
+            result={card}
+            onDeploy={onDeploy}
+            onReject={onReject}
+            deployed={deployedIds.has(card.id)}
+            selected={selectedCardId === card.id}
             onClick={() => onSelectCard(card.id)}
-            className={cn(
-              "cursor-pointer rounded-xl transition-all",
-              selectedCardId === card.id && "ring-2 ring-primary"
-            )}
-          >
-            <DevCompleteCard
-              result={card}
-              onDeploy={onDeploy}
-              onReject={onReject}
-              deployed={deployedIds.has(card.id)}
-            />
-          </div>
+          />
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderInProgress = () => (
+    <div className="flex justify-start animate-in fade-in slide-in-from-bottom-2 duration-300">
+      <div className="flex items-start gap-3 max-w-[90%]">
+        <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center shrink-0">
+          <span className="text-foreground text-xs font-bold">DF</span>
+        </div>
+        <div className="flex-1 min-w-0">
+          <DevInProgressCard requirement={planFlow.requirement || "新需求"} />
         </div>
       </div>
     </div>
@@ -328,10 +335,12 @@ const ChatArea = ({
               onDevSubmitted={onDevSubmitted}
             />
             {devCards.map(renderCard)}
+            {devInProgress && renderInProgress()}
           </div>
         ) : devCards.length > 0 ? (
           <div className="max-w-[800px] mx-auto flex flex-col gap-6">
             {devCards.map(renderCard)}
+            {devInProgress && renderInProgress()}
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center h-full text-muted-foreground gap-3">
