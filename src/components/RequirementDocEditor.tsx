@@ -49,6 +49,8 @@ interface DocComment {
   content: string;
   time: string;
   resolved: boolean;
+  section?: "background" | "scenarios" | "flowSteps" | "changePoints";
+  suggestion?: string;
 }
 
 /* ─── Mock Data ─── */
