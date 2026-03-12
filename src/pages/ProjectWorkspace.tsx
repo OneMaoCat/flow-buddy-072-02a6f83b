@@ -149,12 +149,20 @@ const ProjectWorkspace = () => {
               {mainContent}
             </ResizablePanel>
             <ResizableHandle withHandle />
-            <ResizablePanel defaultSize={editingDoc ? 65 : 60} minSize={30}>
+            <ResizablePanel defaultSize={editingDoc || selectedCard ? 65 : 60} minSize={30}>
               {editingDoc ? (
                 <RequirementDocEditor
                   data={editingDoc}
                   onChange={(updated) => setEditingDoc(updated)}
                   onClose={handleCloseDocEditor}
+                />
+              ) : selectedCard ? (
+                <DevCompleteDetailPanel
+                  result={selectedCard}
+                  onDeploy={handleDeploy}
+                  onReject={handleReject}
+                  onClose={() => setSelectedCardId(null)}
+                  deployed={deployedIds.has(selectedCard.id)}
                 />
               ) : (
                 <RightPanel
