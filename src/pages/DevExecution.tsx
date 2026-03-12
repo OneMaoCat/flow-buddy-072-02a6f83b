@@ -372,9 +372,10 @@ const DevExecution = () => {
           {/* Right: detail panel */}
           {selectedReq && (
             <div className="w-[420px] border-l border-border flex flex-col h-full bg-background shrink-0">
-              <DetailPanel
+            <DetailPanel
                 req={selectedReq}
                 progress={getReqProgress(selectedReq)}
+                logs={logs.filter(l => l.reqId === selectedReq.id)}
                 onClose={() => setSelectedReqId(null)}
                 onAccept={handleAccept}
                 onReject={handleReject}
