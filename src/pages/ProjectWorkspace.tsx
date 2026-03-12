@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { PanelRightOpen, PanelRightClose } from "lucide-react";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
@@ -11,7 +11,10 @@ import PublishDialog from "@/components/PublishDialog";
 import ProductionStatus from "@/components/ProductionStatus";
 import ProjectSidebarLayout from "@/components/ProjectSidebarLayout";
 import RequirementDocEditor from "@/components/RequirementDocEditor";
+import DevCompleteCard, { buildMockDevResult, type DevCompleteResult } from "@/components/DevCompleteCard";
+import { requestNotificationPermission, notifyDevComplete } from "@/components/DevNotification";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { toast } from "sonner";
 import type { RequirementDocData } from "@/components/RequirementDoc";
 
 const ProjectWorkspace = () => {
@@ -23,13 +26,21 @@ const ProjectWorkspace = () => {
   const [testsPassed, setTestsPassed] = useState(false);
   const [previewConfirmed, setPreviewConfirmed] = useState(false);
   const [showDeepFlow, setShowDeepFlow] = useState(false);
-  const [devCompleteMessage, setDevCompleteMessage] = useState(false);
   const [editingDoc, setEditingDoc] = useState<RequirementDocData | null>(null);
 
-  // Handle devComplete param
+  // Dev complete cards in chat
+  const [devCards, setDevCards] = useState<DevCompleteResult[]>([]);
+  const [deployedIds, setDeployedIds] = useState<Set<string>>(new Set());
+  const [devInProgress, setDevInProgress] = useState(false);
+
+  // Request notification permission once
+  useEffect(() => {
+    requestNotificationPermission();
+  }, []);
+
+  // Handle devComplete param (legacy)
   useEffect(() => {
     if (searchParams.get("devComplete") === "true") {
-      setDevCompleteMessage(true);
       setTestsPassed(true);
       setRightPanelOpen(true);
       setShowDeepFlow(false);
@@ -55,6 +66,40 @@ const ProjectWorkspace = () => {
     setEditingDoc(null);
   };
 
+  // When plan is confirmed → start simulated async dev
+  const handleDevSubmitted = useCallback(() => {
+    setDevInProgress(true);
+    const delay = 3000 + Math.random() * 4000; // 3-7s
+    setTimeout(() => {
+      const result = buildMockDevResult(
+        crypto.randomUUID(),
+        planFlow.requirement,
+        id || "demo"
+      );
+      setDevCards((prev) => [...prev, result]);
+      setDevInProgress(false);
+      notifyDevComplete(result.requirementTitle);
+    }, delay);
+  }, [planFlow.requirement, id]);
+
+  const handleDeploy = (cardId: string) => {
+    setDeployedIds((prev) => new Set(prev).add(cardId));
+    toast.success("已发布到测试环境 🚀");
+  };
+
+  const handleReject = (cardId: string) => {
+    toast("已打回修改，AI 将重新处理", { icon: "🔄" });
+    // Remove card & re-trigger dev
+    setDevCards((prev) => prev.filter((c) => c.id !== cardId));
+    setDevInProgress(true);
+    setTimeout(() => {
+      const result = buildMockDevResult(cardId, planFlow.requirement || "需求修复", id || "demo");
+      setDevCards((prev) => [...prev, result]);
+      setDevInProgress(false);
+      notifyDevComplete(result.requirementTitle);
+    }, 3000 + Math.random() * 3000);
+  };
+
   const mainContent = showDeepFlow ? (
     <DeepFlowPanel
       onSubmit={handleSubmit}
@@ -65,8 +110,13 @@ const ProjectWorkspace = () => {
       planFlow={planFlow}
       onSubmit={handleSubmit}
       onCancel={() => setPlanFlow({ active: false, requirement: "" })}
-      devCompleteMessage={devCompleteMessage}
       onOpenDocEditor={handleOpenDocEditor}
+      onDevSubmitted={handleDevSubmitted}
+      devCards={devCards}
+      deployedIds={deployedIds}
+      devInProgress={devInProgress}
+      onDeploy={handleDeploy}
+      onReject={handleReject}
     />
   );
 
@@ -121,39 +171,77 @@ const ChatArea = ({
   planFlow,
   onSubmit,
   onCancel,
-  devCompleteMessage,
   onOpenDocEditor,
+  onDevSubmitted,
+  devCards,
+  deployedIds,
+  devInProgress,
+  onDeploy,
+  onReject,
 }: {
   planFlow: { active: boolean; requirement: string };
   onSubmit: (data: { text: string; isPlanMode: boolean }) => void;
   onCancel: () => void;
-  devCompleteMessage: boolean;
   onOpenDocEditor: (doc: RequirementDocData) => void;
+  onDevSubmitted: () => void;
+  devCards: DevCompleteResult[];
+  deployedIds: Set<string>;
+  devInProgress: boolean;
+  onDeploy: (id: string) => void;
+  onReject: (id: string) => void;
 }) => (
   <div className="relative flex flex-col h-full">
     <div className="flex-1 overflow-y-auto px-5 md:px-8 pt-8 pb-32 scrollbar-hide">
-      {devCompleteMessage ? (
-        <div className="max-w-[800px] mx-auto">
-          <div className="flex gap-3 items-start">
-            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
-              <span className="text-primary text-xs font-bold">AI</span>
-            </div>
-            <div className="rounded-lg bg-secondary/50 border border-border px-4 py-3 text-sm text-foreground leading-relaxed">
-              <p>🎉 <strong>所有需求已开发完成！</strong></p>
-              <p className="mt-1.5 text-muted-foreground text-xs">
-                请在右侧预览面板确认效果，确认无误后即可点击「发布」按钮发布到线上。
-              </p>
-            </div>
-          </div>
-        </div>
-      ) : planFlow.active ? (
-        <div className="max-w-[800px] mx-auto">
+      {planFlow.active ? (
+        <div className="max-w-[800px] mx-auto flex flex-col gap-6">
           <PlanFlow
             requirement={planFlow.requirement}
             onCancel={onCancel}
             onStartDev={() => {}}
             onOpenDocEditor={onOpenDocEditor}
+            onDevSubmitted={onDevSubmitted}
           />
+
+          {/* Dev complete cards pushed into chat */}
+          {devCards.map((card) => (
+            <div key={card.id} className="flex justify-start animate-in fade-in slide-in-from-bottom-2 duration-300">
+              <div className="flex items-start gap-3 max-w-[90%]">
+                <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center shrink-0">
+                  <span className="text-foreground text-xs font-bold">DF</span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm text-muted-foreground mb-2">开发已完成，请验收：</p>
+                  <DevCompleteCard
+                    result={card}
+                    onDeploy={onDeploy}
+                    onReject={onReject}
+                    deployed={deployedIds.has(card.id)}
+                  />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : devCards.length > 0 ? (
+        <div className="max-w-[800px] mx-auto flex flex-col gap-6">
+          {devCards.map((card) => (
+            <div key={card.id} className="flex justify-start animate-in fade-in slide-in-from-bottom-2 duration-300">
+              <div className="flex items-start gap-3 max-w-[90%]">
+                <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center shrink-0">
+                  <span className="text-foreground text-xs font-bold">DF</span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm text-muted-foreground mb-2">开发已完成，请验收：</p>
+                  <DevCompleteCard
+                    result={card}
+                    onDeploy={onDeploy}
+                    onReject={onReject}
+                    deployed={deployedIds.has(card.id)}
+                  />
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       ) : (
         <div className="flex flex-col items-center justify-center h-full text-muted-foreground gap-3">

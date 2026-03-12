@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import ClarifyCards, { type ClarifyQuestion } from "./ClarifyCards";
 import RequirementDoc, { type RequirementDocData } from "./RequirementDoc";
 import { Loader2 } from "lucide-react";
