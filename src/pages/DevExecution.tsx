@@ -513,11 +513,12 @@ const KanbanView = ({
 
 // ==================== DETAIL PANEL ====================
 const DetailPanel = ({
-  req, progress, onClose, onAccept, onReject,
+  req, progress, logs, onClose, onAccept, onReject,
   rejectingReq, setRejectingReq, rejectReason, setRejectReason, projectId,
 }: {
   req: Requirement;
   progress: number;
+  logs: LogEntry[];
   onClose: () => void;
   onAccept: (id: string) => void;
   onReject: (id: string) => void;
@@ -528,6 +529,7 @@ const DetailPanel = ({
   projectId: string;
 }) => {
   const isRejecting = rejectingReq === req.id;
+  const logsEndRef = useRef<HTMLDivElement>(null);
 
   return (
     <>
