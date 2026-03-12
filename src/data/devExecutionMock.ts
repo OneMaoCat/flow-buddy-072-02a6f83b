@@ -27,6 +27,19 @@ export interface TestResult {
   isRetrying: boolean;
 }
 
+export interface Submitter {
+  name: string;
+  avatar: string; // initials or emoji
+  color: string;  // tailwind bg class token
+}
+
+export const mockSubmitters: Submitter[] = [
+  { name: "吴承霖", avatar: "吴", color: "bg-blue-500" },
+  { name: "邱翔", avatar: "邱", color: "bg-emerald-500" },
+  { name: "李泽龙", avatar: "李", color: "bg-violet-500" },
+  { name: "张东杰", avatar: "张", color: "bg-orange-500" },
+];
+
 export interface Requirement {
   id: string;
   title: string;
@@ -35,6 +48,8 @@ export interface Requirement {
   rejectReason?: string;
   previewPath?: string;
   testResult?: TestResult;
+  submitter: Submitter;
+  submittedAt: Date;
 }
 
 export interface LogEntry {
