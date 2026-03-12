@@ -295,21 +295,28 @@ const ChatArea = ({
           <span className="text-foreground text-xs font-bold">DF</span>
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm text-muted-foreground mb-2">开发已完成，请验收：</p>
-          <div
+          <p className="text-sm text-muted-foreground mb-2">开发已完成，点击查看详情：</p>
+          <DevCompleteCard
+            result={card}
+            onDeploy={onDeploy}
+            onReject={onReject}
+            deployed={deployedIds.has(card.id)}
+            selected={selectedCardId === card.id}
             onClick={() => onSelectCard(card.id)}
-            className={cn(
-              "cursor-pointer rounded-xl transition-all",
-              selectedCardId === card.id && "ring-2 ring-primary"
-            )}
-          >
-            <DevCompleteCard
-              result={card}
-              onDeploy={onDeploy}
-              onReject={onReject}
-              deployed={deployedIds.has(card.id)}
-            />
-          </div>
+          />
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderInProgress = () => (
+    <div className="flex justify-start animate-in fade-in slide-in-from-bottom-2 duration-300">
+      <div className="flex items-start gap-3 max-w-[90%]">
+        <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center shrink-0">
+          <span className="text-foreground text-xs font-bold">DF</span>
+        </div>
+        <div className="flex-1 min-w-0">
+          <DevInProgressCard requirement={planFlow.requirement || "新需求"} />
         </div>
       </div>
     </div>
