@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useSyncExternalStore } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Menu, ExternalLink, Sparkles, Settings, Pin, PinOff, Cpu } from "lucide-react";
-import { mockProjects } from "@/data/projects";
+import { projectStore } from "@/data/projectStore";
 import ProjectSwitcher from "@/components/ProjectSwitcher";
 
 const useIsDesktop = () => {
@@ -35,7 +35,8 @@ const ProjectSidebarLayout = ({
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
-  const project = mockProjects.find((p) => p.id === id);
+  const projects = useSyncExternalStore(projectStore.subscribe, projectStore.getAll);
+  const project = projects.find((p) => p.id === id);
   const isDesktop = useIsDesktop();
 
   const [sidebarOpen, setSidebarOpen] = useState(true);
