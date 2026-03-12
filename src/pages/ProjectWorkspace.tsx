@@ -71,11 +71,11 @@ const ProjectWorkspace = () => {
       {({ isDesktop }) => (
         rightPanelOpen && isDesktop ? (
           <ResizablePanelGroup direction="horizontal">
-            <ResizablePanel defaultSize={60} minSize={40}>
+            <ResizablePanel defaultSize={40} minSize={30}>
               {mainContent}
             </ResizablePanel>
             <ResizableHandle withHandle />
-            <ResizablePanel defaultSize={40} minSize={25}>
+            <ResizablePanel defaultSize={60} minSize={30}>
               <RightPanel
                 projectName=""
                 onTestsPassed={() => setTestsPassed(true)}
@@ -132,8 +132,8 @@ const ChatArea = ({
       )}
     </div>
     <div className="absolute bottom-0 left-0 right-0 bg-background/80 backdrop-blur-md border-t border-border p-3">
-      <div className="max-w-[800px] mx-auto">
-        <PromptBar onSubmit={onSubmit} />
+      <div className="mx-auto px-1">
+        <PromptBar onSubmit={onSubmit} compact />
       </div>
     </div>
   </div>

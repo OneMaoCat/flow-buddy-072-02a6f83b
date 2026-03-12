@@ -4,9 +4,10 @@ import { Plus, Mic, ArrowUp, ListChecks } from "lucide-react";
 interface PromptBarProps {
   onSubmit?: (data: { text: string; isPlanMode: boolean }) => void;
   defaultText?: string;
+  compact?: boolean;
 }
 
-const PromptBar = ({ onSubmit, defaultText }: PromptBarProps) => {
+const PromptBar = ({ onSubmit, defaultText, compact }: PromptBarProps) => {
   const [planMode, setPlanMode] = useState(false);
   const [text, setText] = useState("");
 
@@ -28,7 +29,7 @@ const PromptBar = ({ onSubmit, defaultText }: PromptBarProps) => {
   };
 
   return (
-    <div className="w-full max-w-[860px] mx-auto">
+    <div className={`w-full mx-auto ${compact ? "" : "max-w-[860px]"}`}>
       <div className="flex items-center gap-2 border-2 border-prompt-border rounded-[18px] bg-prompt px-3 py-2 shadow-sm focus-within:border-primary/40 focus-within:shadow-md transition-all">
         <button className="shrink-0 w-9 h-9 rounded-full flex items-center justify-center hover:bg-secondary transition-colors text-muted-foreground">
           <Plus size={20} />
