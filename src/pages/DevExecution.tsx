@@ -10,6 +10,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import ProjectSidebarLayout from "@/components/ProjectSidebarLayout";
 import RequirementPreview from "@/components/RequirementPreview";
+import SidebarConversationList from "@/components/SidebarConversationList";
+import { buildMockConversations, type Conversation } from "@/data/conversations";
 import { createInitialRequirements, formatTime, logTemplates, generateTestsForRequirement } from "@/data/devExecutionMock";
 import type { Requirement, Agent, AgentStatus, RequirementStatus, LogEntry, TestItem, TestItemStatus } from "@/data/devExecutionMock";
 
