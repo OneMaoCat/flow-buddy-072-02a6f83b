@@ -167,7 +167,7 @@ const ProjectSidebarLayout = ({
                 <Menu size={16} />
               </button>
             )}
-            <span className="text-sm font-medium text-foreground">{project.name}</span>
+            
           </div>
           {headerRight && <div className="flex items-center gap-2">{headerRight}</div>}
         </header>
