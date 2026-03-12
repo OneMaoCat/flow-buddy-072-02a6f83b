@@ -1,8 +1,9 @@
 import { useState, useEffect, useSyncExternalStore } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
-import { Menu, ExternalLink, Sparkles, Settings, Pin, PinOff, Cpu } from "lucide-react";
+import { Menu, ExternalLink, Sparkles, Settings, Pin, PinOff, Cpu, ChevronDown } from "lucide-react";
 import { projectStore } from "@/data/projectStore";
 import ProjectSwitcher from "@/components/ProjectSwitcher";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 const useIsDesktop = () => {
   const [d, setD] = useState(window.innerWidth >= 1024);
