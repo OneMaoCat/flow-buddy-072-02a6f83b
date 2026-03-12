@@ -146,6 +146,17 @@ const ProjectWorkspace = () => {
     <ProjectSidebarLayout
       onDeepFlowClick={() => setShowDeepFlow(true)}
       deepFlowActive={showDeepFlow}
+      taskCount={devCards.length + (devInProgress ? 1 : 0)}
+      taskList={
+        <SidebarTaskList
+          devCards={devCards}
+          deployedIds={deployedIds}
+          devInProgress={devInProgress}
+          currentRequirement={planFlow.requirement}
+          selectedCardId={selectedCardId}
+          onSelectCard={handleSelectCard}
+        />
+      }
       headerRight={
         <>
           <PublishDialog testsPassed={testsPassed} previewConfirmed={previewConfirmed} />
