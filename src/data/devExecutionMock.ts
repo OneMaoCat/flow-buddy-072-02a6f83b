@@ -169,12 +169,16 @@ export const createInitialRequirements = (): Requirement[] => {
         status: "waiting" as AgentStatus,
         dependsOn: i > 0 ? `${reqId}-a${i - 1}` : undefined,
       }));
+      const submitter = mockSubmitters[reqIdx % mockSubmitters.length];
+      const submittedAt = new Date(Date.now() - Math.floor(Math.random() * 3600_000 * 4));
       reqs.push({
         id: reqId,
         title: item.title,
         status: "waiting",
         agents,
         previewPath: item.previewPath,
+        submitter,
+        submittedAt,
       });
     }
   }
