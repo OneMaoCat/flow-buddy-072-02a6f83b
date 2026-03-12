@@ -31,12 +31,16 @@ const RequirementPreview = ({ previewPath, requirementTitle, projectId, fullscre
       fullscreen ? "h-full" : "mt-3"
     )}>
       {/* Header */}
-      <div className="flex items-center justify-between px-3 py-2 border-b border-border bg-muted/30 shrink-0">
-        <div className="flex items-center gap-1.5">
-          <Eye size={13} className="text-primary" />
-          <span className="text-xs font-medium text-foreground">产品预览</span>
+      <div className="flex items-center gap-2 px-3 py-2 border-b border-border bg-muted/30 shrink-0">
+        <div className="flex gap-1 shrink-0">
+          <div className="w-2 h-2 rounded-full bg-destructive/40" />
+          <div className="w-2 h-2 rounded-full bg-orange-400/40" />
+          <div className="w-2 h-2 rounded-full bg-green-400/40" />
         </div>
-        <div className="flex items-center gap-0.5">
+        <div className="flex-1 mx-1 px-2 py-0.5 rounded bg-muted text-[10px] font-mono text-muted-foreground truncate">
+          localhost:5173{previewPath}
+        </div>
+        <div className="flex items-center gap-0.5 shrink-0">
           {devices.map(d => (
             <button
               key={d.id}
@@ -70,22 +74,11 @@ const RequirementPreview = ({ previewPath, requirementTitle, projectId, fullscre
       )} onClick={e => e.stopPropagation()}>
         <div
           className={cn(
-            "bg-background border border-border shadow-sm transition-all duration-300 flex flex-col overflow-hidden",
-            fullscreen ? "h-full rounded-none border-0" : "h-[280px] rounded-md"
+            "bg-background shadow-sm transition-all duration-300 flex flex-col overflow-hidden",
+            fullscreen ? "h-full rounded-none border-0" : "h-[280px] rounded-md border border-border"
           )}
           style={{ width: currentDevice.width, maxWidth: "100%" }}
         >
-          {/* Mock browser chrome */}
-          <div className="flex items-center gap-1.5 px-3 py-2 border-b border-border bg-muted/40 shrink-0">
-            <div className="flex gap-1">
-              <div className="w-2 h-2 rounded-full bg-destructive/40" />
-              <div className="w-2 h-2 rounded-full bg-orange-400/40" />
-              <div className="w-2 h-2 rounded-full bg-green-400/40" />
-            </div>
-            <div className="flex-1 mx-2 px-2 py-0.5 rounded bg-muted text-[10px] font-mono text-muted-foreground truncate">
-              localhost:5173{previewPath}
-            </div>
-          </div>
 
           {/* Mock screenshot */}
           <div className="flex-1 overflow-auto">
