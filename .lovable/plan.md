@@ -1,21 +1,23 @@
 
+# 需求平台 + 异步开发 + 消息卡片验收
 
-## 让部分需求直接测试通过进入待验收状态
+## 已完成
 
-### 问题
-当前所有需求都从 `waiting/running` 开始，需要等较长时间才能看到需求进入 `review` 状态并预览结果。
+### 1. DevCompleteCard — 聊天区验收卡片 ✅
+- 代码变更 Tab（文件列表 + diff 视图）
+- 产品预览 Tab（复用 RequirementPreview）
+- 自测报告 Tab（测试用例列表 + 通过率）
+- 操作栏（发布到测试环境 / 打回修改）
 
-### 方案
-在 `createInitialRequirements()` 中，让前 2-3 个需求直接初始化为 `review` 状态（所有 Agent 已完成、测试已全部通过），这样页面加载后立即有待验收需求可以展开预览。
+### 2. PlanFlow 改造 ✅
+- 确认需求后不再跳转 /dev 页面
+- 触发 onDevSubmitted 回调启动异步模拟
 
-### 实现步骤
+### 3. ProjectWorkspace 状态管理 ✅
+- devCards 数组管理已完成的开发结果
+- 异步模拟 3-7s 后推送 DevCompleteCard 到聊天区
+- 发布/打回操作 + toast 反馈
 
-**1. 修改 `createInitialRequirements()`** (`src/data/devExecutionMock.ts`)
-- 将前 3 个需求的状态设为 `"review"`
-- 其所有 Agent 设为 `status: "done"`, `progress: 100`
-- 为其生成已全部通过的 `testResult`（所有 TestItem 状态为 `"passed"`，附带随机 duration）
-
-**2. 调整初始并发起始位置**
-- 当前前 8 个需求设为 `running`，改为从第 4 个开始（跳过已完成的 3 个）
-- 保持 8 个并发槽位不变
-
+### 4. DevNotification 浏览器通知 ✅
+- Notification API 权限请求
+- 后台标签页系统通知 + sonner toast
