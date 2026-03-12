@@ -121,6 +121,8 @@ const ProjectWorkspace = () => {
       devInProgress={devInProgress}
       onDeploy={handleDeploy}
       onReject={handleReject}
+      selectedCardId={selectedCardId}
+      onSelectCard={(id) => { setSelectedCardId(id); setRightPanelOpen(true); }}
     />
   );
 
