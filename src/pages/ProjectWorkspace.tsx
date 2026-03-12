@@ -210,6 +210,7 @@ const ProjectWorkspace = () => {
       onOpenDocEditor={handleOpenDocEditor}
       onDevSubmitted={handleDevSubmitted}
       devCards={devCards}
+      chatMessages={chatMessages}
       deployedIds={deployedIds}
       devInProgress={devInProgress}
       onDeploy={handleDeploy}
