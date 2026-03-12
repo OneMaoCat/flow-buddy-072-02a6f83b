@@ -335,10 +335,12 @@ const ChatArea = ({
               onDevSubmitted={onDevSubmitted}
             />
             {devCards.map(renderCard)}
+            {devInProgress && renderInProgress()}
           </div>
         ) : devCards.length > 0 ? (
           <div className="max-w-[800px] mx-auto flex flex-col gap-6">
             {devCards.map(renderCard)}
+            {devInProgress && renderInProgress()}
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center h-full text-muted-foreground gap-3">
