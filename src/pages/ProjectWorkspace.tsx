@@ -192,7 +192,7 @@ const ProjectWorkspace = () => {
 
   return (
     <ProjectSidebarLayout
-      onDeepFlowClick={() => setShowDeepFlow(true)}
+      onDeepFlowClick={() => { setShowDeepFlow(true); setActiveConversationId(null); setSelectedCardId(null); }}
       deepFlowActive={showDeepFlow}
       taskCount={totalTaskCount}
       taskList={
