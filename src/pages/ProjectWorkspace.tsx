@@ -13,6 +13,7 @@ import ProjectSidebarLayout from "@/components/ProjectSidebarLayout";
 import RequirementDocEditor from "@/components/RequirementDocEditor";
 import DevCompleteCard, { buildMockDevResult, type DevCompleteResult } from "@/components/DevCompleteCard";
 import DevCompleteDetailPanel from "@/components/DevCompleteDetailPanel";
+import SidebarTaskList from "@/components/SidebarTaskList";
 import { requestNotificationPermission, notifyDevComplete } from "@/components/DevNotification";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
