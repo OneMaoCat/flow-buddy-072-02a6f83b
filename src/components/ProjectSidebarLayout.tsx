@@ -35,7 +35,8 @@ const ProjectSidebarLayout = ({
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
-  const project = mockProjects.find((p) => p.id === id);
+  const projects = useSyncExternalStore(projectStore.subscribe, projectStore.getAll);
+  const project = projects.find((p) => p.id === id);
   const isDesktop = useIsDesktop();
 
   const [sidebarOpen, setSidebarOpen] = useState(true);

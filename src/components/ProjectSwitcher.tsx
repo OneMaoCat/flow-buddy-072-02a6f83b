@@ -22,7 +22,8 @@ const ProjectSwitcher = ({ currentProject }: ProjectSwitcherProps) => {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  const filtered = mockProjects.filter((p) =>
+  const allProjects = useSyncExternalStore(projectStore.subscribe, projectStore.getAll);
+  const filtered = allProjects.filter((p) =>
     p.name.toLowerCase().includes(search.toLowerCase())
   );
 
