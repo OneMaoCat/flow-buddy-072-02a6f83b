@@ -21,10 +21,22 @@ export const createConversation = (requirement: string): Conversation => ({
   id: crypto.randomUUID(),
   title: requirement.slice(0, 20) || "新对话",
   createdAt: new Date(),
+  messages: [{ id: crypto.randomUUID(), text: requirement, timestamp: Date.now() }],
   tasks: [],
   devInProgress: false,
   currentRequirement: requirement,
 });
+
+export const addMessageToConversation = (
+  conversations: Conversation[],
+  conversationId: string,
+  text: string
+): Conversation[] =>
+  conversations.map((c) =>
+    c.id === conversationId
+      ? { ...c, messages: [...c.messages, { id: crypto.randomUUID(), text, timestamp: Date.now() }], currentRequirement: text }
+      : c
+  );
 
 export const addTaskToConversation = (
   conversations: Conversation[],
