@@ -230,9 +230,7 @@ const ProjectWorkspace = () => {
           conversations={conversations}
           deployedIds={deployedIds}
           activeConversationId={activeConversationId}
-          selectedCardId={selectedCardId}
           onSelectConversation={handleSelectConversation}
-          onSelectCard={handleSelectCard}
           onNewConversation={handleNewConversation}
         />
       }

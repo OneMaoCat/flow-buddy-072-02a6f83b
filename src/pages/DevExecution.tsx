@@ -343,20 +343,9 @@ const DevExecution = () => {
           conversations={conversations}
           deployedIds={deployedIds}
           activeConversationId={activeConversationId}
-          selectedCardId={selectedCardId}
           onSelectConversation={(cid) => {
             setActiveConversationId(cid);
             setSelectedCardId(null);
-          }}
-          onSelectCard={(cardId) => {
-            setSelectedCardId(cardId);
-            // Find parent conversation
-            for (const conv of conversations) {
-              if (conv.tasks.some((t) => t.id === cardId)) {
-                setActiveConversationId(conv.id);
-                break;
-              }
-            }
             navigate(`/project/${id}`);
           }}
           onNewConversation={() => navigate(`/project/${id}`)}
