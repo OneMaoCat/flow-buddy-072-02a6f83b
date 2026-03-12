@@ -4,6 +4,7 @@ import { Plus, Mic, ArrowUp, ListChecks } from "lucide-react";
 interface PromptBarProps {
   onSubmit?: (data: { text: string; isPlanMode: boolean }) => void;
   defaultText?: string;
+  compact?: boolean;
 }
 
 const PromptBar = ({ onSubmit, defaultText }: PromptBarProps) => {
