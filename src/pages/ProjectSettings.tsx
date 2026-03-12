@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, UserPlus, X } from "lucide-react";
-import { mockProjects, type ProjectMember } from "@/data/projects";
+import { ArrowLeft, UserPlus, X, Pencil, Check } from "lucide-react";
+import { type ProjectMember } from "@/data/projects";
+import { projectStore } from "@/data/projectStore";
 import { Button } from "@/components/ui/button";
 
 const roleLabels: Record<string, string> = {
@@ -13,9 +14,12 @@ const roleLabels: Record<string, string> = {
 const ProjectSettings = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const project = mockProjects.find((p) => p.id === id);
+  const projects = useSyncExternalStore(projectStore.subscribe, projectStore.getAll);
+  const project = projects.find((p) => p.id === id);
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<"editor" | "viewer">("editor");
+  const [isRenaming, setIsRenaming] = useState(false);
+  const [newName, setNewName] = useState("");
 
   if (!project) {
     return (
