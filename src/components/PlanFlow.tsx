@@ -176,7 +176,7 @@ const PlanFlow = ({ requirement, onCancel, onStartDev, onOpenDocEditor, onDevSub
             onConfirm={() => {
               setStage("confirmed");
               onStartDev();
-              setTimeout(() => navigate(`/project/${id}/dev`), 1000);
+              onDevSubmitted?.();
             }}
             onRevise={onCancel}
           />
