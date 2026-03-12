@@ -583,6 +583,8 @@ const DetailPanel = ({
                     {agent.status === "waiting" ? "—" : `${agent.progress}%`}
                   </span>
                   <span className="text-[10px] text-muted-foreground truncate max-w-[100px]">{agent.currentFile}</span>
+                </div>
+              ))}
             </div>
 
             {/* Development logs */}
@@ -600,9 +602,7 @@ const DetailPanel = ({
                   <div ref={logsEndRef} />
                 </div>
               </div>
-            )
-              ))}
-            </div>
+            )}
 
             {/* Test result summary in timeline */}
             {req.testResult && (
