@@ -372,9 +372,10 @@ const DevExecution = () => {
           {/* Right: detail panel */}
           {selectedReq && (
             <div className="w-[420px] border-l border-border flex flex-col h-full bg-background shrink-0">
-              <DetailPanel
+            <DetailPanel
                 req={selectedReq}
                 progress={getReqProgress(selectedReq)}
+                logs={logs.filter(l => l.reqId === selectedReq.id)}
                 onClose={() => setSelectedReqId(null)}
                 onAccept={handleAccept}
                 onReject={handleReject}
@@ -512,11 +513,12 @@ const KanbanView = ({
 
 // ==================== DETAIL PANEL ====================
 const DetailPanel = ({
-  req, progress, onClose, onAccept, onReject,
+  req, progress, logs, onClose, onAccept, onReject,
   rejectingReq, setRejectingReq, rejectReason, setRejectReason, projectId,
 }: {
   req: Requirement;
   progress: number;
+  logs: LogEntry[];
   onClose: () => void;
   onAccept: (id: string) => void;
   onReject: (id: string) => void;
@@ -527,6 +529,7 @@ const DetailPanel = ({
   projectId: string;
 }) => {
   const isRejecting = rejectingReq === req.id;
+  const logsEndRef = useRef<HTMLDivElement>(null);
 
   return (
     <>
@@ -583,6 +586,23 @@ const DetailPanel = ({
                 </div>
               ))}
             </div>
+
+            {/* Development logs */}
+            {logs.length > 0 && (
+              <div className="pt-3 border-t border-border">
+                <p className="text-[11px] font-semibold text-muted-foreground mb-2">开发日志</p>
+                <div className="space-y-0.5 max-h-[300px] overflow-y-auto rounded-md bg-muted/30 p-2">
+                  {logs.map((log, i) => (
+                    <div key={i} className="flex items-start gap-2 text-[11px] py-0.5">
+                      <span className="text-muted-foreground font-mono shrink-0 w-14">{log.time}</span>
+                      <span className="text-primary/80 font-medium shrink-0 w-16 truncate">{log.agentName}</span>
+                      <span className="text-foreground/80 break-all">{log.message}</span>
+                    </div>
+                  ))}
+                  <div ref={logsEndRef} />
+                </div>
+              </div>
+            )}
 
             {/* Test result summary in timeline */}
             {req.testResult && (
