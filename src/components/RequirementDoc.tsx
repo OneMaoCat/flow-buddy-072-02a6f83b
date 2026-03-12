@@ -356,7 +356,7 @@ const RequirementDoc = ({ data, onChange, onConfirm, onRevise, onOpenEditor }: R
         <div className="flex items-center justify-end gap-2 px-5 py-3 border-t border-border bg-muted/20">
           {onRevise && (
             <button
-              onClick={onRevise}
+              onClick={(e) => { e.stopPropagation(); onRevise(); }}
               className="h-8 px-4 rounded-lg text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
             >
               重新生成
@@ -364,7 +364,7 @@ const RequirementDoc = ({ data, onChange, onConfirm, onRevise, onOpenEditor }: R
           )}
           {onConfirm && (
             <button
-              onClick={onConfirm}
+              onClick={(e) => { e.stopPropagation(); onConfirm(); }}
               className="h-8 px-5 rounded-lg bg-primary text-primary-foreground text-xs font-medium hover:bg-primary/90 transition-colors"
             >
               确认需求，开始开发
