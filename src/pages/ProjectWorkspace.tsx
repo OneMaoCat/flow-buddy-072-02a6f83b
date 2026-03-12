@@ -12,9 +12,11 @@ import ProductionStatus from "@/components/ProductionStatus";
 import ProjectSidebarLayout from "@/components/ProjectSidebarLayout";
 import RequirementDocEditor from "@/components/RequirementDocEditor";
 import DevCompleteCard, { buildMockDevResult, type DevCompleteResult } from "@/components/DevCompleteCard";
+import DevCompleteDetailPanel from "@/components/DevCompleteDetailPanel";
 import { requestNotificationPermission, notifyDevComplete } from "@/components/DevNotification";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 import type { RequirementDocData } from "@/components/RequirementDoc";
 
 const ProjectWorkspace = () => {
@@ -32,6 +34,9 @@ const ProjectWorkspace = () => {
   const [devCards, setDevCards] = useState<DevCompleteResult[]>([]);
   const [deployedIds, setDeployedIds] = useState<Set<string>>(new Set());
   const [devInProgress, setDevInProgress] = useState(false);
+  const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
+
+  const selectedCard = devCards.find((c) => c.id === selectedCardId) || null;
 
   // Request notification permission once
   useEffect(() => {
@@ -117,6 +122,8 @@ const ProjectWorkspace = () => {
       devInProgress={devInProgress}
       onDeploy={handleDeploy}
       onReject={handleReject}
+      selectedCardId={selectedCardId}
+      onSelectCard={(id) => { setSelectedCardId(id); setRightPanelOpen(true); }}
     />
   );
 
@@ -143,12 +150,20 @@ const ProjectWorkspace = () => {
               {mainContent}
             </ResizablePanel>
             <ResizableHandle withHandle />
-            <ResizablePanel defaultSize={editingDoc ? 65 : 60} minSize={30}>
+            <ResizablePanel defaultSize={editingDoc || selectedCard ? 65 : 60} minSize={30}>
               {editingDoc ? (
                 <RequirementDocEditor
                   data={editingDoc}
                   onChange={(updated) => setEditingDoc(updated)}
                   onClose={handleCloseDocEditor}
+                />
+              ) : selectedCard ? (
+                <DevCompleteDetailPanel
+                  result={selectedCard}
+                  onDeploy={handleDeploy}
+                  onReject={handleReject}
+                  onClose={() => setSelectedCardId(null)}
+                  deployed={deployedIds.has(selectedCard.id)}
                 />
               ) : (
                 <RightPanel
@@ -178,6 +193,8 @@ const ChatArea = ({
   devInProgress,
   onDeploy,
   onReject,
+  selectedCardId,
+  onSelectCard,
 }: {
   planFlow: { active: boolean; requirement: string };
   onSubmit: (data: { text: string; isPlanMode: boolean }) => void;
@@ -189,74 +206,72 @@ const ChatArea = ({
   devInProgress: boolean;
   onDeploy: (id: string) => void;
   onReject: (id: string) => void;
-}) => (
-  <div className="relative flex flex-col h-full">
-    <div className="flex-1 overflow-y-auto px-5 md:px-8 pt-8 pb-32 scrollbar-hide">
-      {planFlow.active ? (
-        <div className="max-w-[800px] mx-auto flex flex-col gap-6">
-          <PlanFlow
-            requirement={planFlow.requirement}
-            onCancel={onCancel}
-            onStartDev={() => {}}
-            onOpenDocEditor={onOpenDocEditor}
-            onDevSubmitted={onDevSubmitted}
-          />
-
-          {/* Dev complete cards pushed into chat */}
-          {devCards.map((card) => (
-            <div key={card.id} className="flex justify-start animate-in fade-in slide-in-from-bottom-2 duration-300">
-              <div className="flex items-start gap-3 max-w-[90%]">
-                <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center shrink-0">
-                  <span className="text-foreground text-xs font-bold">DF</span>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm text-muted-foreground mb-2">开发已完成，请验收：</p>
-                  <DevCompleteCard
-                    result={card}
-                    onDeploy={onDeploy}
-                    onReject={onReject}
-                    deployed={deployedIds.has(card.id)}
-                  />
-                </div>
-              </div>
-            </div>
-          ))}
+  selectedCardId: string | null;
+  onSelectCard: (id: string) => void;
+}) => {
+  const renderCard = (card: DevCompleteResult) => (
+    <div
+      key={card.id}
+      className="flex justify-start animate-in fade-in slide-in-from-bottom-2 duration-300"
+    >
+      <div className="flex items-start gap-3 max-w-[90%]">
+        <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center shrink-0">
+          <span className="text-foreground text-xs font-bold">DF</span>
         </div>
-      ) : devCards.length > 0 ? (
-        <div className="max-w-[800px] mx-auto flex flex-col gap-6">
-          {devCards.map((card) => (
-            <div key={card.id} className="flex justify-start animate-in fade-in slide-in-from-bottom-2 duration-300">
-              <div className="flex items-start gap-3 max-w-[90%]">
-                <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center shrink-0">
-                  <span className="text-foreground text-xs font-bold">DF</span>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm text-muted-foreground mb-2">开发已完成，请验收：</p>
-                  <DevCompleteCard
-                    result={card}
-                    onDeploy={onDeploy}
-                    onReject={onReject}
-                    deployed={deployedIds.has(card.id)}
-                  />
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div className="flex flex-col items-center justify-center h-full text-muted-foreground gap-3">
-          <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center">
-            <span className="text-foreground text-sm font-bold">DF</span>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm text-muted-foreground mb-2">开发已完成，请验收：</p>
+          <div
+            onClick={() => onSelectCard(card.id)}
+            className={cn(
+              "cursor-pointer rounded-xl transition-all",
+              selectedCardId === card.id && "ring-2 ring-primary"
+            )}
+          >
+            <DevCompleteCard
+              result={card}
+              onDeploy={onDeploy}
+              onReject={onReject}
+              deployed={deployedIds.has(card.id)}
+            />
           </div>
-          <p className="text-sm">输入需求开始开发</p>
         </div>
-      )}
+      </div>
     </div>
-    <div className="sticky bottom-0 bg-background/80 backdrop-blur-md border-t border-border p-3">
-      <PromptBar onSubmit={onSubmit} compact />
+  );
+
+  return (
+    <div className="relative flex flex-col h-full">
+      <div className="flex-1 overflow-y-auto px-5 md:px-8 pt-8 pb-32 scrollbar-hide">
+        {planFlow.active ? (
+          <div className="max-w-[800px] mx-auto flex flex-col gap-6">
+            <PlanFlow
+              requirement={planFlow.requirement}
+              onCancel={onCancel}
+              onStartDev={() => {}}
+              onOpenDocEditor={onOpenDocEditor}
+              onDevSubmitted={onDevSubmitted}
+            />
+            {devCards.map(renderCard)}
+          </div>
+        ) : devCards.length > 0 ? (
+          <div className="max-w-[800px] mx-auto flex flex-col gap-6">
+            {devCards.map(renderCard)}
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center h-full text-muted-foreground gap-3">
+            <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center">
+              <span className="text-foreground text-sm font-bold">DF</span>
+            </div>
+            <p className="text-sm">输入需求开始开发</p>
+          </div>
+        )}
+      </div>
+      <div className="sticky bottom-0 bg-background/80 backdrop-blur-md border-t border-border p-3">
+        <PromptBar onSubmit={onSubmit} compact />
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 /* Right panel sub-component */
 const RightPanel = ({
