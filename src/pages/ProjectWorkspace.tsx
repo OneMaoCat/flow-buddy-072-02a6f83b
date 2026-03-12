@@ -16,6 +16,7 @@ import DevCompleteDetailPanel from "@/components/DevCompleteDetailPanel";
 import { requestNotificationPermission, notifyDevComplete } from "@/components/DevNotification";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 import type { RequirementDocData } from "@/components/RequirementDoc";
 
 const ProjectWorkspace = () => {
