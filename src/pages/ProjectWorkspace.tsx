@@ -38,10 +38,11 @@ const ProjectWorkspace = () => {
   const [showDeepFlow, setShowDeepFlow] = useState(false);
   const [editingDoc, setEditingDoc] = useState<RequirementDocData | null>(null);
 
-  // Conversation-based state
-  const [conversations, setConversations] = useState<Conversation[]>([]);
+  // Conversation-based state — init with mock data
+  const [mockData] = useState(() => buildMockConversations());
+  const [conversations, setConversations] = useState<Conversation[]>(mockData.conversations);
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
-  const [deployedIds, setDeployedIds] = useState<Set<string>>(new Set());
+  const [deployedIds, setDeployedIds] = useState<Set<string>>(mockData.deployedIds);
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
   const [planFlow, setPlanFlow] = useState<{ active: boolean; requirement: string }>({ active: false, requirement: "" });
 
