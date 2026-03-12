@@ -123,7 +123,7 @@ const ProjectWorkspace = () => {
       onDeploy={handleDeploy}
       onReject={handleReject}
       selectedCardId={selectedCardId}
-      onSelectCard={(id) => { setSelectedCardId(id); setRightPanelOpen(true); }}
+      onSelectCard={(id) => { setSelectedCardId(id); setEditingDoc(null); setRightPanelOpen(true); }}
     />
   );
 
