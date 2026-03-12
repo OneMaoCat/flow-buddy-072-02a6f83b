@@ -51,6 +51,7 @@ const ProjectWorkspace = () => {
 
   const activeConversation = conversations.find((c) => c.id === activeConversationId) || null;
   const devCards = activeConversation?.tasks || [];
+  const chatMessages = activeConversation?.messages || [];
   const devInProgress = activeConversation?.devInProgress || false;
   const selectedCard = devCards.find((c) => c.id === selectedCardId) || null;
 
