@@ -1,7 +1,8 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useSyncExternalStore } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronDown, Check, Plus, Search } from "lucide-react";
-import { mockProjects, type Project } from "@/data/projects";
+import { projectStore } from "@/data/projectStore";
+import { type Project } from "@/data/projects";
 
 interface ProjectSwitcherProps {
   currentProject: Project;
