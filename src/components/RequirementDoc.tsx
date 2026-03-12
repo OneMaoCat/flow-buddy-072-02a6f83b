@@ -169,7 +169,7 @@ interface RequirementDocProps {
   onOpenEditor?: () => void;
 }
 
-const RequirementDoc = ({ data, onChange, onConfirm, onRevise }: RequirementDocProps) => {
+const RequirementDoc = ({ data, onChange, onConfirm, onRevise, onOpenEditor }: RequirementDocProps) => {
   const [doc, setDoc] = useState<RequirementDocData>(data);
 
   const update = (partial: Partial<RequirementDocData>) => {
