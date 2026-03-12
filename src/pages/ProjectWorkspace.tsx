@@ -192,6 +192,8 @@ const ChatArea = ({
   devInProgress,
   onDeploy,
   onReject,
+  selectedCardId,
+  onSelectCard,
 }: {
   planFlow: { active: boolean; requirement: string };
   onSubmit: (data: { text: string; isPlanMode: boolean }) => void;
@@ -203,7 +205,40 @@ const ChatArea = ({
   devInProgress: boolean;
   onDeploy: (id: string) => void;
   onReject: (id: string) => void;
-}) => (
+  selectedCardId: string | null;
+  onSelectCard: (id: string) => void;
+}) => {
+  const renderCard = (card: DevCompleteResult) => (
+    <div
+      key={card.id}
+      className="flex justify-start animate-in fade-in slide-in-from-bottom-2 duration-300"
+    >
+      <div className="flex items-start gap-3 max-w-[90%]">
+        <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center shrink-0">
+          <span className="text-foreground text-xs font-bold">DF</span>
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm text-muted-foreground mb-2">开发已完成，请验收：</p>
+          <div
+            onClick={() => onSelectCard(card.id)}
+            className={cn(
+              "cursor-pointer rounded-xl transition-all",
+              selectedCardId === card.id && "ring-2 ring-primary"
+            )}
+          >
+            <DevCompleteCard
+              result={card}
+              onDeploy={onDeploy}
+              onReject={onReject}
+              deployed={deployedIds.has(card.id)}
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
   <div className="relative flex flex-col h-full">
     <div className="flex-1 overflow-y-auto px-5 md:px-8 pt-8 pb-32 scrollbar-hide">
       {planFlow.active ? (
