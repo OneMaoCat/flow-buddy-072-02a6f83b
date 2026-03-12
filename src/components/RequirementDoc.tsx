@@ -166,6 +166,7 @@ interface RequirementDocProps {
   onChange?: (data: RequirementDocData) => void;
   onConfirm?: () => void;
   onRevise?: () => void;
+  onOpenEditor?: () => void;
 }
 
 const RequirementDoc = ({ data, onChange, onConfirm, onRevise }: RequirementDocProps) => {
