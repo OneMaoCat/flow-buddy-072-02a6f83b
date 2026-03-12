@@ -177,6 +177,7 @@ interface RequirementDocEditorProps {
   data: RequirementDocData;
   onChange: (data: RequirementDocData) => void;
   onClose: () => void;
+  onConfirm?: () => void;
 }
 
 const RequirementDocEditor = ({ data, onChange, onClose }: RequirementDocEditorProps) => {
