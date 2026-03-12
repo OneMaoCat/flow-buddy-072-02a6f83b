@@ -19,7 +19,10 @@ import {
   Share2,
   Clock,
   CheckCircle2,
+  ChevronDown,
+  Sparkles,
 } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
