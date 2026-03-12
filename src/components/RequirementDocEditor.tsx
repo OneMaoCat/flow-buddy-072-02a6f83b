@@ -343,6 +343,7 @@ const RequirementDocEditor = ({ data, onChange, onClose, onConfirm }: Requiremen
                 确认需求，开始开发
               </Button>
             )}
+          </div>
         </div>
 
         {/* Document canvas */}
