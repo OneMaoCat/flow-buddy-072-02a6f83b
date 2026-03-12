@@ -35,7 +35,7 @@ const ProjectWorkspace = () => {
   const { id } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const [rightPanelOpen, setRightPanelOpen] = useState(true);
+  const [rightPanelOpen, setRightPanelOpen] = useState(false);
   const [testsPassed, setTestsPassed] = useState(false);
   const [previewConfirmed, setPreviewConfirmed] = useState(false);
   const [showDeepFlow, setShowDeepFlow] = useState(true);
