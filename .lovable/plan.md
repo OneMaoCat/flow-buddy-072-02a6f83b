@@ -1,4 +1,3 @@
-
 # 需求平台 + 异步开发 + 消息卡片验收
 
 ## 已完成
@@ -21,3 +20,9 @@
 ### 4. DevNotification 浏览器通知 ✅
 - Notification API 权限请求
 - 后台标签页系统通知 + sonner toast
+
+### 5. 侧边栏任务追踪列表 ✅
+- SidebarTaskList 组件：按状态分组（开发中/待验收/已发布）
+- ProjectSidebarLayout 增加 taskList/taskCount props，Collapsible 区域
+- ProjectWorkspace 连接数据，点击任务项定位卡片+打开详情面板
+- 聊天区卡片增加 data-card-id，支持 scrollIntoView 定位
