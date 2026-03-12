@@ -33,6 +33,9 @@ const ProjectWorkspace = () => {
   const [devCards, setDevCards] = useState<DevCompleteResult[]>([]);
   const [deployedIds, setDeployedIds] = useState<Set<string>>(new Set());
   const [devInProgress, setDevInProgress] = useState(false);
+  const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
+
+  const selectedCard = devCards.find((c) => c.id === selectedCardId) || null;
 
   // Request notification permission once
   useEffect(() => {
