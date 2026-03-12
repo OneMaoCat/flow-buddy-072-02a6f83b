@@ -345,6 +345,9 @@ const ChatArea = ({
     </div>
   );
 
+  const taskCount = devCards.length + (devInProgress ? 1 : 0);
+  const [popoverOpen, setPopoverOpen] = useState(false);
+
   return (
     <div className="relative flex flex-col h-full">
       <div className="flex-1 overflow-y-auto px-5 md:px-8 pt-8 pb-32 scrollbar-hide">
@@ -375,7 +378,60 @@ const ChatArea = ({
         )}
       </div>
       <div className="sticky bottom-0 bg-background/80 backdrop-blur-md border-t border-border p-3">
-        <PromptBar onSubmit={onSubmit} compact />
+        <div className="flex items-center gap-2">
+          {taskCount > 0 && (
+            <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
+              <PopoverTrigger asChild>
+                <button className="relative p-2 rounded-lg hover:bg-secondary transition-colors text-muted-foreground">
+                  <ListTodo size={18} />
+                  <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center px-1">
+                    {taskCount}
+                  </span>
+                </button>
+              </PopoverTrigger>
+              <PopoverContent align="start" side="top" className="w-72 p-2">
+                <p className="text-xs font-medium text-muted-foreground px-2 py-1.5">当前对话任务</p>
+                <div className="flex flex-col gap-0.5 max-h-60 overflow-y-auto">
+                  {devInProgress && (
+                    <div className="flex items-center gap-2 px-2 py-1.5 rounded-md text-xs text-muted-foreground opacity-70">
+                      <Loader2 size={12} className="animate-spin text-primary shrink-0" />
+                      <span className="truncate flex-1">{planFlow.requirement || "新任务"}</span>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary shrink-0 font-medium">开发中</span>
+                    </div>
+                  )}
+                  {devCards.map((card) => {
+                    const deployed = deployedIds.has(card.id);
+                    return (
+                      <button
+                        key={card.id}
+                        onClick={() => { onSelectCard(card.id); setPopoverOpen(false); }}
+                        className={cn(
+                          "w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-xs transition-colors text-left",
+                          selectedCardId === card.id ? "bg-secondary text-foreground" : "text-muted-foreground hover:bg-secondary/50"
+                        )}
+                      >
+                        {deployed
+                          ? <Check size={12} className="text-emerald-500 shrink-0" />
+                          : <Circle size={10} className="text-orange-500 fill-orange-500 shrink-0" />
+                        }
+                        <span className="truncate flex-1">{card.requirementTitle}</span>
+                        <span className={cn(
+                          "text-[10px] px-1.5 py-0.5 rounded-full shrink-0 font-medium",
+                          deployed ? "text-emerald-600 bg-emerald-500/10" : "text-orange-600 bg-orange-500/10"
+                        )}>
+                          {deployed ? "已发布" : "待验收"}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </PopoverContent>
+            </Popover>
+          )}
+          <div className="flex-1">
+            <PromptBar onSubmit={onSubmit} compact />
+          </div>
+        </div>
       </div>
     </div>
   );
