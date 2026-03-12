@@ -622,54 +622,94 @@ const RequirementDocEditor = ({ data, onChange, onClose }: RequirementDocEditorP
               {/* Divider */}
               <div className="border-t border-border" />
 
-              {/* Comments */}
+              {/* Comments - grouped */}
               <div>
-                <p className="text-[11px] font-medium text-muted-foreground mb-3 uppercase tracking-wider">
-                  评论 ({unresolvedCount})
-                </p>
-                <div className="space-y-3">
-                  {comments.map((c) => (
-                    <div
-                      key={c.id}
-                      className={cn(
-                        "rounded-lg p-3 text-sm",
-                        c.resolved
-                          ? "bg-muted/30 opacity-60"
-                          : "bg-accent/30"
-                      )}
-                    >
-                      <div className="flex items-center gap-2 mb-1.5">
-                        <div className="w-5 h-5 rounded-full bg-accent flex items-center justify-center text-[9px] font-medium text-accent-foreground">
-                          {c.avatar}
+                {/* Unresolved group */}
+                <Collapsible defaultOpen>
+                  <CollapsibleTrigger className="flex items-center gap-1.5 w-full text-[11px] font-medium text-muted-foreground mb-3 uppercase tracking-wider hover:text-foreground transition-colors group/trigger">
+                    <ChevronDown size={12} className="transition-transform group-data-[state=closed]/trigger:-rotate-90" />
+                    未解决 ({comments.filter((c) => !c.resolved).length})
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <div className="space-y-3 mb-4">
+                      {comments.filter((c) => !c.resolved).map((c) => (
+                        <div key={c.id} className="rounded-lg p-3 text-sm bg-accent/30">
+                          <div className="flex items-center gap-2 mb-1.5">
+                            <div className="w-5 h-5 rounded-full bg-accent flex items-center justify-center text-[9px] font-medium text-accent-foreground">
+                              {c.avatar}
+                            </div>
+                            <span className="text-xs font-medium text-foreground">{c.author}</span>
+                            <span className="text-[10px] text-muted-foreground/50 ml-auto">{c.time}</span>
+                          </div>
+                          <p className="text-xs text-foreground/70 leading-relaxed">{c.content}</p>
+                          {/* Suggestion preview */}
+                          {c.suggestion && (
+                            <div className="mt-2 px-2.5 py-2 rounded-md bg-primary/5 border border-primary/10">
+                              <p className="text-[10px] text-muted-foreground mb-1">建议修改：</p>
+                              <p className="text-[11px] text-foreground/60 leading-relaxed line-clamp-2">{c.suggestion}</p>
+                            </div>
+                          )}
+                          <div className="mt-2 flex items-center gap-2">
+                            {c.suggestion && (
+                              <button
+                                onClick={() => {
+                                  // Apply suggestion to doc
+                                  if (c.section === "background" && c.suggestion) {
+                                    update({ background: c.suggestion });
+                                  } else if (c.section === "flowSteps" && c.suggestion) {
+                                    update({ flowSteps: [...doc.flowSteps, { id: `f${Date.now()}`, label: c.suggestion }] });
+                                  }
+                                  // Auto-resolve
+                                  setComments(comments.map((cm) => cm.id === c.id ? { ...cm, resolved: true } : cm));
+                                }}
+                                className="flex items-center gap-1 text-[10px] text-primary hover:text-primary/80 font-medium transition-colors"
+                              >
+                                <Sparkles size={11} />
+                                采纳
+                              </button>
+                            )}
+                            <button
+                              onClick={() => setComments(comments.map((cm) => cm.id === c.id ? { ...cm, resolved: true } : cm))}
+                              className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground transition-colors"
+                            >
+                              <CheckCircle2 size={11} />
+                              标为已解决
+                            </button>
+                          </div>
                         </div>
-                        <span className="text-xs font-medium text-foreground">
-                          {c.author}
-                        </span>
-                        <span className="text-[10px] text-muted-foreground/50 ml-auto">
-                          {c.time}
-                        </span>
-                      </div>
-                      <p className="text-xs text-foreground/70 leading-relaxed">
-                        {c.content}
-                      </p>
-                      {!c.resolved && (
-                        <button
-                          onClick={() =>
-                            setComments(
-                              comments.map((cm) =>
-                                cm.id === c.id ? { ...cm, resolved: true } : cm
-                              )
-                            )
-                          }
-                          className="mt-2 flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground transition-colors"
-                        >
-                          <CheckCircle2 size={11} />
-                          标为已解决
-                        </button>
+                      ))}
+                      {comments.filter((c) => !c.resolved).length === 0 && (
+                        <p className="text-xs text-muted-foreground/40 text-center py-3">暂无未解决评论</p>
                       )}
                     </div>
-                  ))}
-                </div>
+                  </CollapsibleContent>
+                </Collapsible>
+
+                {/* Resolved group */}
+                {comments.filter((c) => c.resolved).length > 0 && (
+                  <Collapsible>
+                    <CollapsibleTrigger className="flex items-center gap-1.5 w-full text-[11px] font-medium text-muted-foreground mb-3 uppercase tracking-wider hover:text-foreground transition-colors group/trigger">
+                      <ChevronDown size={12} className="transition-transform group-data-[state=closed]/trigger:-rotate-90" />
+                      已解决 ({comments.filter((c) => c.resolved).length})
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <div className="space-y-2">
+                        {comments.filter((c) => c.resolved).map((c) => (
+                          <div key={c.id} className="rounded-lg p-3 text-sm bg-muted/30 opacity-60">
+                            <div className="flex items-center gap-2 mb-1">
+                              <div className="w-5 h-5 rounded-full bg-accent flex items-center justify-center text-[9px] font-medium text-accent-foreground">
+                                {c.avatar}
+                              </div>
+                              <span className="text-xs font-medium text-foreground">{c.author}</span>
+                              <CheckCircle2 size={11} className="text-emerald-500 ml-auto" />
+                            </div>
+                            <p className="text-xs text-foreground/50 leading-relaxed line-through decoration-muted-foreground/30">{c.content}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+                )}
               </div>
             </div>
           </ScrollArea>
