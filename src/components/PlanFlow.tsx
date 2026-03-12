@@ -172,6 +172,7 @@ const PlanFlow = ({ requirement, onCancel, onStartDev, onOpenDocEditor }: PlanFl
           <RequirementDoc
             data={docData}
             onChange={setDocData}
+            onOpenEditor={() => onOpenDocEditor?.(docData)}
             onConfirm={() => {
               setStage("confirmed");
               onStartDev();
