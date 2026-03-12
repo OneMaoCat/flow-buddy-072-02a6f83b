@@ -177,9 +177,10 @@ interface RequirementDocEditorProps {
   data: RequirementDocData;
   onChange: (data: RequirementDocData) => void;
   onClose: () => void;
+  onConfirm?: () => void;
 }
 
-const RequirementDocEditor = ({ data, onChange, onClose }: RequirementDocEditorProps) => {
+const RequirementDocEditor = ({ data, onChange, onClose, onConfirm }: RequirementDocEditorProps) => {
   const [doc, setDoc] = useState<RequirementDocData>(data);
   const [images, setImages] = useState<Map<string, string[]>>(new Map());
   const [reviewers, setReviewers] = useState<Reviewer[]>(mockReviewers);
@@ -335,6 +336,13 @@ const RequirementDocEditor = ({ data, onChange, onClose }: RequirementDocEditorP
               <Share2 size={14} />
               <span>分享</span>
             </button>
+
+            {onConfirm && (
+              <Button size="sm" className="h-7 text-xs gap-1.5 ml-1" onClick={onConfirm}>
+                <CheckCircle2 size={12} />
+                确认需求，开始开发
+              </Button>
+            )}
           </div>
         </div>
 
