@@ -75,11 +75,12 @@ const DevCompleteDetailPanel = ({
         </TabsList>
 
         {/* Preview */}
-        <TabsContent value="preview" className="flex-1 min-h-0 m-0 p-4">
+        <TabsContent value="preview" className="flex-1 min-h-0 m-0">
           <RequirementPreview
             previewPath={result.previewPath}
             requirementTitle={result.requirementTitle}
             projectId={result.projectId}
+            fullscreen
           />
         </TabsContent>
 
