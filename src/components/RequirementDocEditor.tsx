@@ -336,7 +336,13 @@ const RequirementDocEditor = ({ data, onChange, onClose, onConfirm }: Requiremen
               <Share2 size={14} />
               <span>分享</span>
             </button>
-          </div>
+
+            {onConfirm && (
+              <Button size="sm" className="h-7 text-xs gap-1.5 ml-1" onClick={onConfirm}>
+                <CheckCircle2 size={12} />
+                确认需求，开始开发
+              </Button>
+            )}
         </div>
 
         {/* Document canvas */}
