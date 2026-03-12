@@ -238,74 +238,38 @@ const ChatArea = ({
     </div>
   );
 
-  return (
-  <div className="relative flex flex-col h-full">
-    <div className="flex-1 overflow-y-auto px-5 md:px-8 pt-8 pb-32 scrollbar-hide">
-      {planFlow.active ? (
-        <div className="max-w-[800px] mx-auto flex flex-col gap-6">
-          <PlanFlow
-            requirement={planFlow.requirement}
-            onCancel={onCancel}
-            onStartDev={() => {}}
-            onOpenDocEditor={onOpenDocEditor}
-            onDevSubmitted={onDevSubmitted}
-          />
-
-          {/* Dev complete cards pushed into chat */}
-          {devCards.map((card) => (
-            <div key={card.id} className="flex justify-start animate-in fade-in slide-in-from-bottom-2 duration-300">
-              <div className="flex items-start gap-3 max-w-[90%]">
-                <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center shrink-0">
-                  <span className="text-foreground text-xs font-bold">DF</span>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm text-muted-foreground mb-2">开发已完成，请验收：</p>
-                  <DevCompleteCard
-                    result={card}
-                    onDeploy={onDeploy}
-                    onReject={onReject}
-                    deployed={deployedIds.has(card.id)}
-                  />
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      ) : devCards.length > 0 ? (
-        <div className="max-w-[800px] mx-auto flex flex-col gap-6">
-          {devCards.map((card) => (
-            <div key={card.id} className="flex justify-start animate-in fade-in slide-in-from-bottom-2 duration-300">
-              <div className="flex items-start gap-3 max-w-[90%]">
-                <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center shrink-0">
-                  <span className="text-foreground text-xs font-bold">DF</span>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm text-muted-foreground mb-2">开发已完成，请验收：</p>
-                  <DevCompleteCard
-                    result={card}
-                    onDeploy={onDeploy}
-                    onReject={onReject}
-                    deployed={deployedIds.has(card.id)}
-                  />
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div className="flex flex-col items-center justify-center h-full text-muted-foreground gap-3">
-          <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center">
-            <span className="text-foreground text-sm font-bold">DF</span>
+    <div className="relative flex flex-col h-full">
+      <div className="flex-1 overflow-y-auto px-5 md:px-8 pt-8 pb-32 scrollbar-hide">
+        {planFlow.active ? (
+          <div className="max-w-[800px] mx-auto flex flex-col gap-6">
+            <PlanFlow
+              requirement={planFlow.requirement}
+              onCancel={onCancel}
+              onStartDev={() => {}}
+              onOpenDocEditor={onOpenDocEditor}
+              onDevSubmitted={onDevSubmitted}
+            />
+            {devCards.map(renderCard)}
           </div>
-          <p className="text-sm">输入需求开始开发</p>
-        </div>
-      )}
+        ) : devCards.length > 0 ? (
+          <div className="max-w-[800px] mx-auto flex flex-col gap-6">
+            {devCards.map(renderCard)}
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center h-full text-muted-foreground gap-3">
+            <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center">
+              <span className="text-foreground text-sm font-bold">DF</span>
+            </div>
+            <p className="text-sm">输入需求开始开发</p>
+          </div>
+        )}
+      </div>
+      <div className="sticky bottom-0 bg-background/80 backdrop-blur-md border-t border-border p-3">
+        <PromptBar onSubmit={onSubmit} compact />
+      </div>
     </div>
-    <div className="sticky bottom-0 bg-background/80 backdrop-blur-md border-t border-border p-3">
-      <PromptBar onSubmit={onSubmit} compact />
-    </div>
-  </div>
-);
+  );
+};
 
 /* Right panel sub-component */
 const RightPanel = ({
