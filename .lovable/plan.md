@@ -1,28 +1,34 @@
-# 需求平台 + 异步开发 + 消息卡片验收
 
-## 已完成
 
-### 1. DevCompleteCard — 聊天区验收卡片 ✅
-- 代码变更 Tab（文件列表 + diff 视图）
-- 产品预览 Tab（复用 RequirementPreview）
-- 自测报告 Tab（测试用例列表 + 通过率）
-- 操作栏（发布到测试环境 / 打回修改）
+## Plan: Simplify Sidebar Conversations — Remove Task Tree, Add Status Indicator
 
-### 2. PlanFlow 改造 ✅
-- 确认需求后不再跳转 /dev 页面
-- 触发 onDevSubmitted 回调启动异步模拟
+### What
+Remove the expandable task tree under each conversation in the sidebar. Keep only the conversation title as a flat list item, but add a small status indicator showing the aggregate state of that conversation's tasks (developing / pending review / all deployed).
 
-### 3. ProjectWorkspace 状态管理 ✅
-- devCards 数组管理已完成的开发结果
-- 异步模拟 3-7s 后推送 DevCompleteCard 到聊天区
-- 发布/打回操作 + toast 反馈
+### How
 
-### 4. DevNotification 浏览器通知 ✅
-- Notification API 权限请求
-- 后台标签页系统通知 + sonner toast
+**Modify `src/components/SidebarConversationList.tsx`:**
 
-### 5. 侧边栏任务追踪列表 ✅
-- SidebarTaskList 组件：按状态分组（开发中/待验收/已发布）
-- ProjectSidebarLayout 增加 taskList/taskCount props，Collapsible 区域
-- ProjectWorkspace 连接数据，点击任务项定位卡片+打开详情面板
-- 聊天区卡片增加 data-card-id，支持 scrollIntoView 定位
+1. **Remove** `ConversationItem` with `Collapsible` tree and `TaskItem` component entirely.
+2. **Replace** with a flat button per conversation showing:
+   - `MessageSquare` icon
+   - Conversation title (truncated)
+   - A small status badge/icon on the right side:
+     - **Spinning Loader2** (pulse) — if `devInProgress` is true (developing)
+     - **Orange dot** — if there are tasks not yet deployed (pending review)
+     - **Green check** — if all tasks are deployed
+     - No indicator if conversation has no tasks
+3. Remove unused imports (`Collapsible`, `CollapsibleContent`, `CollapsibleTrigger`, `ChevronRight`).
+4. Remove `onSelectCard` and `selectedCardId` from props (no longer needed here).
+
+**Modify `src/pages/ProjectWorkspace.tsx`:**
+- Remove `selectedCardId` and `onSelectCard` props passed to `SidebarConversationList`.
+
+### Status priority logic
+```
+if (conv.devInProgress) → "开发中" (spinner)
+else if (conv.tasks.some(t => !deployedIds.has(t.id))) → "待验收" (orange)
+else if (conv.tasks.length > 0 && all deployed) → "已完成" (green)
+else → no indicator
+```
+
