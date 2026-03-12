@@ -34,6 +34,8 @@ const ProjectSidebarLayout = ({
   onDeepFlowClick,
   deepFlowActive = false,
   headerRight,
+  taskList,
+  taskCount = 0,
 }: ProjectSidebarLayoutProps) => {
   const { id } = useParams();
   const navigate = useNavigate();
