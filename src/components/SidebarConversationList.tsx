@@ -1,4 +1,5 @@
-import { Check, Circle, Loader2, MessageSquare, Plus } from "lucide-react";
+import { useState } from "react";
+import { Check, Circle, Loader2, MessageSquare, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Conversation } from "@/data/conversations";
 
@@ -30,32 +31,54 @@ const SidebarConversationList = ({
   deployedIds,
   activeConversationId,
   onSelectConversation,
-  onNewConversation,
 }: SidebarConversationListProps) => {
+  const [query, setQuery] = useState("");
+
+  const filtered = query.trim()
+    ? conversations.filter((c) =>
+        c.title.toLowerCase().includes(query.trim().toLowerCase()) ||
+        c.currentRequirement.toLowerCase().includes(query.trim().toLowerCase())
+      )
+    : conversations;
+
   return (
-    <div className="flex flex-col gap-0.5">
+    <div className="flex flex-col gap-1">
+      <div className="relative">
+        <Search size={12} className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground" />
+        <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="搜索对话…"
+          className="w-full pl-7 pr-2 py-1.5 rounded-md text-xs bg-secondary/50 border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+        />
+      </div>
 
-      {conversations.map((conv) => {
-        const status = getConversationStatus(conv, deployedIds);
-        const isActive = activeConversationId === conv.id;
+      <div className="flex flex-col gap-0.5">
+        {filtered.length === 0 && (
+          <p className="text-[11px] text-muted-foreground px-2 py-2">无匹配对话</p>
+        )}
+        {filtered.map((conv) => {
+          const status = getConversationStatus(conv, deployedIds);
+          const isActive = activeConversationId === conv.id;
 
-        return (
-          <button
-            key={conv.id}
-            onClick={() => onSelectConversation(conv.id)}
-            className={cn(
-              "w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-xs transition-colors text-left",
-              isActive
-                ? "bg-secondary text-foreground font-medium"
-                : "text-sidebar-foreground hover:bg-secondary/50"
-            )}
-          >
-            <MessageSquare size={12} className="shrink-0 text-muted-foreground" />
-            <span className="flex-1 truncate">{conv.title}</span>
-            <StatusIndicator status={status} />
-          </button>
-        );
-      })}
+          return (
+            <button
+              key={conv.id}
+              onClick={() => onSelectConversation(conv.id)}
+              className={cn(
+                "w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-xs transition-colors text-left",
+                isActive
+                  ? "bg-secondary text-foreground font-medium"
+                  : "text-sidebar-foreground hover:bg-secondary/50"
+              )}
+            >
+              <MessageSquare size={12} className="shrink-0 text-muted-foreground" />
+              <span className="flex-1 truncate">{conv.title}</span>
+              <StatusIndicator status={status} />
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 };
