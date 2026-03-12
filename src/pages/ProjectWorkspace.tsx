@@ -13,6 +13,7 @@ import ProjectSidebarLayout from "@/components/ProjectSidebarLayout";
 import RequirementDocEditor from "@/components/RequirementDocEditor";
 import DevCompleteCard, { buildMockDevResult, type DevCompleteResult } from "@/components/DevCompleteCard";
 import DevCompleteDetailPanel from "@/components/DevCompleteDetailPanel";
+import SidebarTaskList from "@/components/SidebarTaskList";
 import { requestNotificationPermission, notifyDevComplete } from "@/components/DevNotification";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
@@ -105,6 +106,20 @@ const ProjectWorkspace = () => {
     }, 3000 + Math.random() * 3000);
   };
 
+  const scrollToCard = useCallback((cardId: string) => {
+    setTimeout(() => {
+      const el = document.querySelector(`[data-card-id="${cardId}"]`);
+      el?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 100);
+  }, []);
+
+  const handleSelectCard = useCallback((cardId: string) => {
+    setSelectedCardId(cardId);
+    setEditingDoc(null);
+    setRightPanelOpen(true);
+    scrollToCard(cardId);
+  }, [scrollToCard]);
+
   const mainContent = showDeepFlow ? (
     <DeepFlowPanel
       onSubmit={handleSubmit}
@@ -123,7 +138,7 @@ const ProjectWorkspace = () => {
       onDeploy={handleDeploy}
       onReject={handleReject}
       selectedCardId={selectedCardId}
-      onSelectCard={(id) => { setSelectedCardId(id); setEditingDoc(null); setRightPanelOpen(true); }}
+      onSelectCard={handleSelectCard}
     />
   );
 
@@ -131,6 +146,17 @@ const ProjectWorkspace = () => {
     <ProjectSidebarLayout
       onDeepFlowClick={() => setShowDeepFlow(true)}
       deepFlowActive={showDeepFlow}
+      taskCount={devCards.length + (devInProgress ? 1 : 0)}
+      taskList={
+        <SidebarTaskList
+          devCards={devCards}
+          deployedIds={deployedIds}
+          devInProgress={devInProgress}
+          currentRequirement={planFlow.requirement}
+          selectedCardId={selectedCardId}
+          onSelectCard={handleSelectCard}
+        />
+      }
       headerRight={
         <>
           <PublishDialog testsPassed={testsPassed} previewConfirmed={previewConfirmed} />
@@ -212,6 +238,7 @@ const ChatArea = ({
   const renderCard = (card: DevCompleteResult) => (
     <div
       key={card.id}
+      data-card-id={card.id}
       className="flex justify-start animate-in fade-in slide-in-from-bottom-2 duration-300"
     >
       <div className="flex items-start gap-3 max-w-[90%]">

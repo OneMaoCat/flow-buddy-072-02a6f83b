@@ -1,8 +1,9 @@
 import { useState, useEffect, useSyncExternalStore } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
-import { Menu, ExternalLink, Sparkles, Settings, Pin, PinOff, Cpu } from "lucide-react";
+import { Menu, ExternalLink, Sparkles, Settings, Pin, PinOff, Cpu, ChevronDown } from "lucide-react";
 import { projectStore } from "@/data/projectStore";
 import ProjectSwitcher from "@/components/ProjectSwitcher";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 const useIsDesktop = () => {
   const [d, setD] = useState(window.innerWidth >= 1024);
@@ -24,6 +25,8 @@ interface ProjectSidebarLayoutProps {
   onDeepFlowClick?: () => void;
   deepFlowActive?: boolean;
   headerRight?: React.ReactNode;
+  taskList?: React.ReactNode;
+  taskCount?: number;
 }
 
 const ProjectSidebarLayout = ({
@@ -31,6 +34,8 @@ const ProjectSidebarLayout = ({
   onDeepFlowClick,
   deepFlowActive = false,
   headerRight,
+  taskList,
+  taskCount = 0,
 }: ProjectSidebarLayoutProps) => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -96,7 +101,7 @@ const ProjectSidebarLayout = ({
             </div>
 
             {/* Nav items */}
-            <div className="flex-1 flex flex-col">
+            <div className="flex flex-col">
               {navItems.map((item, i) => (
                 <div key={i} className={`px-3 ${item.separator ? "py-2 border-b border-border" : "py-1"}`}>
                   <button
@@ -113,6 +118,31 @@ const ProjectSidebarLayout = ({
                 </div>
               ))}
             </div>
+
+            {/* Task list */}
+            {taskList && (
+              <Collapsible defaultOpen className="border-t border-border">
+                <CollapsibleTrigger className="w-full flex items-center justify-between px-4 py-2 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors group">
+                  <span className="flex items-center gap-1.5">
+                    开发任务
+                    {taskCount > 0 && (
+                      <span className="inline-flex items-center justify-center h-4 min-w-4 px-1 rounded-full bg-primary/10 text-primary text-[10px] font-semibold">
+                        {taskCount}
+                      </span>
+                    )}
+                  </span>
+                  <ChevronDown size={12} className="transition-transform group-data-[state=open]:rotate-180" />
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <div className="px-3 pb-2">
+                    {taskList}
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
+            )}
+
+            {/* Spacer */}
+            <div className="flex-1" />
 
             {/* Settings */}
             <div className="px-3 py-2 border-t border-border">

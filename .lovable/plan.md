@@ -1,54 +1,28 @@
+# 需求平台 + 异步开发 + 消息卡片验收
 
+## 已完成
 
-# 侧边栏任务追踪列表
+### 1. DevCompleteCard — 聊天区验收卡片 ✅
+- 代码变更 Tab（文件列表 + diff 视图）
+- 产品预览 Tab（复用 RequirementPreview）
+- 自测报告 Tab（测试用例列表 + 通过率）
+- 操作栏（发布到测试环境 / 打回修改）
 
-## 概述
+### 2. PlanFlow 改造 ✅
+- 确认需求后不再跳转 /dev 页面
+- 触发 onDevSubmitted 回调启动异步模拟
 
-在项目侧边栏中增加「开发任务」区域，展示当前所有异步开发任务的状态（开发中 / 待验收 / 已发布）。点击任务项可定位到聊天区对应卡片并打开右侧详情面板。
+### 3. ProjectWorkspace 状态管理 ✅
+- devCards 数组管理已完成的开发结果
+- 异步模拟 3-7s 后推送 DevCompleteCard 到聊天区
+- 发布/打回操作 + toast 反馈
 
-## 改动清单
+### 4. DevNotification 浏览器通知 ✅
+- Notification API 权限请求
+- 后台标签页系统通知 + sonner toast
 
-### 1. 新建 `src/components/SidebarTaskList.tsx` — 任务列表组件
-
-接收 `devCards`、`deployedIds`、`devInProgress` 等状态，渲染分组列表：
-
-- **开发中**（devInProgress 时显示，带脉冲动画圆点）
-- **待验收**（devCards 中未 deploy 的，橙色圆点）
-- **已发布**（deployedIds 中的，绿色勾）
-
-每项显示：需求标题（truncate）+ 状态标签。点击触发 `onSelectCard(id)` 回调。
-
-### 2. 修改 `src/components/ProjectSidebarLayout.tsx` — 传入任务数据
-
-- Props 增加 `taskList?: React.ReactNode`
-- 在导航项和设置之间插入任务列表区域，带「开发任务」标题和任务计数 Badge
-- 区域可折叠（Collapsible），默认展开
-
-### 3. 修改 `src/pages/ProjectWorkspace.tsx` — 连接数据
-
-- 将 `SidebarTaskList` 作为 `taskList` prop 传给 `ProjectSidebarLayout`
-- 点击任务项时：设置 `selectedCardId`、清除 `editingDoc`、打开右侧面板
-- 聊天区自动滚动到对应卡片（通过 ref + scrollIntoView）
-
-### 4. 聊天区卡片滚动定位
-
-- 每个 DevCompleteCard 包裹一个带 `data-card-id` 的 div
-- `onSelectCard` 时用 `querySelector + scrollIntoView({ behavior: 'smooth' })` 定位
-
-## 侧边栏布局
-
-```text
-┌─ 项目切换器 ──────────┐
-├─ DeepFlow AI          │
-├─ 预览产品             │
-├─ 开发执行中心          │
-├───────────────────────┤
-│ 开发任务 (3)          │
-│  ● 登录表单验证  开发中 │
-│  ◉ 支付流程重构  待验收 │
-│  ✓ 权限模块测试  已发布 │
-├───────────────────────┤
-│ 设置                  │
-└───────────────────────┘
-```
-
+### 5. 侧边栏任务追踪列表 ✅
+- SidebarTaskList 组件：按状态分组（开发中/待验收/已发布）
+- ProjectSidebarLayout 增加 taskList/taskCount props，Collapsible 区域
+- ProjectWorkspace 连接数据，点击任务项定位卡片+打开详情面板
+- 聊天区卡片增加 data-card-id，支持 scrollIntoView 定位
