@@ -583,7 +583,24 @@ const DetailPanel = ({
                     {agent.status === "waiting" ? "—" : `${agent.progress}%`}
                   </span>
                   <span className="text-[10px] text-muted-foreground truncate max-w-[100px]">{agent.currentFile}</span>
+            </div>
+
+            {/* Development logs */}
+            {logs.length > 0 && (
+              <div className="pt-3 border-t border-border">
+                <p className="text-[11px] font-semibold text-muted-foreground mb-2">开发日志</p>
+                <div className="space-y-0.5 max-h-[300px] overflow-y-auto rounded-md bg-muted/30 p-2">
+                  {logs.map((log, i) => (
+                    <div key={i} className="flex items-start gap-2 text-[11px] py-0.5">
+                      <span className="text-muted-foreground font-mono shrink-0 w-14">{log.time}</span>
+                      <span className="text-primary/80 font-medium shrink-0 w-16 truncate">{log.agentName}</span>
+                      <span className="text-foreground/80 break-all">{log.message}</span>
+                    </div>
+                  ))}
+                  <div ref={logsEndRef} />
                 </div>
+              </div>
+            )
               ))}
             </div>
 
