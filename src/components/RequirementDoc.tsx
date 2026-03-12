@@ -166,9 +166,10 @@ interface RequirementDocProps {
   onChange?: (data: RequirementDocData) => void;
   onConfirm?: () => void;
   onRevise?: () => void;
+  onOpenEditor?: () => void;
 }
 
-const RequirementDoc = ({ data, onChange, onConfirm, onRevise }: RequirementDocProps) => {
+const RequirementDoc = ({ data, onChange, onConfirm, onRevise, onOpenEditor }: RequirementDocProps) => {
   const [doc, setDoc] = useState<RequirementDocData>(data);
 
   const update = (partial: Partial<RequirementDocData>) => {
@@ -202,7 +203,13 @@ const RequirementDoc = ({ data, onChange, onConfirm, onRevise }: RequirementDocP
   };
 
   return (
-    <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden animate-in fade-in slide-in-from-bottom-3 duration-500">
+    <div
+      className={cn(
+        "rounded-xl border border-border bg-card shadow-sm overflow-hidden animate-in fade-in slide-in-from-bottom-3 duration-500",
+        onOpenEditor && "cursor-pointer hover:border-primary/30 hover:shadow-md transition-all"
+      )}
+      onClick={() => onOpenEditor?.()}
+    >
       {/* Header */}
       <div className="px-5 py-4 border-b border-border bg-muted/30">
         <div className="flex items-center gap-2 mb-1">

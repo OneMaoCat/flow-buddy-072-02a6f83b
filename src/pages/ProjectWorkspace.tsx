@@ -10,7 +10,9 @@ import PreviewPanel from "@/components/PreviewPanel";
 import PublishDialog from "@/components/PublishDialog";
 import ProductionStatus from "@/components/ProductionStatus";
 import ProjectSidebarLayout from "@/components/ProjectSidebarLayout";
+import RequirementDocEditor from "@/components/RequirementDocEditor";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import type { RequirementDocData } from "@/components/RequirementDoc";
 
 const ProjectWorkspace = () => {
   const { id } = useParams();
@@ -22,6 +24,7 @@ const ProjectWorkspace = () => {
   const [previewConfirmed, setPreviewConfirmed] = useState(false);
   const [showDeepFlow, setShowDeepFlow] = useState(false);
   const [devCompleteMessage, setDevCompleteMessage] = useState(false);
+  const [editingDoc, setEditingDoc] = useState<RequirementDocData | null>(null);
 
   // Handle devComplete param
   useEffect(() => {
@@ -43,13 +46,28 @@ const ProjectWorkspace = () => {
     }
   };
 
+  const handleOpenDocEditor = (docData: RequirementDocData) => {
+    setEditingDoc(docData);
+    setRightPanelOpen(true);
+  };
+
+  const handleCloseDocEditor = () => {
+    setEditingDoc(null);
+  };
+
   const mainContent = showDeepFlow ? (
     <DeepFlowPanel
       onSubmit={handleSubmit}
       onSelectConversation={() => setShowDeepFlow(false)}
     />
   ) : (
-    <ChatArea planFlow={planFlow} onSubmit={handleSubmit} onCancel={() => setPlanFlow({ active: false, requirement: "" })} devCompleteMessage={devCompleteMessage} />
+    <ChatArea
+      planFlow={planFlow}
+      onSubmit={handleSubmit}
+      onCancel={() => setPlanFlow({ active: false, requirement: "" })}
+      devCompleteMessage={devCompleteMessage}
+      onOpenDocEditor={handleOpenDocEditor}
+    />
   );
 
   return (
@@ -71,17 +89,25 @@ const ProjectWorkspace = () => {
       {({ isDesktop }) => (
         rightPanelOpen && isDesktop ? (
           <ResizablePanelGroup direction="horizontal">
-            <ResizablePanel defaultSize={40} minSize={30}>
+            <ResizablePanel defaultSize={editingDoc ? 35 : 40} minSize={25}>
               {mainContent}
             </ResizablePanel>
             <ResizableHandle withHandle />
-            <ResizablePanel defaultSize={60} minSize={30}>
-              <RightPanel
-                projectName=""
-                onTestsPassed={() => setTestsPassed(true)}
-                onPreviewConfirm={() => setPreviewConfirmed(true)}
-                previewConfirmed={previewConfirmed}
-              />
+            <ResizablePanel defaultSize={editingDoc ? 65 : 60} minSize={30}>
+              {editingDoc ? (
+                <RequirementDocEditor
+                  data={editingDoc}
+                  onChange={(updated) => setEditingDoc(updated)}
+                  onClose={handleCloseDocEditor}
+                />
+              ) : (
+                <RightPanel
+                  projectName=""
+                  onTestsPassed={() => setTestsPassed(true)}
+                  onPreviewConfirm={() => setPreviewConfirmed(true)}
+                  previewConfirmed={previewConfirmed}
+                />
+              )}
             </ResizablePanel>
           </ResizablePanelGroup>
         ) : mainContent
@@ -96,11 +122,13 @@ const ChatArea = ({
   onSubmit,
   onCancel,
   devCompleteMessage,
+  onOpenDocEditor,
 }: {
   planFlow: { active: boolean; requirement: string };
   onSubmit: (data: { text: string; isPlanMode: boolean }) => void;
   onCancel: () => void;
   devCompleteMessage: boolean;
+  onOpenDocEditor: (doc: RequirementDocData) => void;
 }) => (
   <div className="relative flex flex-col h-full">
     <div className="flex-1 overflow-y-auto px-5 md:px-8 pt-8 pb-32 scrollbar-hide">
@@ -120,7 +148,12 @@ const ChatArea = ({
         </div>
       ) : planFlow.active ? (
         <div className="max-w-[800px] mx-auto">
-          <PlanFlow requirement={planFlow.requirement} onCancel={onCancel} onStartDev={() => {}} />
+          <PlanFlow
+            requirement={planFlow.requirement}
+            onCancel={onCancel}
+            onStartDev={() => {}}
+            onOpenDocEditor={onOpenDocEditor}
+          />
         </div>
       ) : (
         <div className="flex flex-col items-center justify-center h-full text-muted-foreground gap-3">

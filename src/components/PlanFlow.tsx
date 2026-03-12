@@ -113,9 +113,10 @@ interface PlanFlowProps {
   requirement: string;
   onCancel: () => void;
   onStartDev: () => void;
+  onOpenDocEditor?: (doc: RequirementDocData) => void;
 }
 
-const PlanFlow = ({ requirement, onCancel, onStartDev }: PlanFlowProps) => {
+const PlanFlow = ({ requirement, onCancel, onStartDev, onOpenDocEditor }: PlanFlowProps) => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [stage, setStage] = useState<FlowStage>("clarifying");
@@ -171,6 +172,7 @@ const PlanFlow = ({ requirement, onCancel, onStartDev }: PlanFlowProps) => {
           <RequirementDoc
             data={docData}
             onChange={setDocData}
+            onOpenEditor={() => onOpenDocEditor?.(docData)}
             onConfirm={() => {
               setStage("confirmed");
               onStartDev();
