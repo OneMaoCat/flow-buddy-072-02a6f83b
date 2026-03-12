@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import ClarifyCards, { type ClarifyQuestion } from "./ClarifyCards";
 import RequirementDoc, { type RequirementDocData } from "./RequirementDoc";
 import { Loader2 } from "lucide-react";
@@ -114,11 +114,11 @@ interface PlanFlowProps {
   onCancel: () => void;
   onStartDev: () => void;
   onOpenDocEditor?: (doc: RequirementDocData) => void;
+  onDevSubmitted?: () => void;
 }
 
-const PlanFlow = ({ requirement, onCancel, onStartDev, onOpenDocEditor }: PlanFlowProps) => {
+const PlanFlow = ({ requirement, onCancel, onStartDev, onOpenDocEditor, onDevSubmitted }: PlanFlowProps) => {
   const { id } = useParams();
-  const navigate = useNavigate();
   const [stage, setStage] = useState<FlowStage>("clarifying");
   const [clarifyAnswers, setClarifyAnswers] = useState<Record<string, string> | null>(null);
   const [docData, setDocData] = useState<RequirementDocData>(() => buildMockDoc(requirement));
@@ -176,7 +176,7 @@ const PlanFlow = ({ requirement, onCancel, onStartDev, onOpenDocEditor }: PlanFl
             onConfirm={() => {
               setStage("confirmed");
               onStartDev();
-              setTimeout(() => navigate(`/project/${id}/dev`), 1000);
+              onDevSubmitted?.();
             }}
             onRevise={onCancel}
           />
@@ -189,7 +189,7 @@ const PlanFlow = ({ requirement, onCancel, onStartDev, onOpenDocEditor }: PlanFl
           <AIBubbleWrapper>
             <div className="flex items-center gap-2 py-4">
               <Loader2 size={18} className="text-primary animate-spin" />
-              <span className="text-sm text-foreground font-medium">正在根据需求文档进行开发...</span>
+              <span className="text-sm text-foreground font-medium">已提交开发，AI 正在处理中…</span>
             </div>
           </AIBubbleWrapper>
         </>
