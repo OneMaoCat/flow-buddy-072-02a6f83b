@@ -189,7 +189,7 @@ const PlanFlow = ({ requirement, onCancel, onStartDev, onOpenDocEditor, onDevSub
           <AIBubbleWrapper>
             <div className="flex items-center gap-2 py-4">
               <Loader2 size={18} className="text-primary animate-spin" />
-              <span className="text-sm text-foreground font-medium">正在根据需求文档进行开发...</span>
+              <span className="text-sm text-foreground font-medium">已提交开发，AI 正在处理中…</span>
             </div>
           </AIBubbleWrapper>
         </>
