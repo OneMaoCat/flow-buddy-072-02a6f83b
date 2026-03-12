@@ -43,6 +43,51 @@ const ProjectSettings = () => {
       </header>
 
       <div className="max-w-2xl mx-auto px-6 py-8 space-y-8">
+        {/* Project Name Section */}
+        <section>
+          <h2 className="text-base font-semibold text-foreground mb-1">项目名称</h2>
+          <p className="text-sm text-muted-foreground mb-4">修改项目的显示名称</p>
+          {isRenaming ? (
+            <div className="flex gap-2">
+              <input
+                className="flex-1 h-10 px-3 rounded-lg border border-input bg-background text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && newName.trim()) {
+                    projectStore.rename(id!, newName.trim());
+                    setIsRenaming(false);
+                  } else if (e.key === "Escape") {
+                    setIsRenaming(false);
+                  }
+                }}
+              />
+              <Button
+                className="h-10 gap-1.5"
+                disabled={!newName.trim()}
+                onClick={() => {
+                  projectStore.rename(id!, newName.trim());
+                  setIsRenaming(false);
+                }}
+              >
+                <Check size={14} />
+                保存
+              </Button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-foreground font-medium">{project.name}</span>
+              <button
+                onClick={() => { setNewName(project.name); setIsRenaming(true); }}
+                className="p-1.5 rounded-md hover:bg-secondary transition-colors text-muted-foreground"
+              >
+                <Pencil size={14} />
+              </button>
+            </div>
+          )}
+        </section>
+
         {/* Team Members Section */}
         <section>
           <h2 className="text-base font-semibold text-foreground mb-1">团队成员</h2>
