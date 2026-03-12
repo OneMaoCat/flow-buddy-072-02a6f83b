@@ -364,11 +364,26 @@ const ChatArea = ({
   const taskCount = devCards.length + (devInProgress ? 1 : 0);
   const [popoverOpen, setPopoverOpen] = useState(false);
 
+  // Interleave messages and cards: show messages[0], card[0], messages[1], card[1], ...
+  const renderTimeline = () => {
+    const items: React.ReactNode[] = [];
+    const msgCount = chatMessages.length;
+    const cardCount = devCards.length;
+    const max = Math.max(msgCount, cardCount);
+    for (let i = 0; i < max; i++) {
+      if (i < msgCount) items.push(renderUserMessage(chatMessages[i]));
+      if (i < cardCount) items.push(renderCard(devCards[i]));
+    }
+    if (devInProgress) items.push(<div key="in-progress">{renderInProgress()}</div>);
+    return items;
+  };
+
   return (
     <div className="relative flex flex-col h-full">
       <div className="flex-1 overflow-y-auto px-5 md:px-8 pt-8 pb-32 scrollbar-hide">
         {planFlow.active ? (
           <div className="max-w-[800px] mx-auto flex flex-col gap-6">
+            {chatMessages.length > 0 && renderUserMessage(chatMessages[chatMessages.length - 1])}
             <PlanFlow
               requirement={planFlow.requirement}
               onCancel={onCancel}
@@ -379,10 +394,9 @@ const ChatArea = ({
             {devCards.map(renderCard)}
             {devInProgress && renderInProgress()}
           </div>
-        ) : devCards.length > 0 ? (
+        ) : chatMessages.length > 0 || devCards.length > 0 ? (
           <div className="max-w-[800px] mx-auto flex flex-col gap-6">
-            {devCards.map(renderCard)}
-            {devInProgress && renderInProgress()}
+            {renderTimeline()}
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center h-full text-muted-foreground gap-3">
