@@ -259,6 +259,10 @@ const ProjectWorkspace = () => {
                   data={editingDoc}
                   onChange={(updated) => setEditingDoc(updated)}
                   onClose={handleCloseDocEditor}
+                  onConfirm={() => {
+                    handleCloseDocEditor();
+                    handleDevSubmitted();
+                  }}
                 />
               ) : selectedCard ? (
                 <DevCompleteDetailPanel
