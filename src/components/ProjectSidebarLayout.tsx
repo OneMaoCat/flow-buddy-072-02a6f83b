@@ -25,6 +25,8 @@ interface ProjectSidebarLayoutProps {
   onDeepFlowClick?: () => void;
   deepFlowActive?: boolean;
   headerRight?: React.ReactNode;
+  taskList?: React.ReactNode;
+  taskCount?: number;
 }
 
 const ProjectSidebarLayout = ({
