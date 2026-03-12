@@ -236,8 +236,7 @@ const ChatArea = ({
         </div>
       </div>
     </div>
-  );
-
+  return (
     <div className="relative flex flex-col h-full">
       <div className="flex-1 overflow-y-auto px-5 md:px-8 pt-8 pb-32 scrollbar-hide">
         {planFlow.active ? (
