@@ -7,7 +7,7 @@ interface PromptBarProps {
   compact?: boolean;
 }
 
-const PromptBar = ({ onSubmit, defaultText }: PromptBarProps) => {
+const PromptBar = ({ onSubmit, defaultText, compact }: PromptBarProps) => {
   const [planMode, setPlanMode] = useState(false);
   const [text, setText] = useState("");
 
