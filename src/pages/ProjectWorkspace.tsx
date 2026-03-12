@@ -38,7 +38,7 @@ const ProjectWorkspace = () => {
   const [rightPanelOpen, setRightPanelOpen] = useState(true);
   const [testsPassed, setTestsPassed] = useState(false);
   const [previewConfirmed, setPreviewConfirmed] = useState(false);
-  const [showDeepFlow, setShowDeepFlow] = useState(false);
+  const [showDeepFlow, setShowDeepFlow] = useState(true);
   const [editingDoc, setEditingDoc] = useState<RequirementDocData | null>(null);
 
   // Conversation-based state — init with mock data
