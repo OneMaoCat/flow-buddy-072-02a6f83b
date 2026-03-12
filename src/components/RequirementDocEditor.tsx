@@ -19,7 +19,10 @@ import {
   Share2,
   Clock,
   CheckCircle2,
+  ChevronDown,
+  Sparkles,
 } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
@@ -46,6 +49,8 @@ interface DocComment {
   content: string;
   time: string;
   resolved: boolean;
+  section?: "background" | "scenarios" | "flowSteps" | "changePoints";
+  suggestion?: string;
 }
 
 /* ─── Mock Data ─── */
@@ -55,8 +60,10 @@ const mockReviewers: Reviewer[] = [
 ];
 
 const mockComments: DocComment[] = [
-  { id: "cm1", author: "张三", avatar: "张", content: "邮箱验证规则建议增加对企业邮箱的支持", time: "10 分钟前", resolved: false },
-  { id: "cm2", author: "李四", avatar: "李", content: "流程图中缺少「忘记密码」的分支路径", time: "25 分钟前", resolved: false },
+  { id: "cm1", author: "张三", avatar: "张", content: "邮箱验证规则建议增加对企业邮箱的支持", time: "10 分钟前", resolved: false, section: "background", suggestion: "当前系统的用户登录页面在表单验证方面存在若干问题，包括邮箱格式校验缺失、密码强度提示不明确、必填项未做前端拦截等。这些问题导致用户体验不佳，同时也增加了后端无效请求的处理压力。本次需求旨在全面修复登录表单验证逻辑，补充对企业邮箱格式的支持，并补充对应的单元测试以防止回归。" },
+  { id: "cm2", author: "李四", avatar: "李", content: "流程图中缺少「忘记密码」的分支路径", time: "25 分钟前", resolved: false, section: "flowSteps", suggestion: "新增「忘记密码」步骤" },
+  { id: "cm3", author: "张三", avatar: "张", content: "密码强度校验的正则已确认", time: "1 小时前", resolved: true },
+  { id: "cm4", author: "李四", avatar: "李", content: "表单错误提示的文案已对齐设计稿", time: "2 小时前", resolved: true },
 ];
 
 /* ─── Change type config ─── */
@@ -615,54 +622,94 @@ const RequirementDocEditor = ({ data, onChange, onClose }: RequirementDocEditorP
               {/* Divider */}
               <div className="border-t border-border" />
 
-              {/* Comments */}
+              {/* Comments - grouped */}
               <div>
-                <p className="text-[11px] font-medium text-muted-foreground mb-3 uppercase tracking-wider">
-                  评论 ({unresolvedCount})
-                </p>
-                <div className="space-y-3">
-                  {comments.map((c) => (
-                    <div
-                      key={c.id}
-                      className={cn(
-                        "rounded-lg p-3 text-sm",
-                        c.resolved
-                          ? "bg-muted/30 opacity-60"
-                          : "bg-accent/30"
-                      )}
-                    >
-                      <div className="flex items-center gap-2 mb-1.5">
-                        <div className="w-5 h-5 rounded-full bg-accent flex items-center justify-center text-[9px] font-medium text-accent-foreground">
-                          {c.avatar}
+                {/* Unresolved group */}
+                <Collapsible defaultOpen>
+                  <CollapsibleTrigger className="flex items-center gap-1.5 w-full text-[11px] font-medium text-muted-foreground mb-3 uppercase tracking-wider hover:text-foreground transition-colors group/trigger">
+                    <ChevronDown size={12} className="transition-transform group-data-[state=closed]/trigger:-rotate-90" />
+                    未解决 ({comments.filter((c) => !c.resolved).length})
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <div className="space-y-3 mb-4">
+                      {comments.filter((c) => !c.resolved).map((c) => (
+                        <div key={c.id} className="rounded-lg p-3 text-sm bg-accent/30">
+                          <div className="flex items-center gap-2 mb-1.5">
+                            <div className="w-5 h-5 rounded-full bg-accent flex items-center justify-center text-[9px] font-medium text-accent-foreground">
+                              {c.avatar}
+                            </div>
+                            <span className="text-xs font-medium text-foreground">{c.author}</span>
+                            <span className="text-[10px] text-muted-foreground/50 ml-auto">{c.time}</span>
+                          </div>
+                          <p className="text-xs text-foreground/70 leading-relaxed">{c.content}</p>
+                          {/* Suggestion preview */}
+                          {c.suggestion && (
+                            <div className="mt-2 px-2.5 py-2 rounded-md bg-primary/5 border border-primary/10">
+                              <p className="text-[10px] text-muted-foreground mb-1">建议修改：</p>
+                              <p className="text-[11px] text-foreground/60 leading-relaxed line-clamp-2">{c.suggestion}</p>
+                            </div>
+                          )}
+                          <div className="mt-2 flex items-center gap-2">
+                            {c.suggestion && (
+                              <button
+                                onClick={() => {
+                                  // Apply suggestion to doc
+                                  if (c.section === "background" && c.suggestion) {
+                                    update({ background: c.suggestion });
+                                  } else if (c.section === "flowSteps" && c.suggestion) {
+                                    update({ flowSteps: [...doc.flowSteps, { id: `f${Date.now()}`, label: c.suggestion }] });
+                                  }
+                                  // Auto-resolve
+                                  setComments(comments.map((cm) => cm.id === c.id ? { ...cm, resolved: true } : cm));
+                                }}
+                                className="flex items-center gap-1 text-[10px] text-primary hover:text-primary/80 font-medium transition-colors"
+                              >
+                                <Sparkles size={11} />
+                                采纳
+                              </button>
+                            )}
+                            <button
+                              onClick={() => setComments(comments.map((cm) => cm.id === c.id ? { ...cm, resolved: true } : cm))}
+                              className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground transition-colors"
+                            >
+                              <CheckCircle2 size={11} />
+                              标为已解决
+                            </button>
+                          </div>
                         </div>
-                        <span className="text-xs font-medium text-foreground">
-                          {c.author}
-                        </span>
-                        <span className="text-[10px] text-muted-foreground/50 ml-auto">
-                          {c.time}
-                        </span>
-                      </div>
-                      <p className="text-xs text-foreground/70 leading-relaxed">
-                        {c.content}
-                      </p>
-                      {!c.resolved && (
-                        <button
-                          onClick={() =>
-                            setComments(
-                              comments.map((cm) =>
-                                cm.id === c.id ? { ...cm, resolved: true } : cm
-                              )
-                            )
-                          }
-                          className="mt-2 flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground transition-colors"
-                        >
-                          <CheckCircle2 size={11} />
-                          标为已解决
-                        </button>
+                      ))}
+                      {comments.filter((c) => !c.resolved).length === 0 && (
+                        <p className="text-xs text-muted-foreground/40 text-center py-3">暂无未解决评论</p>
                       )}
                     </div>
-                  ))}
-                </div>
+                  </CollapsibleContent>
+                </Collapsible>
+
+                {/* Resolved group */}
+                {comments.filter((c) => c.resolved).length > 0 && (
+                  <Collapsible>
+                    <CollapsibleTrigger className="flex items-center gap-1.5 w-full text-[11px] font-medium text-muted-foreground mb-3 uppercase tracking-wider hover:text-foreground transition-colors group/trigger">
+                      <ChevronDown size={12} className="transition-transform group-data-[state=closed]/trigger:-rotate-90" />
+                      已解决 ({comments.filter((c) => c.resolved).length})
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <div className="space-y-2">
+                        {comments.filter((c) => c.resolved).map((c) => (
+                          <div key={c.id} className="rounded-lg p-3 text-sm bg-muted/30 opacity-60">
+                            <div className="flex items-center gap-2 mb-1">
+                              <div className="w-5 h-5 rounded-full bg-accent flex items-center justify-center text-[9px] font-medium text-accent-foreground">
+                                {c.avatar}
+                              </div>
+                              <span className="text-xs font-medium text-foreground">{c.author}</span>
+                              <CheckCircle2 size={11} className="text-emerald-500 ml-auto" />
+                            </div>
+                            <p className="text-xs text-foreground/50 leading-relaxed line-through decoration-muted-foreground/30">{c.content}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+                )}
               </div>
             </div>
           </ScrollArea>
