@@ -68,6 +68,7 @@ const ProjectWorkspace = () => {
     return m;
   });
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
+  const [detailReadOnly, setDetailReadOnly] = useState(false);
   const [planFlow, setPlanFlow] = useState<{ active: boolean; requirement: string }>({ active: false, requirement: "" });
 
   const activeConversation = conversations.find((c) => c.id === activeConversationId) || null;
