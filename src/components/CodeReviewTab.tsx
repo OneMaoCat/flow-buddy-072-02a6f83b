@@ -1,256 +1,224 @@
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import {
   CheckCircle2,
-  Circle,
-  XCircle,
-  UserPlus,
-  Send,
-  Clock,
+  AlertTriangle,
+  AlertCircle,
+  Lightbulb,
+  ThumbsUp,
+  ChevronDown,
+  Loader2,
+  FileCode2,
+  Shield,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { ReviewInfo, Reviewer, ReviewComment } from "@/data/reviewTypes";
-import { TEAM_MEMBERS, isReviewApproved } from "@/data/reviewTypes";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import type { ReviewInfo, AIModelReviewer, AIReviewFinding, FindingSeverity } from "@/data/reviewTypes";
+
+const severityConfig: Record<FindingSeverity, { label: string; icon: React.ReactNode; className: string; dotClass: string }> = {
+  critical: { label: "严重", icon: <AlertCircle size={12} />, className: "text-destructive", dotClass: "bg-destructive" },
+  warning: { label: "警告", icon: <AlertTriangle size={12} />, className: "text-amber-500", dotClass: "bg-amber-500" },
+  suggestion: { label: "建议", icon: <Lightbulb size={12} />, className: "text-blue-500", dotClass: "bg-blue-500" },
+  praise: { label: "优点", icon: <ThumbsUp size={12} />, className: "text-emerald-500", dotClass: "bg-emerald-500" },
+};
+
+const ScoreRing = ({ score, size = 48 }: { score: number; size?: number }) => {
+  const r = (size - 6) / 2;
+  const c = 2 * Math.PI * r;
+  const offset = c - (score / 100) * c;
+  const color = score >= 85 ? "text-emerald-500" : score >= 70 ? "text-amber-500" : "text-destructive";
+
+  return (
+    <div className="relative" style={{ width: size, height: size }}>
+      <svg width={size} height={size} className="-rotate-90">
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" strokeWidth={3} className="stroke-border" />
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" strokeWidth={3} strokeLinecap="round" strokeDasharray={c} strokeDashoffset={offset} className={cn("transition-all duration-1000", color.replace("text-", "stroke-"))} />
+      </svg>
+      <div className="absolute inset-0 flex items-center justify-center">
+        <span className={cn("text-sm font-bold", color)}>{score}</span>
+      </div>
+    </div>
+  );
+};
+
+const FindingItem = ({ finding }: { finding: AIReviewFinding }) => {
+  const cfg = severityConfig[finding.severity];
+  return (
+    <div className="flex items-start gap-2.5 py-2 px-3 rounded-md hover:bg-accent/30 transition-colors">
+      <div className={cn("mt-0.5 shrink-0", cfg.className)}>{cfg.icon}</div>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-medium text-foreground">{finding.title}</span>
+          <span className={cn("text-[10px] px-1.5 py-0.5 rounded-full font-medium", `${cfg.dotClass}/10 ${cfg.className}`)}>{cfg.label}</span>
+        </div>
+        <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">{finding.description}</p>
+        {finding.filePath && (
+          <p className="text-[10px] text-muted-foreground/60 mt-1 font-mono flex items-center gap-1">
+            <FileCode2 size={10} />
+            {finding.filePath}
+            {finding.lineRange && <span className="text-primary/60">{finding.lineRange}</span>}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+};
+
+const ModelReviewSection = ({ reviewer }: { reviewer: AIModelReviewer }) => {
+  const findingCounts = {
+    critical: reviewer.findings?.filter((f) => f.severity === "critical").length || 0,
+    warning: reviewer.findings?.filter((f) => f.severity === "warning").length || 0,
+    suggestion: reviewer.findings?.filter((f) => f.severity === "suggestion").length || 0,
+    praise: reviewer.findings?.filter((f) => f.severity === "praise").length || 0,
+  };
+
+  return (
+    <Collapsible defaultOpen>
+      <CollapsibleTrigger className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-accent/30 transition-colors group/model">
+        <span className="text-base">{reviewer.icon}</span>
+        <div className="flex-1 text-left min-w-0">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-semibold text-foreground">{reviewer.displayName}</span>
+            {reviewer.status === "done" && reviewer.score !== undefined && (
+              <Badge className={cn(
+                "text-[10px] border-0",
+                reviewer.score >= 85 ? "bg-emerald-500/10 text-emerald-500"
+                  : reviewer.score >= 70 ? "bg-amber-500/10 text-amber-500"
+                    : "bg-destructive/10 text-destructive"
+              )}>
+                {reviewer.score} 分
+              </Badge>
+            )}
+          </div>
+          {reviewer.summary && (
+            <p className="text-[11px] text-muted-foreground mt-0.5 line-clamp-1">{reviewer.summary}</p>
+          )}
+        </div>
+        <div className="flex items-center gap-1.5 shrink-0">
+          {findingCounts.critical > 0 && <span className="text-[10px] text-destructive font-medium">{findingCounts.critical} 严重</span>}
+          {findingCounts.warning > 0 && <span className="text-[10px] text-amber-500 font-medium">{findingCounts.warning} 警告</span>}
+          <ChevronDown size={12} className="text-muted-foreground transition-transform group-data-[state=closed]/model:-rotate-90" />
+        </div>
+      </CollapsibleTrigger>
+      <CollapsibleContent>
+        <div className="ml-1 border-l-2 border-border/50 pl-2 mt-1 space-y-0.5">
+          {reviewer.findings?.map((f) => (
+            <FindingItem key={f.id} finding={f} />
+          ))}
+        </div>
+      </CollapsibleContent>
+    </Collapsible>
+  );
+};
 
 interface CodeReviewTabProps {
   review: ReviewInfo;
   onUpdateReview: (review: ReviewInfo) => void;
 }
 
-const CodeReviewTab = ({ review, onUpdateReview }: CodeReviewTabProps) => {
-  const [commentText, setCommentText] = useState("");
-  const [inviteOpen, setInviteOpen] = useState(false);
+const CodeReviewTab = ({ review }: CodeReviewTabProps) => {
+  const aiReviewers = review.aiReviewers || [];
+  const isRunning = review.aiReviewStatus === "running";
+  const isDone = review.aiReviewStatus === "done";
 
-  const approved = isReviewApproved(review);
-  const approvedCount = review.reviewers.filter((r) => r.status === "approved").length;
-  const totalCount = review.reviewers.length;
+  const allFindings = aiReviewers.flatMap((r) => r.findings || []);
+  const criticalCount = allFindings.filter((f) => f.severity === "critical").length;
+  const warningCount = allFindings.filter((f) => f.severity === "warning").length;
+  const suggestionCount = allFindings.filter((f) => f.severity === "suggestion").length;
+  const praiseCount = allFindings.filter((f) => f.severity === "praise").length;
 
-  const addReviewer = (member: Reviewer) => {
-    if (review.reviewers.some((r) => r.id === member.id)) return;
-    onUpdateReview({
-      ...review,
-      reviewers: [...review.reviewers, { ...member, status: "pending" }],
-    });
-    setInviteOpen(false);
-  };
-
-  const removeReviewer = (id: string) => {
-    onUpdateReview({
-      ...review,
-      reviewers: review.reviewers.filter((r) => r.id !== id),
-    });
-  };
-
-  const mockApprove = (id: string) => {
-    onUpdateReview({
-      ...review,
-      reviewers: review.reviewers.map((r) =>
-        r.id === id ? { ...r, status: "approved" as const } : r
-      ),
-    });
-  };
-
-  const approveAll = () => {
-    onUpdateReview({
-      ...review,
-      reviewers: review.reviewers.map((r) => ({ ...r, status: "approved" as const })),
-    });
-  };
-
-  const requestChanges = () => {
-    onUpdateReview({
-      ...review,
-      reviewers: review.reviewers.map((r) =>
-        r.status === "pending" ? { ...r, status: "rejected" as const } : r
-      ),
-    });
-  };
-
-  const addComment = () => {
-    if (!commentText.trim()) return;
-    const comment: ReviewComment = {
-      id: crypto.randomUUID(),
-      author: "我",
-      text: commentText.trim(),
-      timestamp: Date.now(),
-    };
-    onUpdateReview({
-      ...review,
-      comments: [...review.comments, comment],
-    });
-    setCommentText("");
-  };
-
-  const availableMembers = TEAM_MEMBERS.filter(
-    (m) => !review.reviewers.some((r) => r.id === m.id)
-  );
+  if (isRunning) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full gap-4 px-8">
+        <Shield size={32} className="text-primary animate-pulse" />
+        <div className="text-center">
+          <p className="text-sm font-medium text-foreground mb-1">AI Code Review 进行中…</p>
+          <p className="text-xs text-muted-foreground">多个 AI 模型正在审查代码变更</p>
+        </div>
+        <div className="w-full max-w-xs space-y-2 mt-2">
+          {aiReviewers.map((r) => (
+            <div key={r.id} className="flex items-center gap-2.5 px-3 py-2 rounded-lg bg-card border border-border">
+              <span className="text-sm">{r.icon}</span>
+              <span className="text-xs text-foreground flex-1">{r.displayName}</span>
+              {r.status === "done" ? (
+                <CheckCircle2 size={14} className="text-emerald-500" />
+              ) : r.status === "reviewing" ? (
+                <Loader2 size={14} className="text-primary animate-spin" />
+              ) : (
+                <div className="w-3.5 h-3.5 rounded-full border-2 border-muted-foreground/20" />
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex-1 overflow-y-auto p-4 space-y-5 scrollbar-hide">
-        {/* Status summary */}
-        <div className="flex items-center gap-2">
-          <Badge
-            variant={approved ? "default" : "secondary"}
-            className={cn(
-              "text-[10px]",
-              approved && "bg-green-500/15 text-green-500 border-0"
-            )}
-          >
-            {approved
-              ? "审查已通过 ✓"
-              : `${approvedCount}/${totalCount} 已通过`}
-          </Badge>
-          {!approved && (
-            <span className="text-[10px] text-muted-foreground flex items-center gap-1">
-              <Clock size={10} /> 等待审查中
-            </span>
-          )}
-        </div>
-
-        {/* Reviewer list */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <p className="text-xs font-medium text-foreground">审查人</p>
-            <Popover open={inviteOpen} onOpenChange={setInviteOpen}>
-              <PopoverTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-7 text-xs gap-1 px-2">
-                  <UserPlus size={12} /> 邀请
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent align="end" className="w-48 p-1.5">
-                {availableMembers.length === 0 ? (
-                  <p className="text-xs text-muted-foreground p-2">已邀请所有成员</p>
-                ) : (
-                  availableMembers.map((m) => (
-                    <button
-                      key={m.id}
-                      onClick={() => addReviewer(m)}
-                      className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-md text-xs hover:bg-secondary transition-colors text-left"
-                    >
-                      <div className="w-5 h-5 rounded-full bg-muted flex items-center justify-center text-[10px] font-medium text-foreground">
-                        {m.name[0]}
-                      </div>
-                      {m.name}
-                    </button>
-                  ))
-                )}
-              </PopoverContent>
-            </Popover>
-          </div>
-
-          <div className="rounded-md border border-border bg-card overflow-hidden">
-            {review.reviewers.map((r) => (
-              <div
-                key={r.id}
-                className="flex items-center gap-2.5 px-3 py-2 border-b border-border last:border-0"
-              >
-                <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-[10px] font-medium text-foreground shrink-0">
-                  {r.name[0]}
-                </div>
-                <span className="text-xs text-foreground flex-1">{r.name}</span>
-                {r.status === "approved" ? (
-                  <Badge className="text-[10px] bg-green-500/15 text-green-500 border-0 gap-1">
-                    <CheckCircle2 size={10} /> 已通过
-                  </Badge>
-                ) : r.status === "rejected" ? (
-                  <Badge className="text-[10px] bg-destructive/15 text-destructive border-0 gap-1">
-                    <XCircle size={10} /> 已拒绝
-                  </Badge>
-                ) : (
-                  <Badge variant="secondary" className="text-[10px] gap-1">
-                    <Circle size={8} className="text-muted-foreground" /> 待审
-                  </Badge>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Comments */}
-        <div className="space-y-2">
-          <p className="text-xs font-medium text-foreground">评论</p>
-          {review.comments.length === 0 ? (
-            <p className="text-xs text-muted-foreground py-3 text-center">暂无评论</p>
-          ) : (
-            <div className="space-y-2">
-              {review.comments.map((c) => (
-                <div key={c.id} className="rounded-md border border-border p-2.5 bg-card">
-                  <div className="flex items-center gap-2 mb-1">
-                    <div className="w-5 h-5 rounded-full bg-muted flex items-center justify-center text-[10px] font-medium text-foreground">
-                      {c.author[0]}
-                    </div>
-                    <span className="text-xs font-medium text-foreground">{c.author}</span>
-                    <span className="text-[10px] text-muted-foreground ml-auto">
-                      {new Date(c.timestamp).toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" })}
+      <div className="flex-1 overflow-y-auto scrollbar-hide">
+        {/* Overview header */}
+        {isDone && (
+          <div className="px-4 pt-4 pb-3 border-b border-border">
+            <div className="flex items-center gap-4">
+              <ScoreRing score={review.overallScore || 0} />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-foreground mb-1">
+                  AI Code Review 报告
+                </p>
+                <p className="text-xs text-muted-foreground mb-2">
+                  {aiReviewers.length} 个模型审查完成
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {criticalCount > 0 && (
+                    <span className="flex items-center gap-1 text-[10px] font-medium text-destructive">
+                      <AlertCircle size={10} /> {criticalCount} 严重
                     </span>
-                  </div>
-                  <p className="text-xs text-foreground/80 pl-7">{c.text}</p>
-                  {c.filePath && (
-                    <p className="text-[10px] text-muted-foreground pl-7 mt-1 font-mono">{c.filePath}</p>
+                  )}
+                  {warningCount > 0 && (
+                    <span className="flex items-center gap-1 text-[10px] font-medium text-amber-500">
+                      <AlertTriangle size={10} /> {warningCount} 警告
+                    </span>
+                  )}
+                  {suggestionCount > 0 && (
+                    <span className="flex items-center gap-1 text-[10px] font-medium text-blue-500">
+                      <Lightbulb size={10} /> {suggestionCount} 建议
+                    </span>
+                  )}
+                  {praiseCount > 0 && (
+                    <span className="flex items-center gap-1 text-[10px] font-medium text-emerald-500">
+                      <ThumbsUp size={10} /> {praiseCount} 优点
+                    </span>
                   )}
                 </div>
-              ))}
+              </div>
             </div>
-          )}
-        </div>
-      </div>
-
-      {/* Bottom action bar: approve + comment */}
-      <div className="border-t border-border bg-muted/20">
-        {/* Approve / Request Changes buttons */}
-        {!approved && (
-          <div className="flex items-center gap-2 px-3 pt-3">
-            <Button
-              size="sm"
-              className="flex-1 gap-1.5 h-9 text-xs"
-              onClick={approveAll}
-            >
-              <CheckCircle2 size={13} />
-              审查通过
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-9 text-xs gap-1"
-              onClick={requestChanges}
-            >
-              <XCircle size={12} />
-              需要修改
-            </Button>
           </div>
         )}
 
-        {/* Comment input */}
-        <div className="p-3">
-          <div className="flex gap-2">
-            <Textarea
-              value={commentText}
-              onChange={(e) => setCommentText(e.target.value)}
-              placeholder="添加审查评论…"
-              className="min-h-[60px] text-xs resize-none"
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) addComment();
-              }}
-            />
-            <Button
-              size="sm"
-              className="h-auto px-3"
-              onClick={addComment}
-              disabled={!commentText.trim()}
-            >
-              <Send size={14} />
-            </Button>
-          </div>
+        {/* Per-model review */}
+        <div className="p-4 space-y-3">
+          {aiReviewers.map((r) => (
+            <ModelReviewSection key={r.id} reviewer={r} />
+          ))}
         </div>
       </div>
+
+      {/* Hint */}
+      {isDone && criticalCount > 0 && (
+        <div className="px-4 py-3 border-t border-border bg-destructive/5">
+          <p className="text-[11px] text-destructive/80 text-center">
+            发现 {criticalCount} 个严重问题，建议在输入框中描述修改意见后重新开发
+          </p>
+        </div>
+      )}
+      {isDone && criticalCount === 0 && (
+        <div className="px-4 py-3 border-t border-border bg-emerald-500/5">
+          <p className="text-[11px] text-emerald-600 text-center">
+            代码审查通过，可直接发布到测试环境
+          </p>
+        </div>
+      )}
     </div>
   );
 };
