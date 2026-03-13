@@ -360,7 +360,12 @@ const ChatArea = ({
           <span className="text-foreground text-xs font-bold">DF</span>
         </div>
         <div className="flex-1 min-w-0">
-          <DevInProgressCard requirement={planFlow.requirement || "新需求"} />
+          <DevInProgressCard
+            requirement={planFlow.requirement || "新需求"}
+            onViewDetail={() => {
+              setRightPanelOpen(true);
+            }}
+          />
         </div>
       </div>
     </div>
