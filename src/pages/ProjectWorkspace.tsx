@@ -175,14 +175,63 @@ const ProjectWorkspace = () => {
     }, delay);
   }, [activeConversationId, planFlow.requirement, id]);
 
-  const handleRequestReview = (cardId: string) => {
+  const startAIReview = useCallback((cardId: string) => {
     setReviewingIds((prev) => new Set(prev).add(cardId));
+    // Initialize with "running" status
+    const initialReview = createDefaultReview();
+    initialReview.aiReviewStatus = "running";
+    initialReview.aiReviewers = AI_REVIEW_MODELS.map((m) => ({ ...m, status: "pending" as const }));
     setReviewStatus((prev) => {
       const next = new Map(prev);
-      next.set(cardId, createDefaultReview());
+      next.set(cardId, initialReview);
       return next;
     });
-    toast.success("已发起 Code Review，等待团队审查");
+    toast.success("AI Code Review 已启动，多个模型正在审查代码…");
+
+    // Simulate each model completing review sequentially
+    AI_REVIEW_MODELS.forEach((model, i) => {
+      setTimeout(() => {
+        setReviewStatus((prev) => {
+          const current = prev.get(cardId);
+          if (!current) return prev;
+          const next = new Map(prev);
+          const updatedReviewers = (current.aiReviewers || []).map((r) =>
+            r.id === model.id ? { ...r, status: "reviewing" as const } : r
+          );
+          next.set(cardId, { ...current, aiReviewers: updatedReviewers });
+          return next;
+        });
+      }, 1000 + i * 1500);
+
+      // Model finishes
+      setTimeout(() => {
+        setReviewStatus((prev) => {
+          const current = prev.get(cardId);
+          if (!current) return prev;
+          const finalReview = buildMockAIReview();
+          const next = new Map(prev);
+          // Only mark done the models up to current index
+          const updatedReviewers = (finalReview.aiReviewers || []).map((r, ri) => ({
+            ...r,
+            status: (ri <= i ? "done" : ri === i + 1 ? "reviewing" : "pending") as "done" | "reviewing" | "pending",
+          }));
+          const allDone = i === AI_REVIEW_MODELS.length - 1;
+          next.set(cardId, {
+            ...finalReview,
+            aiReviewers: allDone ? finalReview.aiReviewers : updatedReviewers,
+            aiReviewStatus: allDone ? "done" : "running",
+          });
+          if (allDone) {
+            toast.success(`AI Code Review 完成，综合评分 ${finalReview.overallScore} 分`);
+          }
+          return next;
+        });
+      }, 2500 + i * 1500);
+    });
+  }, []);
+
+  const handleRequestReview = (cardId: string) => {
+    startAIReview(cardId);
   };
 
   const handleUpdateReview = (cardId: string, review: ReviewInfo) => {
@@ -192,7 +241,7 @@ const ProjectWorkspace = () => {
       return next;
     });
     if (isReviewApproved(review)) {
-      toast.success("所有审查人已通过，可以发布到测试环境 🎉");
+      toast.success("AI 审查通过，可以发布到测试环境 🎉");
     }
   };
 
