@@ -259,6 +259,7 @@ const ProjectWorkspace = () => {
 
   const handleSelectCard = useCallback((cardId: string) => {
     setSelectedCardId(cardId);
+    setDetailReadOnly(false);
     setEditingDoc(null);
     setRightPanelOpen(true);
     scrollToCard(cardId);
