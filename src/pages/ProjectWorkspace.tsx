@@ -241,6 +241,7 @@ const ProjectWorkspace = () => {
       setSelectedCardId(notif.taskId);
       setRightPanelOpen(true);
       setEditingDoc(null);
+      setDetailReadOnly(true);
     }
   }, []);
 

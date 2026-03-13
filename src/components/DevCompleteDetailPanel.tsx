@@ -194,7 +194,7 @@ const DevCompleteDetailPanel = ({
       </Tabs>
 
       {/* Action bar — state-dependent */}
-      {!deployed && (
+      {!deployed && !readOnly && (
         <div className="flex items-center gap-2 px-4 py-3 border-t border-border bg-muted/20">
           {!reviewing ? (
             <>
