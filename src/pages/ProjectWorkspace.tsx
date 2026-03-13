@@ -596,6 +596,17 @@ const ChatArea = ({
           <div className="flex-1">
             <PromptBar onSubmit={onSubmit} compact />
           </div>
+          {devCards.length > 0 && (
+            <PublishDialog testsPassed={testsPassed} previewConfirmed={previewConfirmed} />
+          )}
+          {(devCards.length > 0 || devInProgress) && (
+            <button
+              onClick={onToggleRightPanel}
+              className="shrink-0 p-2 rounded-lg hover:bg-secondary transition-colors text-muted-foreground"
+            >
+              {rightPanelOpen ? <PanelRightClose size={16} /> : <PanelRightOpen size={16} />}
+            </button>
+          )}
         </div>
       </div>
     </div>
