@@ -229,6 +229,25 @@ const ProjectWorkspace = () => {
     }, 3000 + Math.random() * 3000);
   };
 
+  const handleNotificationClick = useCallback((notif: AppNotification) => {
+    // Mark as read
+    setNotifications((prev) => prev.map((n) => n.id === notif.id ? { ...n, read: true } : n));
+    // Navigate to conversation/task
+    if (notif.conversationId) {
+      setActiveConversationId(notif.conversationId);
+      setShowDeepFlow(false);
+    }
+    if (notif.taskId) {
+      setSelectedCardId(notif.taskId);
+      setRightPanelOpen(true);
+      setEditingDoc(null);
+    }
+  }, []);
+
+  const handleMarkAllRead = useCallback(() => {
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+  }, []);
+
   const scrollToCard = useCallback((cardId: string) => {
     setTimeout(() => {
       const el = document.querySelector(`[data-card-id="${cardId}"]`);
