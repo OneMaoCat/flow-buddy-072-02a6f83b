@@ -16,7 +16,7 @@ import DevCompleteCard, { DevInProgressCard, buildMockDevResult, type DevComplet
 import DevCompleteDetailPanel from "@/components/DevCompleteDetailPanel";
 import SidebarConversationList from "@/components/SidebarConversationList";
 import { requestNotificationPermission, notifyDevComplete } from "@/components/DevNotification";
-import SidebarNotificationList from "@/components/SidebarNotificationList";
+import NotificationCenter from "@/components/NotificationCenter";
 import { type AppNotification, buildMockNotifications } from "@/data/notifications";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
@@ -43,6 +43,7 @@ const ProjectWorkspace = () => {
   const [testsPassed, setTestsPassed] = useState(false);
   const [previewConfirmed, setPreviewConfirmed] = useState(false);
   const [showDeepFlow, setShowDeepFlow] = useState(true);
+  const [showNotificationCenter, setShowNotificationCenter] = useState(false);
   const [editingDoc, setEditingDoc] = useState<RequirementDocData | null>(null);
 
   // Conversation-based state — init with mock data
@@ -99,6 +100,7 @@ const ProjectWorkspace = () => {
 
   const handleNewConversation = useCallback(() => {
     setShowDeepFlow(true);
+    setShowNotificationCenter(false);
     setSelectedCardId(null);
     setEditingDoc(null);
   }, []);
@@ -107,6 +109,7 @@ const ProjectWorkspace = () => {
     setActiveConversationId(convId);
     setSelectedCardId(null);
     setShowDeepFlow(false);
+    setShowNotificationCenter(false);
     setEditingDoc(null);
     const conv = conversations.find((c) => c.id === convId);
     if (conv) {
@@ -230,9 +233,8 @@ const ProjectWorkspace = () => {
   };
 
   const handleNotificationClick = useCallback((notif: AppNotification) => {
-    // Mark as read
     setNotifications((prev) => prev.map((n) => n.id === notif.id ? { ...n, read: true } : n));
-    // Navigate to conversation/task
+    setShowNotificationCenter(false);
     if (notif.conversationId) {
       setActiveConversationId(notif.conversationId);
       setShowDeepFlow(false);
@@ -268,7 +270,14 @@ const ProjectWorkspace = () => {
     }
   }, [scrollToCard, conversations]);
 
-  const mainContent = showDeepFlow ? (
+  const mainContent = showNotificationCenter ? (
+    <NotificationCenter
+      notifications={notifications}
+      onClickNotification={handleNotificationClick}
+      onMarkAllRead={handleMarkAllRead}
+      onClose={() => setShowNotificationCenter(false)}
+    />
+  ) : showDeepFlow ? (
     <DeepFlowPanel onSubmit={handleSubmit} />
   ) : (
     <ChatArea
@@ -293,17 +302,12 @@ const ProjectWorkspace = () => {
 
   return (
     <ProjectSidebarLayout
-      onDeepFlowClick={() => { setShowDeepFlow(true); setActiveConversationId(null); setSelectedCardId(null); setRightPanelOpen(false); }}
-      deepFlowActive={showDeepFlow}
+      onDeepFlowClick={() => { setShowDeepFlow(true); setShowNotificationCenter(false); setActiveConversationId(null); setSelectedCardId(null); setRightPanelOpen(false); }}
+      deepFlowActive={showDeepFlow && !showNotificationCenter}
       taskCount={totalTaskCount}
       unreadNotificationCount={unreadNotificationCount}
-      notificationList={
-        <SidebarNotificationList
-          notifications={notifications}
-          onClickNotification={handleNotificationClick}
-          onMarkAllRead={handleMarkAllRead}
-        />
-      }
+      onNotificationCenterClick={() => { setShowNotificationCenter(true); setShowDeepFlow(false); }}
+      notificationCenterActive={showNotificationCenter}
       taskList={
         <SidebarConversationList
           conversations={conversations}
