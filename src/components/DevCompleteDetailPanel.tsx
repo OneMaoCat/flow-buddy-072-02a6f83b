@@ -43,6 +43,7 @@ const DevCompleteDetailPanel = ({
   reviewing,
   reviewInfo,
   onUpdateReview,
+  readOnly,
 }: DevCompleteDetailPanelProps) => {
   const totalAdds = result.files.reduce((s, f) => s + f.additions, 0);
   const totalDels = result.files.reduce((s, f) => s + f.deletions, 0);
