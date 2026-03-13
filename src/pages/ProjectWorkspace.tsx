@@ -217,6 +217,7 @@ const ProjectWorkspace = () => {
       onReject={handleReject}
       selectedCardId={selectedCardId}
       onSelectCard={handleSelectCard}
+      onViewInProgressDetail={() => setRightPanelOpen(true)}
     />
   );
 
