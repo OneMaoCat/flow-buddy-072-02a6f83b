@@ -284,12 +284,12 @@ const DevCompleteCard = ({ result, deployed, reviewing, reviewApproved, selected
           </p>
         </div>
         {deployed ? (
-          <Badge className="text-[10px] bg-green-500/15 text-green-500 border-0">已发布</Badge>
+          <Badge className="text-[10px] bg-emerald-500/15 text-emerald-500 border-0">已发布</Badge>
         ) : reviewApproved ? (
-          <Badge className="text-[10px] bg-green-500/15 text-green-500 border-0">审查通过</Badge>
+          <Badge className="text-[10px] bg-emerald-500/15 text-emerald-500 border-0">审查通过</Badge>
         ) : reviewing ? (
-          <Badge className="text-[10px] bg-amber-500/15 text-amber-600 border-0 gap-1">
-            <Users size={10} /> 审查中
+          <Badge className="text-[10px] bg-primary/15 text-primary border-0 gap-1">
+            <Shield size={10} /> AI 审查中
           </Badge>
         ) : null}
         <div className="flex items-center gap-1 text-xs text-primary font-medium shrink-0">
