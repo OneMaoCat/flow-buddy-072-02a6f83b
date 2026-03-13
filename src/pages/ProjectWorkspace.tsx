@@ -100,6 +100,7 @@ const ProjectWorkspace = () => {
 
   const handleNewConversation = useCallback(() => {
     setShowDeepFlow(true);
+    setShowNotificationCenter(false);
     setSelectedCardId(null);
     setEditingDoc(null);
   }, []);
