@@ -1,28 +1,45 @@
-# 需求平台 + 异步开发 + 消息卡片验收
 
-## 已完成
 
-### 1. DevCompleteCard — 聊天区验收卡片 ✅
-- 代码变更 Tab（文件列表 + diff 视图）
-- 产品预览 Tab（复用 RequirementPreview）
-- 自测报告 Tab（测试用例列表 + 通过率）
-- 操作栏（发布到测试环境 / 打回修改）
+# 两层结合：开发过程展示增强
 
-### 2. PlanFlow 改造 ✅
-- 确认需求后不再跳转 /dev 页面
-- 触发 onDevSubmitted 回调启动异步模拟
+## 现状
+- **DevInProgressCard**: 仅展示 3 个简化步骤（分析需求→制定方案→编写代码），无文件级细节
+- **DevCompleteCard**: 完成后展示 5 个步骤的静态摘要，点击打开右侧详情面板
 
-### 3. ProjectWorkspace 状态管理 ✅
-- devCards 数组管理已完成的开发结果
-- 异步模拟 3-7s 后推送 DevCompleteCard 到聊天区
-- 发布/打回操作 + toast 反馈
+## 方案
 
-### 4. DevNotification 浏览器通知 ✅
-- Notification API 权限请求
-- 后台标签页系统通知 + sonner toast
+### 第一层：卡片内展示关键里程碑（实时逐步出现）
 
-### 5. 侧边栏任务追踪列表 ✅
-- SidebarTaskList 组件：按状态分组（开发中/待验收/已发布）
-- ProjectSidebarLayout 增加 taskList/taskCount props，Collapsible 区域
-- ProjectWorkspace 连接数据，点击任务项定位卡片+打开详情面板
-- 聊天区卡片增加 data-card-id，支持 scrollIntoView 定位
+将 `DevInProgressCard` 的步骤扩展为更贴近真实开发流程的里程碑，每个里程碑逐条动画出现，附带简要描述：
+
+```text
+✓ 拉取分支        feature/req-login-form
+✓ 分析需求        理解「用户登录表单验证修复」
+⟳ 编写代码        LoginForm.tsx, FormErrorTip.tsx   ← 当前步骤带 spinner
+  修改代码        3 个文件变更中…
+  运行测试        待执行
+```
+
+每个步骤完成后打勾，当前步骤显示 spinner。步骤之间有随机延迟模拟真实节奏。
+
+### 第二层：Detail 按钮 → 右侧面板查看完整日志
+
+卡片右下角或底部增加一个「查看详情 →」入口（进行中和完成后都可点击），打开右侧详情面板，展示：
+- 每个步骤的具体文件级操作日志（时间戳 + agent 名 + 操作描述）
+- 代码 diff、测试结果等（已有功能）
+
+### 具体改动
+
+**`src/components/DevCompleteCard.tsx`**:
+1. `DevInProgressCard` 步骤改为 6 步：拉取分支 → 分析需求 → 制定方案 → 编写代码 → 修改代码 → 运行测试
+2. 每步增加文件/分支名等具体 detail 信息
+3. 进行中卡片底部增加「查看详情 →」可点击区域
+4. 新增 `onViewDetail` 回调 prop
+
+**`src/pages/ProjectWorkspace.tsx`**:
+1. 进行中卡片也支持点击「查看详情」打开右侧面板
+2. 面板展示当前已完成步骤的日志流
+
+**`buildProcessSteps` 函数**:
+1. 在现有 5 步前增加「拉取分支」步骤，完成后卡片也展示完整 6 步
+
