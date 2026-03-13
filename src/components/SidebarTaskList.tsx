@@ -1,10 +1,11 @@
-import { Check, Circle, Loader2 } from "lucide-react";
+import { Check, Circle, Loader2, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { DevCompleteResult } from "@/components/DevCompleteCard";
 
 interface SidebarTaskListProps {
   devCards: DevCompleteResult[];
   deployedIds: Set<string>;
+  reviewingIds: Set<string>;
   devInProgress: boolean;
   currentRequirement: string;
   selectedCardId: string | null;
@@ -14,12 +15,14 @@ interface SidebarTaskListProps {
 const SidebarTaskList = ({
   devCards,
   deployedIds,
+  reviewingIds,
   devInProgress,
   currentRequirement,
   selectedCardId,
   onSelectCard,
 }: SidebarTaskListProps) => {
-  const pendingCards = devCards.filter((c) => !deployedIds.has(c.id));
+  const pendingCards = devCards.filter((c) => !deployedIds.has(c.id) && !reviewingIds.has(c.id));
+  const reviewingCards = devCards.filter((c) => reviewingIds.has(c.id) && !deployedIds.has(c.id));
   const deployedCards = devCards.filter((c) => deployedIds.has(c.id));
   const hasAny = devInProgress || devCards.length > 0;
 
@@ -27,16 +30,9 @@ const SidebarTaskList = ({
 
   return (
     <div className="flex flex-col gap-0.5">
-      {/* In progress */}
       {devInProgress && (
-        <TaskItem
-          label={currentRequirement || "新任务"}
-          status="progress"
-          active={false}
-        />
+        <TaskItem label={currentRequirement || "新任务"} status="progress" active={false} />
       )}
-
-      {/* Pending review */}
       {pendingCards.map((card) => (
         <TaskItem
           key={card.id}
@@ -46,8 +42,15 @@ const SidebarTaskList = ({
           onClick={() => onSelectCard(card.id)}
         />
       ))}
-
-      {/* Deployed */}
+      {reviewingCards.map((card) => (
+        <TaskItem
+          key={card.id}
+          label={card.requirementTitle}
+          status="reviewing"
+          active={selectedCardId === card.id}
+          onClick={() => onSelectCard(card.id)}
+        />
+      ))}
       {deployedCards.map((card) => (
         <TaskItem
           key={card.id}
@@ -68,7 +71,7 @@ const TaskItem = ({
   onClick,
 }: {
   label: string;
-  status: "progress" | "pending" | "deployed";
+  status: "progress" | "pending" | "reviewing" | "deployed";
   active: boolean;
   onClick?: () => void;
 }) => {
@@ -80,8 +83,13 @@ const TaskItem = ({
     },
     pending: {
       icon: <Circle size={10} className="text-orange-500 fill-orange-500" />,
-      badge: "待验收",
+      badge: "待审查",
       badgeClass: "text-orange-600 bg-orange-500/10",
+    },
+    reviewing: {
+      icon: <Users size={12} className="text-amber-500" />,
+      badge: "审查中",
+      badgeClass: "text-amber-600 bg-amber-500/10",
     },
     deployed: {
       icon: <Check size={12} className="text-emerald-500" />,
