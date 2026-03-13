@@ -68,6 +68,7 @@ const ProjectWorkspace = () => {
     return m;
   });
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
+  const [detailReadOnly, setDetailReadOnly] = useState(false);
   const [planFlow, setPlanFlow] = useState<{ active: boolean; requirement: string }>({ active: false, requirement: "" });
 
   const activeConversation = conversations.find((c) => c.id === activeConversationId) || null;
@@ -241,6 +242,7 @@ const ProjectWorkspace = () => {
       setSelectedCardId(notif.taskId);
       setRightPanelOpen(true);
       setEditingDoc(null);
+      setDetailReadOnly(true);
     }
   }, []);
 
@@ -257,6 +259,7 @@ const ProjectWorkspace = () => {
 
   const handleSelectCard = useCallback((cardId: string) => {
     setSelectedCardId(cardId);
+    setDetailReadOnly(false);
     setEditingDoc(null);
     setRightPanelOpen(true);
     scrollToCard(cardId);
@@ -351,7 +354,8 @@ const ProjectWorkspace = () => {
                   onDeploy={handleDeploy}
                   onReject={handleReject}
                   onRequestReview={handleRequestReview}
-                  onClose={() => setSelectedCardId(null)}
+                  onClose={() => { setSelectedCardId(null); setDetailReadOnly(false); }}
+                  readOnly={detailReadOnly}
                   deployed={deployedIds.has(selectedCard.id)}
                   reviewing={reviewingIds.has(selectedCard.id)}
                   reviewInfo={reviewStatus.get(selectedCard.id)}

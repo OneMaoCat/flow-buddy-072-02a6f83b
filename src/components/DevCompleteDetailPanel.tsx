@@ -30,6 +30,7 @@ interface DevCompleteDetailPanelProps {
   reviewing?: boolean;
   reviewInfo?: ReviewInfo;
   onUpdateReview?: (id: string, review: ReviewInfo) => void;
+  readOnly?: boolean;
 }
 
 const DevCompleteDetailPanel = ({
@@ -42,6 +43,7 @@ const DevCompleteDetailPanel = ({
   reviewing,
   reviewInfo,
   onUpdateReview,
+  readOnly,
 }: DevCompleteDetailPanelProps) => {
   const totalAdds = result.files.reduce((s, f) => s + f.additions, 0);
   const totalDels = result.files.reduce((s, f) => s + f.deletions, 0);
@@ -192,7 +194,7 @@ const DevCompleteDetailPanel = ({
       </Tabs>
 
       {/* Action bar — state-dependent */}
-      {!deployed && (
+      {!deployed && !readOnly && (
         <div className="flex items-center gap-2 px-4 py-3 border-t border-border bg-muted/20">
           {!reviewing ? (
             <>
