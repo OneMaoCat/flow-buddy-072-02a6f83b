@@ -149,19 +149,9 @@ const CodeReviewTab = ({ review, onUpdateReview }: CodeReviewTabProps) => {
                     <XCircle size={10} /> 已拒绝
                   </Badge>
                 ) : (
-                  <div className="flex items-center gap-1">
-                    <Badge variant="secondary" className="text-[10px] gap-1">
-                      <Circle size={8} className="text-muted-foreground" /> 待审
-                    </Badge>
-                    {/* Mock: click to simulate approval */}
-                    <button
-                      onClick={() => mockApprove(r.id)}
-                      className="text-[10px] text-primary hover:text-primary/80 transition-colors px-1"
-                      title="模拟通过"
-                    >
-                      通过
-                    </button>
-                  </div>
+                  <Badge variant="secondary" className="text-[10px] gap-1">
+                    <Circle size={8} className="text-muted-foreground" /> 待审
+                  </Badge>
                 )}
               </div>
             ))}
