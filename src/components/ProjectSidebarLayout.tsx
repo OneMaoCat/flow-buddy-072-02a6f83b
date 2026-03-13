@@ -68,9 +68,20 @@ const ProjectSidebarLayout = ({
 
   const isDevPage = location.pathname.includes("/dev");
 
+  const isNotificationCenter = !!onNotificationCenterClick && notificationCenterActive;
+
   const navItems = [
     ...(onDeepFlowClick
       ? [{ label: "DeepFlow AI", icon: <Sparkles size={14} className="shrink-0" />, onClick: onDeepFlowClick, active: deepFlowActive, separator: true }]
+      : []),
+    ...(onNotificationCenterClick
+      ? [{
+          label: "消息中心",
+          icon: <Bell size={14} className="text-muted-foreground shrink-0" />,
+          onClick: onNotificationCenterClick,
+          active: notificationCenterActive,
+          badge: unreadNotificationCount > 0 ? unreadNotificationCount : undefined,
+        }]
       : []),
     { label: "开发执行中心", icon: <Cpu size={14} className="text-muted-foreground shrink-0" />, onClick: () => navigate(`/project/${id}/dev`), active: isDevPage },
   ];
