@@ -418,14 +418,7 @@ const ProjectWorkspace = () => {
                   reviewInfo={reviewStatus.get(selectedCard.id)}
                   onUpdateReview={handleUpdateReview}
                 />
-              ) : (
-                <RightPanel
-                  projectName=""
-                  onTestsPassed={() => setTestsPassed(true)}
-                  onPreviewConfirm={() => setPreviewConfirmed(true)}
-                  previewConfirmed={previewConfirmed}
-                />
-              )}
+              ) : null}
             </ResizablePanel>
           </ResizablePanelGroup>
         ) : mainContent
