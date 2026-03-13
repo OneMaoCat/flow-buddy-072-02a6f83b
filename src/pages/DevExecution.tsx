@@ -304,39 +304,53 @@ const DevExecution = () => {
         />
       }
       taskCount={totalTaskCount}
+      unreadNotificationCount={unreadNotificationCount}
+      onNotificationCenterClick={() => setShowNotificationCenter(true)}
+      notificationCenterActive={showNotificationCenter}
       headerRight={
-        <div className="flex items-center gap-2">
-          {filterTabs.map(tab => (
-            <button
-              key={tab.key}
-              onClick={() => setFilter(tab.key)}
-              className={cn(
-                "px-2 py-0.5 rounded-md text-[11px] font-medium transition-colors whitespace-nowrap",
-                filter === tab.key ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"
-              )}
-            >
-              {tab.label} <span className="ml-0.5 opacity-70">{tab.count}</span>
+        !showNotificationCenter ? (
+          <div className="flex items-center gap-2">
+            {filterTabs.map(tab => (
+              <button
+                key={tab.key}
+                onClick={() => setFilter(tab.key)}
+                className={cn(
+                  "px-2 py-0.5 rounded-md text-[11px] font-medium transition-colors whitespace-nowrap",
+                  filter === tab.key ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"
+                )}
+              >
+                {tab.label} <span className="ml-0.5 opacity-70">{tab.count}</span>
+              </button>
+            ))}
+            <div className="w-px h-4 bg-border mx-1" />
+            <div className="relative">
+              <Search size={12} className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <Input placeholder="搜索..." value={search} onChange={e => setSearch(e.target.value)} className="h-6 pl-6 text-[11px] w-32" />
+            </div>
+            <button onClick={() => setViewMode("table")} className={cn("p-1 rounded-md transition-colors", viewMode === "table" ? "bg-secondary text-foreground" : "text-muted-foreground hover:bg-muted")}>
+              <Table2 size={13} />
             </button>
-          ))}
-          <div className="w-px h-4 bg-border mx-1" />
-          <div className="relative">
-            <Search size={12} className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            <Input placeholder="搜索..." value={search} onChange={e => setSearch(e.target.value)} className="h-6 pl-6 text-[11px] w-32" />
+            <button onClick={() => setViewMode("kanban")} className={cn("p-1 rounded-md transition-colors", viewMode === "kanban" ? "bg-secondary text-foreground" : "text-muted-foreground hover:bg-muted")}>
+              <LayoutGrid size={13} />
+            </button>
+            <div className="w-px h-4 bg-border mx-1" />
+            <p className="text-[11px] text-muted-foreground whitespace-nowrap">{counts.accepted}/{counts.total} 通过 · {counts.running} 进行中</p>
+            <Progress value={overallProgress} className="h-1.5 w-16" />
+            <span className="text-[11px] font-mono text-muted-foreground">{overallProgress}%</span>
           </div>
-          <button onClick={() => setViewMode("table")} className={cn("p-1 rounded-md transition-colors", viewMode === "table" ? "bg-secondary text-foreground" : "text-muted-foreground hover:bg-muted")}>
-            <Table2 size={13} />
-          </button>
-          <button onClick={() => setViewMode("kanban")} className={cn("p-1 rounded-md transition-colors", viewMode === "kanban" ? "bg-secondary text-foreground" : "text-muted-foreground hover:bg-muted")}>
-            <LayoutGrid size={13} />
-          </button>
-          <div className="w-px h-4 bg-border mx-1" />
-          <p className="text-[11px] text-muted-foreground whitespace-nowrap">{counts.accepted}/{counts.total} 通过 · {counts.running} 进行中</p>
-          <Progress value={overallProgress} className="h-1.5 w-16" />
-          <span className="text-[11px] font-mono text-muted-foreground">{overallProgress}%</span>
-        </div>
+        ) : undefined
       }
     >
-      {() => (
+      {() => showNotificationCenter ? (
+        <NotificationCenter
+          notifications={notifications}
+          onClickNotification={(notif) => {
+            setNotifications((prev) => prev.map((n) => n.id === notif.id ? { ...n, read: true } : n));
+          }}
+          onMarkAllRead={() => setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))}
+          onClose={() => setShowNotificationCenter(false)}
+        />
+      ) : (
         <div className="flex h-full overflow-hidden">
           {/* Left: task list */}
           <div className={cn("flex flex-col h-full overflow-hidden min-w-0", selectedReq ? "flex-1" : "flex-1")}>
