@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowLeft, CheckCheck, Bell } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 import type { AppNotification, NotificationType } from "@/data/notifications";
 import { getNotificationIcon, formatTimeAgo } from "@/data/notifications";
