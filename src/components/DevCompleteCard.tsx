@@ -129,6 +129,7 @@ const buildProcessSteps = (result: DevCompleteResult): ProcessStep[] => {
     { icon: <Code2 size={12} />, label: "编写代码", detail: result.files.map((f) => f.path.split("/").pop()).join("、") },
     { icon: <Pencil size={12} />, label: "修改代码", detail: `${result.files.length} 个文件 · +${totalAdds} -${totalDels}` },
     { icon: <TestTube2 size={12} />, label: "运行测试", detail: `${passedTests}/${result.tests.length} 用例通过` },
+    { icon: <Shield size={12} />, label: "Code Review", detail: "AI 多模型审查" },
   ];
 };
 
