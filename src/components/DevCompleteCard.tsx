@@ -9,6 +9,8 @@ import {
   Code2,
   TestTube2,
   Sparkles,
+  GitBranch,
+  Pencil,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -34,7 +36,7 @@ export interface DevCompleteResult {
   projectId: string;
   files: DiffFile[];
   tests: TestCase[];
-  elapsed: number; // seconds
+  elapsed: number;
 }
 
 export const buildMockDevResult = (
@@ -105,7 +107,7 @@ export const buildMockDevResult = (
   ],
 });
 
-/* ── Process step definition ── */
+/* ── 6-step process definition ── */
 
 interface ProcessStep {
   icon: React.ReactNode;
@@ -117,12 +119,18 @@ const buildProcessSteps = (result: DevCompleteResult): ProcessStep[] => {
   const totalAdds = result.files.reduce((s, f) => s + f.additions, 0);
   const totalDels = result.files.reduce((s, f) => s + f.deletions, 0);
   const passedTests = result.tests.filter((t) => t.passed).length;
+  const branchName = `feature/req-${result.id.slice(0, 8)}`;
 
   return [
     {
+      icon: <GitBranch size={12} />,
+      label: "拉取分支",
+      detail: branchName,
+    },
+    {
       icon: <Search size={12} />,
       label: "分析需求",
-      detail: `理解「${result.requirementTitle}」`,
+      detail: `理解「${result.requirementTitle.slice(0, 20)}${result.requirementTitle.length > 20 ? "…" : ""}」`,
     },
     {
       icon: <Sparkles size={12} />,
@@ -132,11 +140,11 @@ const buildProcessSteps = (result: DevCompleteResult): ProcessStep[] => {
     {
       icon: <Code2 size={12} />,
       label: "编写代码",
-      detail: `${result.files.map((f) => f.path.split("/").pop()).join("、")}`,
+      detail: result.files.map((f) => f.path.split("/").pop()).join("、"),
     },
     {
-      icon: <FileCode2 size={12} />,
-      label: "代码变更",
+      icon: <Pencil size={12} />,
+      label: "修改代码",
       detail: `${result.files.length} 个文件 · +${totalAdds} -${totalDels}`,
     },
     {
@@ -147,7 +155,7 @@ const buildProcessSteps = (result: DevCompleteResult): ProcessStep[] => {
   ];
 };
 
-/* ── DevProcessLog: Codex-style generation log ── */
+/* ── DevProcessLog: completed steps ── */
 
 const DevProcessLog = ({ result }: { result: DevCompleteResult }) => {
   const steps = buildProcessSteps(result);
@@ -172,21 +180,34 @@ const DevProcessLog = ({ result }: { result: DevCompleteResult }) => {
   );
 };
 
-/* ── DevInProgressLog: Animated live generation steps ── */
+/* ── DevInProgressCard: 6-step animated live generation ── */
 
-export const DevInProgressCard = ({ requirement }: { requirement: string }) => {
+export const DevInProgressCard = ({
+  requirement,
+  onViewDetail,
+}: {
+  requirement: string;
+  onViewDetail?: () => void;
+}) => {
   const [visibleSteps, setVisibleSteps] = useState(0);
 
-  const steps = [
-    { icon: <Search size={12} />, label: "分析需求", detail: `理解「${requirement.slice(0, 30)}…」` },
+  const branchName = `feature/req-${Date.now().toString(36).slice(-6)}`;
+
+  const steps: ProcessStep[] = [
+    { icon: <GitBranch size={12} />, label: "拉取分支", detail: branchName },
+    { icon: <Search size={12} />, label: "分析需求", detail: `理解「${requirement.slice(0, 20)}${requirement.length > 20 ? "…" : ""}」` },
     { icon: <Sparkles size={12} />, label: "制定方案", detail: "规划实现路径与文件变更…" },
     { icon: <Code2 size={12} />, label: "编写代码", detail: "正在生成代码…" },
+    { icon: <Pencil size={12} />, label: "修改代码", detail: "处理文件变更中…" },
+    { icon: <TestTube2 size={12} />, label: "运行测试", detail: "待执行" },
   ];
 
   useEffect(() => {
     const timers: NodeJS.Timeout[] = [];
-    steps.forEach((_, i) => {
-      timers.push(setTimeout(() => setVisibleSteps(i + 1), (i + 1) * 1200));
+    // Stagger each step with varying delays for realistic feel
+    const delays = [800, 1800, 3200, 4800, 6200, 7400];
+    delays.forEach((delay, i) => {
+      timers.push(setTimeout(() => setVisibleSteps(i + 1), delay));
     });
     return () => timers.forEach(clearTimeout);
   }, []);
@@ -194,8 +215,10 @@ export const DevInProgressCard = ({ requirement }: { requirement: string }) => {
   return (
     <div className="rounded-xl border border-border bg-card p-4 animate-in fade-in slide-in-from-bottom-3 duration-500">
       <div className="flex flex-col gap-0">
-        {steps.slice(0, visibleSteps).map((step, i) => {
+        {steps.map((step, i) => {
+          if (i >= visibleSteps) return null;
           const isLast = i === visibleSteps - 1;
+          const isCompleted = !isLast;
           return (
             <div key={i} className="flex items-start gap-2.5 py-1 animate-in fade-in slide-in-from-bottom-1 duration-300">
               <div className={cn(
@@ -208,17 +231,40 @@ export const DevInProgressCard = ({ requirement }: { requirement: string }) => {
                 <span className="text-xs font-medium text-foreground">{step.label}</span>
                 <span className="text-xs text-muted-foreground ml-1.5">{step.detail}</span>
               </div>
-              {!isLast && <CheckCircle2 size={12} className="text-primary/60 shrink-0 mt-0.5" />}
+              {isCompleted && <CheckCircle2 size={12} className="text-primary/60 shrink-0 mt-0.5" />}
             </div>
           );
         })}
+        {/* Upcoming steps shown dimmed */}
+        {steps.slice(visibleSteps).map((step, i) => (
+          <div key={`upcoming-${i}`} className="flex items-start gap-2.5 py-1 opacity-30">
+            <div className="mt-0.5 w-5 h-5 rounded-full bg-muted flex items-center justify-center shrink-0 text-muted-foreground">
+              {step.icon}
+            </div>
+            <div className="flex-1 min-w-0">
+              <span className="text-xs font-medium text-muted-foreground">{step.label}</span>
+              <span className="text-xs text-muted-foreground/60 ml-1.5">{step.detail}</span>
+            </div>
+          </div>
+        ))}
       </div>
-      {visibleSteps > 0 && (
-        <div className="flex items-center gap-2 mt-3 pt-2 border-t border-border">
+
+      {/* Footer: status + view detail */}
+      <div className="flex items-center justify-between mt-3 pt-2 border-t border-border">
+        <div className="flex items-center gap-2">
           <Loader2 size={12} className="animate-spin text-primary" />
-          <span className="text-[11px] text-muted-foreground">AI 正在开发中，完成后将自动通知你…</span>
+          <span className="text-[11px] text-muted-foreground">AI 正在开发中…</span>
         </div>
-      )}
+        {onViewDetail && (
+          <button
+            onClick={(e) => { e.stopPropagation(); onViewDetail(); }}
+            className="flex items-center gap-1 text-xs text-primary font-medium hover:text-primary/80 transition-colors"
+          >
+            <span>查看详情</span>
+            <ChevronRight size={14} />
+          </button>
+        )}
+      </div>
     </div>
   );
 };
