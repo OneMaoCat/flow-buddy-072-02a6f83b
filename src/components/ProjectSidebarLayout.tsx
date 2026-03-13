@@ -39,8 +39,9 @@ const ProjectSidebarLayout = ({
   headerRight,
   taskList,
   taskCount = 0,
-  notificationList,
   unreadNotificationCount = 0,
+  onNotificationCenterClick,
+  notificationCenterActive = false,
 }: ProjectSidebarLayoutProps) => {
   const { id } = useParams();
   const navigate = useNavigate();
