@@ -109,6 +109,7 @@ const ProjectWorkspace = () => {
     setActiveConversationId(convId);
     setSelectedCardId(null);
     setShowDeepFlow(false);
+    setShowNotificationCenter(false);
     setEditingDoc(null);
     const conv = conversations.find((c) => c.id === convId);
     if (conv) {
