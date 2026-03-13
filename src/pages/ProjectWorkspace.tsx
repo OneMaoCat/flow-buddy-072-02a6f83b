@@ -276,6 +276,7 @@ const ProjectWorkspace = () => {
       const result = buildMockDevResult(cardId, planFlow.requirement || "需求修复", id || "demo");
       setConversations((prev) => addTaskToConversation(prev, convId, result));
       notifyDevComplete(result.requirementTitle);
+      startAIReview(result.id);
     }, 3000 + Math.random() * 3000);
   };
 
