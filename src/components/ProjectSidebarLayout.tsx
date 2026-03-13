@@ -38,6 +38,8 @@ const ProjectSidebarLayout = ({
   headerRight,
   taskList,
   taskCount = 0,
+  notificationList,
+  unreadNotificationCount = 0,
 }: ProjectSidebarLayoutProps) => {
   const { id } = useParams();
   const navigate = useNavigate();
