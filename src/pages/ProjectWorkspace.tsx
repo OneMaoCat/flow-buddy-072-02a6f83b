@@ -48,6 +48,7 @@ const ProjectWorkspace = () => {
   // Conversation-based state — init with mock data
   const [mockData] = useState(() => buildMockConversations());
   const [conversations, setConversations] = useState<Conversation[]>(mockData.conversations);
+  const [notifications, setNotifications] = useState<AppNotification[]>(() => buildMockNotifications());
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [deployedIds, setDeployedIds] = useState<Set<string>>(mockData.deployedIds);
   const [reviewingIds, setReviewingIds] = useState<Set<string>>(new Set(["task-2"]));
