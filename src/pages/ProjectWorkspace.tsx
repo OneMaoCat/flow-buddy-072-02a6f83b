@@ -298,6 +298,10 @@ const ProjectWorkspace = () => {
       selectedCardId={selectedCardId}
       onSelectCard={handleSelectCard}
       onViewInProgressDetail={() => setRightPanelOpen(true)}
+      testsPassed={testsPassed}
+      previewConfirmed={previewConfirmed}
+      rightPanelOpen={rightPanelOpen}
+      onToggleRightPanel={() => setRightPanelOpen(!rightPanelOpen)}
     />
   );
 
@@ -339,17 +343,7 @@ const ProjectWorkspace = () => {
               </button>
             )}
           </div>
-        ) : showDeepFlow ? undefined : (
-          <>
-            <PublishDialog testsPassed={testsPassed} previewConfirmed={previewConfirmed} />
-            <button
-              onClick={() => setRightPanelOpen(!rightPanelOpen)}
-              className="p-2 rounded-lg hover:bg-secondary transition-colors text-muted-foreground"
-            >
-              {rightPanelOpen ? <PanelRightClose size={16} /> : <PanelRightOpen size={16} />}
-            </button>
-          </>
-        )
+        ) : undefined
       }
     >
       {({ isDesktop }) => (
@@ -417,6 +411,10 @@ const ChatArea = ({
   selectedCardId,
   onSelectCard,
   onViewInProgressDetail,
+  testsPassed,
+  previewConfirmed,
+  rightPanelOpen,
+  onToggleRightPanel,
 }: {
   planFlow: { active: boolean; requirement: string };
   onSubmit: (data: { text: string; isPlanMode: boolean }) => void;
@@ -434,6 +432,10 @@ const ChatArea = ({
   selectedCardId: string | null;
   onSelectCard: (id: string) => void;
   onViewInProgressDetail: () => void;
+  testsPassed: boolean;
+  previewConfirmed: boolean;
+  rightPanelOpen: boolean;
+  onToggleRightPanel: () => void;
 }) => {
   const renderUserMessage = (msg: ChatMessage) => (
     <div key={msg.id} className="flex justify-end gap-2 animate-in fade-in slide-in-from-bottom-2 duration-300">
@@ -598,6 +600,17 @@ const ChatArea = ({
           <div className="flex-1">
             <PromptBar onSubmit={onSubmit} compact />
           </div>
+          {devCards.length > 0 && (
+            <PublishDialog testsPassed={testsPassed} previewConfirmed={previewConfirmed} />
+          )}
+          {(devCards.length > 0 || devInProgress) && (
+            <button
+              onClick={onToggleRightPanel}
+              className="shrink-0 p-2 rounded-lg hover:bg-secondary transition-colors text-muted-foreground"
+            >
+              {rightPanelOpen ? <PanelRightClose size={16} /> : <PanelRightOpen size={16} />}
+            </button>
+          )}
         </div>
       </div>
     </div>
