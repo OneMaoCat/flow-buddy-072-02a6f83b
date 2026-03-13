@@ -12,8 +12,7 @@ import {
   Rocket,
   RotateCcw,
   X,
-  Users,
-  GitPullRequest,
+  Shield,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { DevCompleteResult } from "@/components/DevCompleteCard";
@@ -37,7 +36,6 @@ const DevCompleteDetailPanel = ({
   result,
   onDeploy,
   onReject,
-  onRequestReview,
   onClose,
   deployed,
   reviewing,
@@ -49,22 +47,36 @@ const DevCompleteDetailPanel = ({
   const totalDels = result.files.reduce((s, f) => s + f.deletions, 0);
   const passedTests = result.tests.filter((t) => t.passed).length;
   const approved = reviewInfo ? isReviewApproved(reviewInfo) : false;
+  const aiReviewDone = reviewInfo?.aiReviewStatus === "done";
+  const aiReviewRunning = reviewInfo?.aiReviewStatus === "running";
+  const hasCritical = (reviewInfo?.aiReviewers || []).some(
+    (r) => r.findings?.some((f) => f.severity === "critical")
+  );
 
   const statusBadge = deployed ? (
-    <Badge className="text-[10px] bg-green-500/15 text-green-500 border-0">已发布</Badge>
+    <Badge className="text-[10px] bg-emerald-500/15 text-emerald-500 border-0">已发布</Badge>
   ) : approved ? (
-    <Badge className="text-[10px] bg-green-500/15 text-green-500 border-0">审查通过</Badge>
-  ) : reviewing ? (
-    <Badge className="text-[10px] bg-amber-500/15 text-amber-600 border-0">审查中</Badge>
+    <Badge className="text-[10px] bg-emerald-500/15 text-emerald-500 border-0">审查通过</Badge>
+  ) : aiReviewRunning ? (
+    <Badge className="text-[10px] bg-primary/15 text-primary border-0">AI 审查中</Badge>
+  ) : aiReviewDone && hasCritical ? (
+    <Badge className="text-[10px] bg-destructive/15 text-destructive border-0">有严重问题</Badge>
+  ) : aiReviewDone ? (
+    <Badge className="text-[10px] bg-emerald-500/15 text-emerald-500 border-0">
+      {reviewInfo?.overallScore} 分
+    </Badge>
   ) : null;
+
+  // Default tab: if reviewing/done show review, otherwise preview
+  const defaultTab = (reviewing || aiReviewDone || aiReviewRunning) ? "review" : "preview";
 
   return (
     <div className="flex flex-col h-full bg-background">
-      <Tabs defaultValue={reviewing ? "review" : "preview"} className="flex-1 flex flex-col min-h-0">
+      <Tabs defaultValue={defaultTab} className="flex-1 flex flex-col min-h-0">
         {/* Header */}
         <div className="flex items-center gap-3 px-4 py-2 border-b border-border shrink-0">
-          <div className="w-7 h-7 rounded-full bg-green-500/15 flex items-center justify-center shrink-0">
-            <CheckCircle2 size={14} className="text-green-500" />
+          <div className="w-7 h-7 rounded-full bg-emerald-500/15 flex items-center justify-center shrink-0">
+            <CheckCircle2 size={14} className="text-emerald-500" />
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-foreground truncate">
@@ -75,11 +87,9 @@ const DevCompleteDetailPanel = ({
             <TabsTrigger value="preview" className="text-xs gap-1 h-7 px-2.5">
               <Eye size={12} /> 预览
             </TabsTrigger>
-            {(reviewing || approved || deployed) && (
-              <TabsTrigger value="review" className="text-xs gap-1 h-7 px-2.5">
-                <Users size={12} /> 审查
-              </TabsTrigger>
-            )}
+            <TabsTrigger value="review" className="text-xs gap-1 h-7 px-2.5">
+              <Shield size={12} /> AI 审查
+            </TabsTrigger>
             <TabsTrigger value="diff" className="text-xs gap-1 h-7 px-2.5">
               <FileCode2 size={12} /> 变更
             </TabsTrigger>
@@ -106,7 +116,7 @@ const DevCompleteDetailPanel = ({
           />
         </TabsContent>
 
-        {/* Review */}
+        {/* AI Review */}
         <TabsContent value="review" className="flex-1 min-h-0 m-0">
           {reviewInfo && onUpdateReview ? (
             <CodeReviewTab
@@ -115,7 +125,7 @@ const DevCompleteDetailPanel = ({
             />
           ) : (
             <div className="flex items-center justify-center h-full text-sm text-muted-foreground">
-              尚未发起审查
+              AI 审查即将开始…
             </div>
           )}
         </TabsContent>
@@ -125,7 +135,7 @@ const DevCompleteDetailPanel = ({
           <div className="space-y-3 p-4">
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <span>{result.files.length} 个文件变更</span>
-              <span className="text-green-500">+{totalAdds}</span>
+              <span className="text-emerald-500">+{totalAdds}</span>
               <span className="text-destructive">-{totalDels}</span>
             </div>
             {result.files.map((f) => (
@@ -133,7 +143,7 @@ const DevCompleteDetailPanel = ({
                 <div className="flex items-center gap-2 px-3 py-1.5 bg-muted/40 border-b border-border">
                   <FileCode2 size={12} className="text-muted-foreground" />
                   <span className="text-xs font-mono text-foreground">{f.path}</span>
-                  <span className="ml-auto text-[10px] text-green-500">+{f.additions}</span>
+                  <span className="ml-auto text-[10px] text-emerald-500">+{f.additions}</span>
                   <span className="text-[10px] text-destructive">-{f.deletions}</span>
                 </div>
                 <div className="text-[11px] font-mono leading-5 bg-card">
@@ -142,7 +152,7 @@ const DevCompleteDetailPanel = ({
                       key={i}
                       className={cn(
                         "px-3",
-                        l.type === "add" && "bg-green-500/10 text-green-400",
+                        l.type === "add" && "bg-emerald-500/10 text-emerald-400",
                         l.type === "del" && "bg-destructive/10 text-destructive line-through",
                         l.type === "ctx" && "text-muted-foreground"
                       )}
@@ -180,7 +190,7 @@ const DevCompleteDetailPanel = ({
                   className="flex items-center gap-2 px-3 py-2 text-xs border-b border-border last:border-0"
                 >
                   {t.passed ? (
-                    <CheckCircle2 size={14} className="text-green-500 shrink-0" />
+                    <CheckCircle2 size={14} className="text-emerald-500 shrink-0" />
                   ) : (
                     <XCircle size={14} className="text-destructive shrink-0" />
                   )}
@@ -193,30 +203,10 @@ const DevCompleteDetailPanel = ({
         </TabsContent>
       </Tabs>
 
-      {/* Action bar — state-dependent */}
+      {/* Action bar */}
       {!deployed && !readOnly && (
         <div className="flex items-center gap-2 px-4 py-3 border-t border-border bg-muted/20">
-          {!reviewing ? (
-            <>
-              <Button
-                size="sm"
-                className="flex-1 gap-1.5 h-9 text-xs"
-                onClick={() => onRequestReview(result.id)}
-              >
-                <GitPullRequest size={13} />
-                发起 Code Review
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-9 text-xs gap-1"
-                onClick={() => onReject(result.id)}
-              >
-                <RotateCcw size={12} />
-                打回修改
-              </Button>
-            </>
-          ) : approved ? (
+          {approved ? (
             <>
               <Button
                 size="sm"
@@ -236,21 +226,17 @@ const DevCompleteDetailPanel = ({
                 打回修改
               </Button>
             </>
-          ) : (
+          ) : aiReviewDone ? (
             <>
               <Button
                 size="sm"
                 className="flex-1 gap-1.5 h-9 text-xs"
-                disabled
+                disabled={hasCritical}
+                onClick={() => onDeploy(result.id)}
               >
                 <Rocket size={13} />
-                发布到测试环境
+                {hasCritical ? "有严重问题，建议修改" : "发布到测试环境"}
               </Button>
-              <span className="text-[10px] text-muted-foreground">
-                {reviewInfo
-                  ? `${reviewInfo.reviewers.filter((r) => r.status === "approved").length}/${reviewInfo.reviewers.length} 已通过`
-                  : "等待审查"}
-              </span>
               <Button
                 variant="outline"
                 size="sm"
@@ -261,6 +247,11 @@ const DevCompleteDetailPanel = ({
                 打回修改
               </Button>
             </>
+          ) : (
+            <div className="flex-1 flex items-center justify-center gap-2 py-1">
+              <Shield size={14} className="text-primary animate-pulse" />
+              <span className="text-xs text-muted-foreground">AI 正在审查代码…</span>
+            </div>
           )}
         </div>
       )}
