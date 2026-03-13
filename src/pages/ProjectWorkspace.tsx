@@ -6,10 +6,6 @@ import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/componen
 import PlanFlow from "@/components/PlanFlow";
 import PromptBar from "@/components/PromptBar";
 import DeepFlowPanel from "@/components/DeepFlowPanel";
-import TestPanel from "@/components/TestPanel";
-import PreviewPanel from "@/components/PreviewPanel";
-import PublishDialog from "@/components/PublishDialog";
-import ProductionStatus from "@/components/ProductionStatus";
 import ProjectSidebarLayout from "@/components/ProjectSidebarLayout";
 import RequirementDocEditor from "@/components/RequirementDocEditor";
 import DevCompleteCard, { DevInProgressCard, buildMockDevResult, type DevCompleteResult } from "@/components/DevCompleteCard";
@@ -40,8 +36,6 @@ const ProjectWorkspace = () => {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [rightPanelOpen, setRightPanelOpen] = useState(false);
-  const [testsPassed, setTestsPassed] = useState(false);
-  const [previewConfirmed, setPreviewConfirmed] = useState(false);
   const [showDeepFlow, setShowDeepFlow] = useState(true);
   const [showNotificationCenter, setShowNotificationCenter] = useState(false);
   const [editingDoc, setEditingDoc] = useState<RequirementDocData | null>(null);
@@ -84,7 +78,6 @@ const ProjectWorkspace = () => {
 
   useEffect(() => {
     if (searchParams.get("devComplete") === "true") {
-      setTestsPassed(true);
       setRightPanelOpen(true);
       setShowDeepFlow(false);
       setPlanFlow({ active: false, requirement: "" });
@@ -339,8 +332,6 @@ const ProjectWorkspace = () => {
       selectedCardId={selectedCardId}
       onSelectCard={handleSelectCard}
       onViewInProgressDetail={() => setRightPanelOpen(true)}
-      testsPassed={testsPassed}
-      previewConfirmed={previewConfirmed}
       rightPanelOpen={rightPanelOpen}
       onToggleRightPanel={() => setRightPanelOpen(!rightPanelOpen)}
     />
@@ -418,14 +409,7 @@ const ProjectWorkspace = () => {
                   reviewInfo={reviewStatus.get(selectedCard.id)}
                   onUpdateReview={handleUpdateReview}
                 />
-              ) : (
-                <RightPanel
-                  projectName=""
-                  onTestsPassed={() => setTestsPassed(true)}
-                  onPreviewConfirm={() => setPreviewConfirmed(true)}
-                  previewConfirmed={previewConfirmed}
-                />
-              )}
+              ) : null}
             </ResizablePanel>
           </ResizablePanelGroup>
         ) : mainContent
@@ -452,8 +436,6 @@ const ChatArea = ({
   selectedCardId,
   onSelectCard,
   onViewInProgressDetail,
-  testsPassed,
-  previewConfirmed,
   rightPanelOpen,
   onToggleRightPanel,
 }: {
@@ -473,8 +455,6 @@ const ChatArea = ({
   selectedCardId: string | null;
   onSelectCard: (id: string) => void;
   onViewInProgressDetail: () => void;
-  testsPassed: boolean;
-  previewConfirmed: boolean;
   rightPanelOpen: boolean;
   onToggleRightPanel: () => void;
 }) => {
@@ -647,44 +627,5 @@ const ChatArea = ({
   );
 };
 
-/* Right panel sub-component */
-const RightPanel = ({
-  projectName,
-  onTestsPassed,
-  onPreviewConfirm,
-  previewConfirmed,
-}: {
-  projectName: string;
-  onTestsPassed: () => void;
-  onPreviewConfirm: () => void;
-  previewConfirmed: boolean;
-}) => (
-  <Tabs defaultValue="preview" className="flex flex-col h-full">
-    <TabsList className="mx-4 mt-3 mb-0">
-      <TabsTrigger value="preview" className="text-xs">预览</TabsTrigger>
-      <TabsTrigger value="tests" className="text-xs">测试</TabsTrigger>
-      <TabsTrigger value="status" className="text-xs">运行状态</TabsTrigger>
-    </TabsList>
-    <TabsContent value="preview" className="flex-1 min-h-0 m-0">
-      <PreviewPanel />
-      {!previewConfirmed && (
-        <div className="px-4 pb-3">
-          <button
-            onClick={onPreviewConfirm}
-            className="w-full h-8 rounded-lg bg-primary text-primary-foreground text-xs font-medium hover:bg-primary/90 transition-colors"
-          >
-            确认预览效果
-          </button>
-        </div>
-      )}
-    </TabsContent>
-    <TabsContent value="tests" className="flex-1 min-h-0 m-0">
-      <TestPanel projectName={projectName} onAllPassed={onTestsPassed} />
-    </TabsContent>
-    <TabsContent value="status" className="flex-1 min-h-0 m-0">
-      <ProductionStatus />
-    </TabsContent>
-  </Tabs>
-);
 
 export default ProjectWorkspace;
