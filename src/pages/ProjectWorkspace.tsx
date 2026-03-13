@@ -78,7 +78,6 @@ const ProjectWorkspace = () => {
 
   useEffect(() => {
     if (searchParams.get("devComplete") === "true") {
-      setTestsPassed(true);
       setRightPanelOpen(true);
       setShowDeepFlow(false);
       setPlanFlow({ active: false, requirement: "" });
