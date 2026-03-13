@@ -16,6 +16,8 @@ import DevCompleteCard, { DevInProgressCard, buildMockDevResult, type DevComplet
 import DevCompleteDetailPanel from "@/components/DevCompleteDetailPanel";
 import SidebarConversationList from "@/components/SidebarConversationList";
 import { requestNotificationPermission, notifyDevComplete } from "@/components/DevNotification";
+import SidebarNotificationList from "@/components/SidebarNotificationList";
+import { type AppNotification, buildMockNotifications } from "@/data/notifications";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
