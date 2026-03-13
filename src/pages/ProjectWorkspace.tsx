@@ -7,7 +7,6 @@ import PlanFlow from "@/components/PlanFlow";
 import PromptBar from "@/components/PromptBar";
 import DeepFlowPanel from "@/components/DeepFlowPanel";
 import ProjectSidebarLayout from "@/components/ProjectSidebarLayout";
-import ProjectSidebarLayout from "@/components/ProjectSidebarLayout";
 import RequirementDocEditor from "@/components/RequirementDocEditor";
 import DevCompleteCard, { DevInProgressCard, buildMockDevResult, type DevCompleteResult } from "@/components/DevCompleteCard";
 import DevCompleteDetailPanel from "@/components/DevCompleteDetailPanel";
