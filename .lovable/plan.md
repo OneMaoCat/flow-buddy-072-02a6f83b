@@ -1,40 +1,28 @@
-# 需求平台 + 异步开发 + 消息卡片验收
 
-## 已完成
 
-### 1. DevCompleteCard — 聊天区验收卡片 ✅
-- 代码变更 Tab（文件列表 + diff 视图）
-- 产品预览 Tab（复用 RequirementPreview）
-- 自测报告 Tab（测试用例列表 + 通过率）
-- 操作栏（发起 Code Review / 打回修改）
+# 消息中心改为独立 Tab 页面
 
-### 2. PlanFlow 改造 ✅
-- 确认需求后不再跳转 /dev 页面
-- 触发 onDevSubmitted 回调启动异步模拟
+## 问题
 
-### 3. ProjectWorkspace 状态管理 ✅
-- devCards 数组管理已完成的开发结果
-- 异步模拟 3-7s 后推送 DevCompleteCard 到聊天区
-- 发布/打回操作 + toast 反馈
+当前消息中心作为侧边栏的 Collapsible 折叠区域，空间有限，体验不佳。应该改为侧边栏中的一个导航入口，点击后在主内容区以完整列表/视图形式展示通知。
 
-### 4. DevNotification 浏览器通知 ✅
-- Notification API 权限请求
-- 后台标签页系统通知 + sonner toast
+## 方案
 
-### 5. 侧边栏任务追踪列表 ✅
-- SidebarTaskList 组件：按状态分组（开发中/待审查/审查中/已发布）
-- ProjectSidebarLayout 增加 taskList/taskCount props，Collapsible 区域
-- ProjectWorkspace 连接数据，点击任务项定位卡片+打开详情面板
-- 聊天区卡片增加 data-card-id，支持 scrollIntoView 定位
+### 1. 侧边栏：消息中心变为导航项
 
-### 6. 两层结合 — 开发过程展示增强 ✅
-- DevInProgressCard 6 步里程碑（拉取分支→分析需求→制定方案→编写代码→修改代码→运行测试）
-- 每步带具体 detail 信息（分支名、文件名等）
-- 进行中/完成后均可点击「查看详情」打开右侧面板
+在侧边栏 nav 区域增加「消息中心」导航按钮（Bell 图标 + 未读 badge），与「DeepFlow AI」「开发执行中心」同级。移除当前 Collapsible 通知区域。
 
-### 7. Code Review 审查流程 ✅
-- 开发完成后主按钮改为「发起 Code Review」
-- 审查 Tab：审查人列表（通过/待审状态）、邀请审查人、评论区
-- 状态流转：开发完成 → 审查中 → 审查通过 → 发布到测试环境
-- 操作栏按状态切换（未审查/审查中/审查通过/已发布）
-- SidebarTaskList 增加「审查中」分组
+### 2. 新建 NotificationCenter 页面组件
+
+点击后主内容区切换为通知列表视图，包含：
+- 顶部筛选栏：全部 / 未读 / 按类型筛选（开发完成、审查邀请、审查通过等）
+- 通知列表：卡片式布局，每条通知显示图标、标题、描述、时间、已读状态
+- 批量操作：全部标为已读
+- 点击单条通知 → 跳转到对应对话并定位任务卡片（复用现有逻辑）
+
+### 3. 涉及文件
+
+- **新建 `src/components/NotificationCenter.tsx`** — 完整通知列表页面
+- **修改 `src/components/ProjectSidebarLayout.tsx`** — 移除 Collapsible 通知区，navItems 中添加消息中心入口
+- **修改 `src/pages/ProjectWorkspace.tsx`** — 增加 `showNotificationCenter` 状态，点击时主区域展示 NotificationCenter；点击通知后切回对话视图
+
