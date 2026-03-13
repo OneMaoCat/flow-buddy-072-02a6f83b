@@ -455,8 +455,6 @@ const ChatArea = ({
   selectedCardId: string | null;
   onSelectCard: (id: string) => void;
   onViewInProgressDetail: () => void;
-  testsPassed: boolean;
-  previewConfirmed: boolean;
   rightPanelOpen: boolean;
   onToggleRightPanel: () => void;
 }) => {
