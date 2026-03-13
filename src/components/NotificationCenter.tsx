@@ -39,37 +39,35 @@ const NotificationCenter = ({
   return (
     <div className="flex flex-col h-full bg-background">
       {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-border">
-        <div className="flex items-center gap-3">
+      <div className="flex items-center justify-between px-4 py-2.5 border-b border-border">
+        <div className="flex items-center gap-2">
           <button
             onClick={onClose}
-            className="p-1.5 rounded-md hover:bg-secondary transition-colors text-muted-foreground"
+            className="p-1 rounded-md hover:bg-secondary transition-colors text-muted-foreground"
           >
-            <ArrowLeft size={16} />
+            <ArrowLeft size={14} />
           </button>
-          <div className="flex items-center gap-2">
-            <Bell size={18} className="text-foreground" />
-            <h1 className="text-lg font-semibold text-foreground">消息中心</h1>
-            {unreadCount > 0 && (
-              <span className="inline-flex items-center justify-center h-5 min-w-5 px-1.5 rounded-full bg-destructive text-destructive-foreground text-xs font-semibold">
-                {unreadCount}
-              </span>
-            )}
-          </div>
+          <Bell size={15} className="text-foreground" />
+          <h1 className="text-sm font-semibold text-foreground">消息中心</h1>
+          {unreadCount > 0 && (
+            <span className="inline-flex items-center justify-center h-4 min-w-4 px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-semibold">
+              {unreadCount}
+            </span>
+          )}
         </div>
         {unreadCount > 0 && (
           <button
             onClick={onMarkAllRead}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium text-primary hover:bg-primary/10 transition-colors"
+            className="flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-medium text-primary hover:bg-primary/10 transition-colors"
           >
-            <CheckCheck size={14} />
+            <CheckCheck size={12} />
             全部已读
           </button>
         )}
       </div>
 
       {/* Filter bar */}
-      <div className="flex items-center gap-1.5 px-6 py-3 border-b border-border overflow-x-auto scrollbar-hide">
+      <div className="flex items-center gap-1 px-4 py-2 border-b border-border overflow-x-auto scrollbar-hide">
         {typeFilters.map((f) => {
           const count =
             f.value === "all"
