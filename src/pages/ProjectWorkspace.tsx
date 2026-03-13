@@ -411,6 +411,10 @@ const ChatArea = ({
   selectedCardId,
   onSelectCard,
   onViewInProgressDetail,
+  testsPassed,
+  previewConfirmed,
+  rightPanelOpen,
+  onToggleRightPanel,
 }: {
   planFlow: { active: boolean; requirement: string };
   onSubmit: (data: { text: string; isPlanMode: boolean }) => void;
