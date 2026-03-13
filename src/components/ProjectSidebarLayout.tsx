@@ -122,6 +122,29 @@ const ProjectSidebarLayout = ({
               ))}
             </div>
 
+            {/* Notifications */}
+            {notificationList && (
+              <Collapsible defaultOpen className="border-t border-border">
+                <CollapsibleTrigger className="w-full flex items-center justify-between px-4 py-2 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors group">
+                  <span className="flex items-center gap-1.5">
+                    <Bell size={12} />
+                    消息中心
+                    {unreadNotificationCount > 0 && (
+                      <span className="inline-flex items-center justify-center h-4 min-w-4 px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-semibold">
+                        {unreadNotificationCount}
+                      </span>
+                    )}
+                  </span>
+                  <ChevronDown size={12} className="transition-transform group-data-[state=open]:rotate-180" />
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <div className="px-3 pb-2">
+                    {notificationList}
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
+            )}
+
             {/* Task list */}
             {taskList && (
               <Collapsible defaultOpen className="border-t border-border">
