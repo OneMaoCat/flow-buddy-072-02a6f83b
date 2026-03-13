@@ -428,6 +428,10 @@ const ChatArea = ({
   selectedCardId: string | null;
   onSelectCard: (id: string) => void;
   onViewInProgressDetail: () => void;
+  testsPassed: boolean;
+  previewConfirmed: boolean;
+  rightPanelOpen: boolean;
+  onToggleRightPanel: () => void;
 }) => {
   const renderUserMessage = (msg: ChatMessage) => (
     <div key={msg.id} className="flex justify-end gap-2 animate-in fade-in slide-in-from-bottom-2 duration-300">
