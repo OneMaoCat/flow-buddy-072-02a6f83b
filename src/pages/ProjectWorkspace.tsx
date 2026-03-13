@@ -626,10 +626,10 @@ const ChatArea = ({
                         <span className={cn(
                           "text-[10px] px-1.5 py-0.5 rounded-full shrink-0 font-medium",
                           deployed ? "text-emerald-600 bg-emerald-500/10"
-                            : reviewing ? "text-amber-600 bg-amber-500/10"
+                            : reviewing ? "text-primary bg-primary/10"
                             : "text-orange-600 bg-orange-500/10"
                         )}>
-                          {deployed ? "已发布" : reviewing ? "审查中" : "待审查"}
+                          {deployed ? "已发布" : reviewing ? "AI 审查中" : "待审查"}
                         </span>
                       </button>
                     );
