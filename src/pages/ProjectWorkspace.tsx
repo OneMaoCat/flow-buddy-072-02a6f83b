@@ -296,6 +296,14 @@ const ProjectWorkspace = () => {
       onDeepFlowClick={() => { setShowDeepFlow(true); setActiveConversationId(null); setSelectedCardId(null); setRightPanelOpen(false); }}
       deepFlowActive={showDeepFlow}
       taskCount={totalTaskCount}
+      unreadNotificationCount={unreadNotificationCount}
+      notificationList={
+        <SidebarNotificationList
+          notifications={notifications}
+          onClickNotification={handleNotificationClick}
+          onMarkAllRead={handleMarkAllRead}
+        />
+      }
       taskList={
         <SidebarConversationList
           conversations={conversations}
