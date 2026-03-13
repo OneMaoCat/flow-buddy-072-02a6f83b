@@ -319,15 +319,17 @@ const ProjectWorkspace = () => {
         />
       }
       headerRight={
-        <>
-          <PublishDialog testsPassed={testsPassed} previewConfirmed={previewConfirmed} />
-          <button
-            onClick={() => setRightPanelOpen(!rightPanelOpen)}
-            className="p-2 rounded-lg hover:bg-secondary transition-colors text-muted-foreground"
-          >
-            {rightPanelOpen ? <PanelRightClose size={16} /> : <PanelRightOpen size={16} />}
-          </button>
-        </>
+        !showNotificationCenter ? (
+          <>
+            <PublishDialog testsPassed={testsPassed} previewConfirmed={previewConfirmed} />
+            <button
+              onClick={() => setRightPanelOpen(!rightPanelOpen)}
+              className="p-2 rounded-lg hover:bg-secondary transition-colors text-muted-foreground"
+            >
+              {rightPanelOpen ? <PanelRightClose size={16} /> : <PanelRightOpen size={16} />}
+            </button>
+          </>
+        ) : undefined
       }
     >
       {({ isDesktop }) => (
