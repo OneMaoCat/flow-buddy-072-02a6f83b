@@ -270,7 +270,14 @@ const ProjectWorkspace = () => {
     }
   }, [scrollToCard, conversations]);
 
-  const mainContent = showDeepFlow ? (
+  const mainContent = showNotificationCenter ? (
+    <NotificationCenter
+      notifications={notifications}
+      onClickNotification={handleNotificationClick}
+      onMarkAllRead={handleMarkAllRead}
+      onClose={() => setShowNotificationCenter(false)}
+    />
+  ) : showDeepFlow ? (
     <DeepFlowPanel onSubmit={handleSubmit} />
   ) : (
     <ChatArea
@@ -295,17 +302,12 @@ const ProjectWorkspace = () => {
 
   return (
     <ProjectSidebarLayout
-      onDeepFlowClick={() => { setShowDeepFlow(true); setActiveConversationId(null); setSelectedCardId(null); setRightPanelOpen(false); }}
-      deepFlowActive={showDeepFlow}
+      onDeepFlowClick={() => { setShowDeepFlow(true); setShowNotificationCenter(false); setActiveConversationId(null); setSelectedCardId(null); setRightPanelOpen(false); }}
+      deepFlowActive={showDeepFlow && !showNotificationCenter}
       taskCount={totalTaskCount}
       unreadNotificationCount={unreadNotificationCount}
-      notificationList={
-        <SidebarNotificationList
-          notifications={notifications}
-          onClickNotification={handleNotificationClick}
-          onMarkAllRead={handleMarkAllRead}
-        />
-      }
+      onNotificationCenterClick={() => { setShowNotificationCenter(true); setShowDeepFlow(false); }}
+      notificationCenterActive={showNotificationCenter}
       taskList={
         <SidebarConversationList
           conversations={conversations}
