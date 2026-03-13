@@ -11,6 +11,7 @@ import {
   Sparkles,
   GitBranch,
   Pencil,
+  Users,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -122,36 +123,12 @@ const buildProcessSteps = (result: DevCompleteResult): ProcessStep[] => {
   const branchName = `feature/req-${result.id.slice(0, 8)}`;
 
   return [
-    {
-      icon: <GitBranch size={12} />,
-      label: "拉取分支",
-      detail: branchName,
-    },
-    {
-      icon: <Search size={12} />,
-      label: "分析需求",
-      detail: `理解「${result.requirementTitle.slice(0, 20)}${result.requirementTitle.length > 20 ? "…" : ""}」`,
-    },
-    {
-      icon: <Sparkles size={12} />,
-      label: "制定方案",
-      detail: `规划 ${result.files.length} 个文件的修改方案`,
-    },
-    {
-      icon: <Code2 size={12} />,
-      label: "编写代码",
-      detail: result.files.map((f) => f.path.split("/").pop()).join("、"),
-    },
-    {
-      icon: <Pencil size={12} />,
-      label: "修改代码",
-      detail: `${result.files.length} 个文件 · +${totalAdds} -${totalDels}`,
-    },
-    {
-      icon: <TestTube2 size={12} />,
-      label: "运行测试",
-      detail: `${passedTests}/${result.tests.length} 用例通过`,
-    },
+    { icon: <GitBranch size={12} />, label: "拉取分支", detail: branchName },
+    { icon: <Search size={12} />, label: "分析需求", detail: `理解「${result.requirementTitle.slice(0, 20)}${result.requirementTitle.length > 20 ? "…" : ""}」` },
+    { icon: <Sparkles size={12} />, label: "制定方案", detail: `规划 ${result.files.length} 个文件的修改方案` },
+    { icon: <Code2 size={12} />, label: "编写代码", detail: result.files.map((f) => f.path.split("/").pop()).join("、") },
+    { icon: <Pencil size={12} />, label: "修改代码", detail: `${result.files.length} 个文件 · +${totalAdds} -${totalDels}` },
+    { icon: <TestTube2 size={12} />, label: "运行测试", detail: `${passedTests}/${result.tests.length} 用例通过` },
   ];
 };
 
@@ -190,7 +167,6 @@ export const DevInProgressCard = ({
   onViewDetail?: () => void;
 }) => {
   const [visibleSteps, setVisibleSteps] = useState(0);
-
   const branchName = `feature/req-${Date.now().toString(36).slice(-6)}`;
 
   const steps: ProcessStep[] = [
@@ -204,7 +180,6 @@ export const DevInProgressCard = ({
 
   useEffect(() => {
     const timers: NodeJS.Timeout[] = [];
-    // Stagger each step with varying delays for realistic feel
     const delays = [800, 1800, 3200, 4800, 6200, 7400];
     delays.forEach((delay, i) => {
       timers.push(setTimeout(() => setVisibleSteps(i + 1), delay));
@@ -235,7 +210,6 @@ export const DevInProgressCard = ({
             </div>
           );
         })}
-        {/* Upcoming steps shown dimmed */}
         {steps.slice(visibleSteps).map((step, i) => (
           <div key={`upcoming-${i}`} className="flex items-start gap-2.5 py-1 opacity-30">
             <div className="mt-0.5 w-5 h-5 rounded-full bg-muted flex items-center justify-center shrink-0 text-muted-foreground">
@@ -248,8 +222,6 @@ export const DevInProgressCard = ({
           </div>
         ))}
       </div>
-
-      {/* Footer: status + view detail */}
       <div className="flex items-center justify-between mt-3 pt-2 border-t border-border">
         <div className="flex items-center gap-2">
           <Loader2 size={12} className="animate-spin text-primary" />
@@ -276,11 +248,13 @@ interface DevCompleteCardProps {
   onDeploy: (id: string) => void;
   onReject: (id: string) => void;
   deployed?: boolean;
+  reviewing?: boolean;
+  reviewApproved?: boolean;
   selected?: boolean;
   onClick?: () => void;
 }
 
-const DevCompleteCard = ({ result, deployed, selected, onClick }: DevCompleteCardProps) => {
+const DevCompleteCard = ({ result, deployed, reviewing, reviewApproved, selected, onClick }: DevCompleteCardProps) => {
   const totalAdds = result.files.reduce((s, f) => s + f.additions, 0);
   const totalDels = result.files.reduce((s, f) => s + f.deletions, 0);
   const passedTests = result.tests.filter((t) => t.passed).length;
@@ -294,15 +268,10 @@ const DevCompleteCard = ({ result, deployed, selected, onClick }: DevCompleteCar
         onClick && "cursor-pointer"
       )}
     >
-      {/* Process log */}
       <div className="px-4 pt-3 pb-2">
         <DevProcessLog result={result} />
       </div>
-
-      {/* Completion summary footer */}
-      <div className={cn(
-        "flex items-center gap-3 px-4 py-2.5 border-t border-border bg-muted/30",
-      )}>
+      <div className="flex items-center gap-3 px-4 py-2.5 border-t border-border bg-muted/30">
         <div className="w-6 h-6 rounded-full bg-green-500/15 flex items-center justify-center shrink-0">
           <CheckCircle2 size={14} className="text-green-500" />
         </div>
@@ -312,9 +281,15 @@ const DevCompleteCard = ({ result, deployed, selected, onClick }: DevCompleteCar
             {result.files.length} 文件 · <span className="text-green-500">+{totalAdds}</span> <span className="text-destructive">-{totalDels}</span> · {passedTests}/{result.tests.length} 测试通过 · {result.elapsed}s
           </p>
         </div>
-        {deployed && (
+        {deployed ? (
           <Badge className="text-[10px] bg-green-500/15 text-green-500 border-0">已发布</Badge>
-        )}
+        ) : reviewApproved ? (
+          <Badge className="text-[10px] bg-green-500/15 text-green-500 border-0">审查通过</Badge>
+        ) : reviewing ? (
+          <Badge className="text-[10px] bg-amber-500/15 text-amber-600 border-0 gap-1">
+            <Users size={10} /> 审查中
+          </Badge>
+        ) : null}
         <div className="flex items-center gap-1 text-xs text-primary font-medium shrink-0">
           <span>查看详情</span>
           <ChevronRight size={14} />
