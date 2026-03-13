@@ -74,7 +74,9 @@ const ProjectWorkspace = () => {
   const devCards = activeConversation?.tasks || [];
   const chatMessages = activeConversation?.messages || [];
   const devInProgress = activeConversation?.devInProgress || false;
-  const selectedCard = devCards.find((c) => c.id === selectedCardId) || null;
+  const selectedCard = devCards.find((c) => c.id === selectedCardId)
+    || conversations.flatMap((c) => c.tasks).find((c) => c.id === selectedCardId)
+    || null;
 
   const unreadNotificationCount = notifications.filter((n) => !n.read).length;
 
@@ -234,11 +236,7 @@ const ProjectWorkspace = () => {
 
   const handleNotificationClick = useCallback((notif: AppNotification) => {
     setNotifications((prev) => prev.map((n) => n.id === notif.id ? { ...n, read: true } : n));
-    setShowNotificationCenter(false);
-    if (notif.conversationId) {
-      setActiveConversationId(notif.conversationId);
-      setShowDeepFlow(false);
-    }
+    // Show task detail in right panel directly — don't navigate to private conversations
     if (notif.taskId) {
       setSelectedCardId(notif.taskId);
       setRightPanelOpen(true);
