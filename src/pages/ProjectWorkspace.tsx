@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
-import { PanelRightOpen, PanelRightClose, ListTodo, Loader2, Circle, Check, Users } from "lucide-react";
+import { PanelRightOpen, PanelRightClose, ListTodo, Loader2, Circle, Check, Users, Bell, CheckCheck } from "lucide-react";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 import PlanFlow from "@/components/PlanFlow";
@@ -319,7 +319,27 @@ const ProjectWorkspace = () => {
         />
       }
       headerRight={
-        !showNotificationCenter ? (
+        showNotificationCenter ? (
+          <div className="flex items-center gap-2">
+            <Bell size={15} className="text-foreground" />
+            <span className="text-sm font-semibold text-foreground">消息中心</span>
+            {unreadNotificationCount > 0 && (
+              <span className="inline-flex items-center justify-center h-4 min-w-4 px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-semibold">
+                {unreadNotificationCount}
+              </span>
+            )}
+            <div className="flex-1" />
+            {unreadNotificationCount > 0 && (
+              <button
+                onClick={handleMarkAllRead}
+                className="flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-medium text-primary hover:bg-primary/10 transition-colors"
+              >
+                <CheckCheck size={12} />
+                全部已读
+              </button>
+            )}
+          </div>
+        ) : (
           <>
             <PublishDialog testsPassed={testsPassed} previewConfirmed={previewConfirmed} />
             <button
@@ -329,7 +349,7 @@ const ProjectWorkspace = () => {
               {rightPanelOpen ? <PanelRightClose size={16} /> : <PanelRightOpen size={16} />}
             </button>
           </>
-        ) : undefined
+        )
       }
     >
       {({ isDesktop }) => (

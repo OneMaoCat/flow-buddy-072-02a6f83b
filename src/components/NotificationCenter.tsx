@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowLeft, CheckCheck, Bell } from "lucide-react";
+import { Bell } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { AppNotification, NotificationType } from "@/data/notifications";
 import { getNotificationIcon, formatTimeAgo } from "@/data/notifications";
@@ -38,34 +38,6 @@ const NotificationCenter = ({
 
   return (
     <div className="flex flex-col h-full bg-background">
-      {/* Header */}
-      <div className="flex items-center justify-between px-4 py-2.5 border-b border-border">
-        <div className="flex items-center gap-2">
-          <button
-            onClick={onClose}
-            className="p-1 rounded-md hover:bg-secondary transition-colors text-muted-foreground"
-          >
-            <ArrowLeft size={14} />
-          </button>
-          <Bell size={15} className="text-foreground" />
-          <h1 className="text-sm font-semibold text-foreground">消息中心</h1>
-          {unreadCount > 0 && (
-            <span className="inline-flex items-center justify-center h-4 min-w-4 px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-semibold">
-              {unreadCount}
-            </span>
-          )}
-        </div>
-        {unreadCount > 0 && (
-          <button
-            onClick={onMarkAllRead}
-            className="flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-medium text-primary hover:bg-primary/10 transition-colors"
-          >
-            <CheckCheck size={12} />
-            全部已读
-          </button>
-        )}
-      </div>
-
       {/* Filter bar */}
       <div className="flex items-center gap-1 px-4 py-2 border-b border-border overflow-x-auto scrollbar-hide">
         {typeFilters.map((f) => {
