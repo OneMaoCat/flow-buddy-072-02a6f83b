@@ -37,8 +37,6 @@ const ProjectWorkspace = () => {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [rightPanelOpen, setRightPanelOpen] = useState(false);
-  const [testsPassed, setTestsPassed] = useState(false);
-  const [previewConfirmed, setPreviewConfirmed] = useState(false);
   const [showDeepFlow, setShowDeepFlow] = useState(true);
   const [showNotificationCenter, setShowNotificationCenter] = useState(false);
   const [editingDoc, setEditingDoc] = useState<RequirementDocData | null>(null);
