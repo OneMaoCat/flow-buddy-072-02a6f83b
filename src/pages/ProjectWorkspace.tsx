@@ -619,7 +619,7 @@ const ChatArea = ({
                         {deployed
                           ? <Check size={12} className="text-emerald-500 shrink-0" />
                           : reviewing
-                            ? <Shield size={12} className="text-amber-500 shrink-0" />
+                            ? <Shield size={12} className="text-primary shrink-0" />
                             : <Circle size={10} className="text-orange-500 fill-orange-500 shrink-0" />
                         }
                         <span className="truncate flex-1">{card.requirementTitle}</span>
