@@ -143,6 +143,8 @@ const ProjectWorkspace = () => {
         );
         setConversations((prev) => addTaskToConversation(prev, capturedConvId, result));
         notifyDevComplete(result.requirementTitle);
+        // Auto-trigger AI Code Review
+        startAIReview(result.id);
       }, delay);
     }
   };
