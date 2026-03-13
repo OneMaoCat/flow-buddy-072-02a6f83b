@@ -88,7 +88,10 @@ const DevExecution = () => {
   const [conversations] = useState<Conversation[]>(mockData.conversations);
   const [deployedIds] = useState<Set<string>>(mockData.deployedIds);
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
+  const [notifications, setNotifications] = useState<AppNotification[]>(() => buildMockNotifications());
+  const [showNotificationCenter, setShowNotificationCenter] = useState(false);
 
+  const unreadNotificationCount = notifications.filter((n) => !n.read).length;
   const totalTaskCount = conversations.reduce((sum, c) => sum + c.tasks.length + (c.devInProgress ? 1 : 0), 0);
 
   const [requirements, setRequirements] = useState<Requirement[]>(createInitialRequirements);
