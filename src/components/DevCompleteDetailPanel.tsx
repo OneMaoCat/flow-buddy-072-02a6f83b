@@ -30,6 +30,7 @@ interface DevCompleteDetailPanelProps {
   reviewing?: boolean;
   reviewInfo?: ReviewInfo;
   onUpdateReview?: (id: string, review: ReviewInfo) => void;
+  readOnly?: boolean;
 }
 
 const DevCompleteDetailPanel = ({
