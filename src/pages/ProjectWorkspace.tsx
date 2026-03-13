@@ -332,8 +332,6 @@ const ProjectWorkspace = () => {
       selectedCardId={selectedCardId}
       onSelectCard={handleSelectCard}
       onViewInProgressDetail={() => setRightPanelOpen(true)}
-      testsPassed={testsPassed}
-      previewConfirmed={previewConfirmed}
       rightPanelOpen={rightPanelOpen}
       onToggleRightPanel={() => setRightPanelOpen(!rightPanelOpen)}
     />
