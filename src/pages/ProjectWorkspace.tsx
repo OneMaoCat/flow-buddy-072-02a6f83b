@@ -217,6 +217,7 @@ const ProjectWorkspace = () => {
       onReject={handleReject}
       selectedCardId={selectedCardId}
       onSelectCard={handleSelectCard}
+      onViewInProgressDetail={() => setRightPanelOpen(true)}
     />
   );
 
@@ -303,6 +304,7 @@ const ChatArea = ({
   onReject,
   selectedCardId,
   onSelectCard,
+  onViewInProgressDetail,
 }: {
   planFlow: { active: boolean; requirement: string };
   onSubmit: (data: { text: string; isPlanMode: boolean }) => void;
@@ -317,6 +319,7 @@ const ChatArea = ({
   onReject: (id: string) => void;
   selectedCardId: string | null;
   onSelectCard: (id: string) => void;
+  onViewInProgressDetail: () => void;
 }) => {
   const renderUserMessage = (msg: ChatMessage) => (
     <div key={msg.id} className="flex justify-end gap-2 animate-in fade-in slide-in-from-bottom-2 duration-300">
@@ -360,7 +363,10 @@ const ChatArea = ({
           <span className="text-foreground text-xs font-bold">DF</span>
         </div>
         <div className="flex-1 min-w-0">
-          <DevInProgressCard requirement={planFlow.requirement || "新需求"} />
+          <DevInProgressCard
+            requirement={planFlow.requirement || "新需求"}
+            onViewDetail={onViewInProgressDetail}
+          />
         </div>
       </div>
     </div>
