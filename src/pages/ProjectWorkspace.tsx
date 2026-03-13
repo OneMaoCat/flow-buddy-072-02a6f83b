@@ -16,6 +16,8 @@ import DevCompleteCard, { DevInProgressCard, buildMockDevResult, type DevComplet
 import DevCompleteDetailPanel from "@/components/DevCompleteDetailPanel";
 import SidebarConversationList from "@/components/SidebarConversationList";
 import { requestNotificationPermission, notifyDevComplete } from "@/components/DevNotification";
+import SidebarNotificationList from "@/components/SidebarNotificationList";
+import { type AppNotification, buildMockNotifications } from "@/data/notifications";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -46,6 +48,7 @@ const ProjectWorkspace = () => {
   // Conversation-based state — init with mock data
   const [mockData] = useState(() => buildMockConversations());
   const [conversations, setConversations] = useState<Conversation[]>(mockData.conversations);
+  const [notifications, setNotifications] = useState<AppNotification[]>(() => buildMockNotifications());
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [deployedIds, setDeployedIds] = useState<Set<string>>(mockData.deployedIds);
   const [reviewingIds, setReviewingIds] = useState<Set<string>>(new Set(["task-2"]));
@@ -71,6 +74,8 @@ const ProjectWorkspace = () => {
   const chatMessages = activeConversation?.messages || [];
   const devInProgress = activeConversation?.devInProgress || false;
   const selectedCard = devCards.find((c) => c.id === selectedCardId) || null;
+
+  const unreadNotificationCount = notifications.filter((n) => !n.read).length;
 
   const totalTaskCount = conversations.reduce(
     (sum, c) => sum + c.tasks.length + (c.devInProgress ? 1 : 0),
@@ -224,6 +229,25 @@ const ProjectWorkspace = () => {
     }, 3000 + Math.random() * 3000);
   };
 
+  const handleNotificationClick = useCallback((notif: AppNotification) => {
+    // Mark as read
+    setNotifications((prev) => prev.map((n) => n.id === notif.id ? { ...n, read: true } : n));
+    // Navigate to conversation/task
+    if (notif.conversationId) {
+      setActiveConversationId(notif.conversationId);
+      setShowDeepFlow(false);
+    }
+    if (notif.taskId) {
+      setSelectedCardId(notif.taskId);
+      setRightPanelOpen(true);
+      setEditingDoc(null);
+    }
+  }, []);
+
+  const handleMarkAllRead = useCallback(() => {
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+  }, []);
+
   const scrollToCard = useCallback((cardId: string) => {
     setTimeout(() => {
       const el = document.querySelector(`[data-card-id="${cardId}"]`);
@@ -272,6 +296,14 @@ const ProjectWorkspace = () => {
       onDeepFlowClick={() => { setShowDeepFlow(true); setActiveConversationId(null); setSelectedCardId(null); setRightPanelOpen(false); }}
       deepFlowActive={showDeepFlow}
       taskCount={totalTaskCount}
+      unreadNotificationCount={unreadNotificationCount}
+      notificationList={
+        <SidebarNotificationList
+          notifications={notifications}
+          onClickNotification={handleNotificationClick}
+          onMarkAllRead={handleMarkAllRead}
+        />
+      }
       taskList={
         <SidebarConversationList
           conversations={conversations}
