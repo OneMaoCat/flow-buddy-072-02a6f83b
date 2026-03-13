@@ -55,16 +55,8 @@ const ProjectWorkspace = () => {
   const [reviewingIds, setReviewingIds] = useState<Set<string>>(new Set(["task-2"]));
   const [reviewStatus, setReviewStatus] = useState<Map<string, ReviewInfo>>(() => {
     const m = new Map<string, ReviewInfo>();
-    // Mock: task-2 is in review with one approval
-    m.set("task-2", {
-      reviewers: [
-        { id: "u1", name: "吴承霖", status: "approved" },
-        { id: "u2", name: "邱翔", status: "pending" },
-      ],
-      comments: [
-        { id: "c1", author: "吴承霖", text: "支付逻辑看起来没问题，LGTM", timestamp: Date.now() - 300_000 },
-      ],
-    });
+    // Mock: task-2 has completed AI review
+    m.set("task-2", buildMockAIReview());
     return m;
   });
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
