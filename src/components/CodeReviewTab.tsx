@@ -57,6 +57,22 @@ const CodeReviewTab = ({ review, onUpdateReview }: CodeReviewTabProps) => {
     });
   };
 
+  const approveAll = () => {
+    onUpdateReview({
+      ...review,
+      reviewers: review.reviewers.map((r) => ({ ...r, status: "approved" as const })),
+    });
+  };
+
+  const requestChanges = () => {
+    onUpdateReview({
+      ...review,
+      reviewers: review.reviewers.map((r) =>
+        r.status === "pending" ? { ...r, status: "rejected" as const } : r
+      ),
+    });
+  };
+
   const addComment = () => {
     if (!commentText.trim()) return;
     const comment: ReviewComment = {
