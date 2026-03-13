@@ -27,8 +27,9 @@ interface ProjectSidebarLayoutProps {
   headerRight?: React.ReactNode;
   taskList?: React.ReactNode;
   taskCount?: number;
-  notificationList?: React.ReactNode;
   unreadNotificationCount?: number;
+  onNotificationCenterClick?: () => void;
+  notificationCenterActive?: boolean;
 }
 
 const ProjectSidebarLayout = ({
