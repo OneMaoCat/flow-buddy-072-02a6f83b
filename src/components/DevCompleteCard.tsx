@@ -11,7 +11,7 @@ import {
   Sparkles,
   GitBranch,
   Pencil,
-  Users,
+  Shield,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
