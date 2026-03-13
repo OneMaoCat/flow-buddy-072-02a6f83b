@@ -5,7 +5,7 @@ import {
   Loader2, Clock, Search, ListFilter, ShieldCheck, RotateCcw,
   CheckCheck, XCircle, Table2, LayoutGrid, X, AlertTriangle,
   ChevronDown, ChevronRight, FileCode, MessageSquare, Zap, Shield,
-  ExternalLink, GitBranch, Layers,
+  ExternalLink, GitBranch, Layers, Bell,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
