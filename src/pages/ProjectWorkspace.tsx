@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
-import { PanelRightOpen, PanelRightClose, ListTodo, Loader2, Circle, Check, Users } from "lucide-react";
+import { PanelRightOpen, PanelRightClose, ListTodo, Loader2, Circle, Check, Users, Bell, CheckCheck } from "lucide-react";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 import PlanFlow from "@/components/PlanFlow";
