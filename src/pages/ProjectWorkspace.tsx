@@ -376,7 +376,7 @@ const ProjectWorkspace = () => {
                   onDeploy={handleDeploy}
                   onReject={handleReject}
                   onRequestReview={handleRequestReview}
-                  onClose={() => { setSelectedCardId(null); setDetailReadOnly(false); }}
+                  onClose={() => { setSelectedCardId(null); setDetailReadOnly(false); setRightPanelOpen(false); }}
                   readOnly={detailReadOnly}
                   deployed={deployedIds.has(selectedCard.id)}
                   reviewing={reviewingIds.has(selectedCard.id)}
