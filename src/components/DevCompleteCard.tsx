@@ -177,6 +177,7 @@ export const DevInProgressCard = ({
     { icon: <Code2 size={12} />, label: "编写代码", detail: "正在生成代码…" },
     { icon: <Pencil size={12} />, label: "修改代码", detail: "处理文件变更中…" },
     { icon: <TestTube2 size={12} />, label: "运行测试", detail: "待执行" },
+    { icon: <Shield size={12} />, label: "Code Review", detail: "AI 多模型审查" },
   ];
 
   useEffect(() => {
