@@ -28,57 +28,52 @@ const buildMockDoc = (requirement: string): RequirementDocData => ({
   title: requirement.length > 30 ? requirement.slice(0, 30) + "…" : requirement,
   background:
     "当前系统的用户登录页面在表单验证方面存在若干问题，包括邮箱格式校验缺失、密码强度提示不明确、必填项未做前端拦截等。这些问题导致用户体验不佳，同时也增加了后端无效请求的处理压力。本次需求旨在全面修复登录表单验证逻辑，并补充对应的单元测试以防止回归。",
-  scenarios: [
+  adjustments: [
     {
-      id: "s1",
-      actor: "普通用户",
-      action: "在登录页输入不合法的邮箱格式后点击登录",
-      expectedResult: "表单即时显示「请输入有效的邮箱地址」错误提示，阻止表单提交",
+      id: "a1",
+      title: "增强邮箱格式校验",
+      description: "在前端登录表单中新增正则校验，支持常见邮箱和企业邮箱格式，校验失败时即时显示行内错误提示。",
     },
     {
-      id: "s2",
-      actor: "普通用户",
-      action: "在登录页仅填写邮箱、留空密码后点击登录",
-      expectedResult: "密码输入框下方显示「密码为必填项」提示，阻止表单提交",
+      id: "a2",
+      title: "强化密码强度检查",
+      description: "要求密码至少 8 位，包含数字和字母，并在输入时实时显示强度指示条（弱/中/强）。",
     },
     {
-      id: "s3",
-      actor: "开发人员",
-      action: "运行单元测试套件",
-      expectedResult: "所有验证场景（正常/异常）测试用例通过，覆盖率 ≥ 90%",
+      id: "a3",
+      title: "补充必填项拦截与单元测试",
+      description: "对所有必填字段增加前端拦截，移除旧版 alert 弹窗提示，替换为行内错误组件。同时补充对应的单元测试，覆盖率 ≥ 90%。",
     },
   ],
-  flowSteps: [
-    { id: "f1", label: "用户打开登录页" },
-    { id: "f2", label: "填写邮箱和密码" },
-    { id: "f3", label: "点击「登录」按钮" },
-    { id: "f4", label: "前端表单验证" },
-    { id: "f5", label: "验证通过 → 发送请求" },
-    { id: "f6", label: "验证失败 → 显示错误提示" },
-  ],
-  changePoints: [
+  technicalItems: [
     {
-      id: "c1",
-      module: "LoginForm 组件",
-      description: "新增邮箱格式正则校验，添加密码强度检查（至少 8 位，含数字和字母）",
+      id: "t1",
+      file: "src/components/LoginForm.tsx",
+      description: "新增邮箱格式正则校验，添加密码强度检查逻辑",
       type: "modify",
     },
     {
-      id: "c2",
-      module: "FormErrorTip 组件",
-      description: "新建通用的表单行内错误提示组件，支持动态文案和动画效果",
+      id: "t2",
+      file: "src/components/FormErrorTip.tsx",
+      description: "新建通用表单行内错误提示组件，支持动态文案和动画效果",
       type: "add",
     },
     {
-      id: "c3",
-      module: "LoginForm.test.ts",
+      id: "t3",
+      file: "src/components/__tests__/LoginForm.test.ts",
       description: "新增单元测试文件，覆盖邮箱/密码验证的正常与异常场景",
       type: "add",
     },
     {
-      id: "c4",
-      module: "旧版 alert() 验证逻辑",
-      description: "移除原有的 window.alert 弹窗式验证提示，替换为行内提示",
+      id: "t4",
+      file: "src/utils/validators.ts",
+      description: "抽取邮箱和密码校验函数为独立工具模块，便于复用和测试",
+      type: "add",
+    },
+    {
+      id: "t5",
+      file: "src/components/LoginForm.legacy.tsx",
+      description: "移除原有 window.alert 弹窗式验证提示代码",
       type: "delete",
     },
   ],
@@ -158,16 +153,16 @@ const PlanFlow = ({ requirement, onCancel, onStartDev, onOpenDocEditor, onDevSub
         <AIBubbleWrapper>
           <div className="flex items-center gap-2 py-4">
             <Loader2 size={18} className="text-primary animate-spin" />
-            <span className="text-sm text-muted-foreground">正在生成需求文档...</span>
+            <span className="text-sm text-muted-foreground">正在生成 Plan...</span>
           </div>
         </AIBubbleWrapper>
       )}
 
-      {/* 5. Requirement Document */}
+      {/* 5. Plan Document */}
       {stage === "planning" && (
         <AIBubbleWrapper>
           <p className="text-sm text-muted-foreground mb-3">
-            根据你的需求，我生成了以下需求文档，你可以点击任意内容进行编辑：
+            根据你的需求，我生成了以下 Plan，你可以点击任意内容进行编辑：
           </p>
           <RequirementDoc
             data={docData}
@@ -185,7 +180,7 @@ const PlanFlow = ({ requirement, onCancel, onStartDev, onOpenDocEditor, onDevSub
 
       {stage === "confirmed" && (
         <>
-          <UserBubble text="确认需求，开始开发！" />
+          <UserBubble text="确认 Plan，开始开发！" />
           <AIBubbleWrapper>
             <div className="flex items-center gap-2 py-4">
               <Loader2 size={18} className="text-primary animate-spin" />

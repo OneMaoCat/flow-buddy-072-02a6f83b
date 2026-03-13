@@ -1,42 +1,34 @@
 import { useState, useRef, useEffect } from "react";
 import {
   FileText,
-  Users,
-  GitBranch,
+  Code2,
   Pencil,
   Check,
   X,
-  ChevronRight,
-  Workflow,
+  Lightbulb,
+  FolderCode,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 /* ─── Types ─── */
-export interface FlowStep {
+export interface AdjustmentItem {
   id: string;
-  label: string;
+  title: string;
+  description: string;
 }
 
-export interface ChangePoint {
+export interface TechnicalItem {
   id: string;
-  module: string;
+  file: string;
   description: string;
   type: "add" | "modify" | "delete";
-}
-
-export interface UserScenario {
-  id: string;
-  actor: string;
-  action: string;
-  expectedResult: string;
 }
 
 export interface RequirementDocData {
   title: string;
   background: string;
-  scenarios: UserScenario[];
-  flowSteps: FlowStep[];
-  changePoints: ChangePoint[];
+  adjustments: AdjustmentItem[];
+  technicalItems: TechnicalItem[];
 }
 
 /* ─── Editable text block ─── */
@@ -178,26 +170,18 @@ const RequirementDoc = ({ data, onChange, onConfirm, onRevise, onOpenEditor }: R
     onChange?.(next);
   };
 
-  const updateScenario = (id: string, field: keyof UserScenario, value: string) => {
+  const updateAdjustment = (id: string, field: keyof AdjustmentItem, value: string) => {
     update({
-      scenarios: doc.scenarios.map((s) =>
-        s.id === id ? { ...s, [field]: value } : s
+      adjustments: doc.adjustments.map((a) =>
+        a.id === id ? { ...a, [field]: value } : a
       ),
     });
   };
 
-  const updateChangePoint = (id: string, field: keyof ChangePoint, value: string) => {
+  const updateTechnicalItem = (id: string, field: keyof TechnicalItem, value: string) => {
     update({
-      changePoints: doc.changePoints.map((c) =>
-        c.id === id ? { ...c, [field]: value } : c
-      ),
-    });
-  };
-
-  const updateFlowStep = (id: string, label: string) => {
-    update({
-      flowSteps: doc.flowSteps.map((f) =>
-        f.id === id ? { ...f, label } : f
+      technicalItems: doc.technicalItems.map((t) =>
+        t.id === id ? { ...t, [field]: value } : t
       ),
     });
   };
@@ -215,7 +199,7 @@ const RequirementDoc = ({ data, onChange, onConfirm, onRevise, onOpenEditor }: R
         <div className="flex items-center gap-2 mb-1">
           <FileText size={16} className="text-primary" />
           <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
-            需求文档
+            Plan
           </span>
         </div>
         <h3 className="text-base font-bold text-foreground">
@@ -242,84 +226,51 @@ const RequirementDoc = ({ data, onChange, onConfirm, onRevise, onOpenEditor }: R
           </div>
         </Section>
 
-        {/* User Scenarios */}
+        {/* Adjustment Plan */}
         <Section
-          icon={<Users size={14} className="text-primary shrink-0" />}
-          title="用户场景"
+          icon={<Lightbulb size={14} className="text-primary shrink-0" />}
+          title="调整方案"
         >
           <div className="space-y-3">
-            {doc.scenarios.map((s, i) => (
+            {doc.adjustments.map((a, i) => (
               <div
-                key={s.id}
+                key={a.id}
                 className="rounded-lg border border-border bg-muted/20 px-4 py-3"
               >
                 <div className="flex items-center gap-2 mb-2">
                   <span className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary">
                     {i + 1}
                   </span>
-                  <span className="text-xs text-muted-foreground">场景</span>
+                  <span className="text-sm font-medium text-foreground">
+                    <EditableText
+                      value={a.title}
+                      onChange={(v) => updateAdjustment(a.id, "title", v)}
+                    />
+                  </span>
                 </div>
-                <div className="space-y-1.5 text-sm">
-                  <div>
-                    <span className="text-muted-foreground text-xs mr-1.5">角色：</span>
-                    <EditableText
-                      value={s.actor}
-                      onChange={(v) => updateScenario(s.id, "actor", v)}
-                    />
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground text-xs mr-1.5">操作：</span>
-                    <EditableText
-                      value={s.action}
-                      onChange={(v) => updateScenario(s.id, "action", v)}
-                    />
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground text-xs mr-1.5">预期结果：</span>
-                    <EditableText
-                      value={s.expectedResult}
-                      onChange={(v) => updateScenario(s.id, "expectedResult", v)}
-                    />
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </Section>
-
-        {/* Flow Chart */}
-        <Section
-          icon={<Workflow size={14} className="text-primary shrink-0" />}
-          title="流程图"
-        >
-          <div className="flex flex-wrap items-center gap-1">
-            {doc.flowSteps.map((step, i) => (
-              <div key={step.id} className="flex items-center gap-1">
-                <div className="rounded-lg border border-border bg-muted/30 px-3 py-2 text-sm text-foreground">
+                <div className="text-xs text-muted-foreground leading-relaxed pl-7">
                   <EditableText
-                    value={step.label}
-                    onChange={(v) => updateFlowStep(step.id, v)}
+                    value={a.description}
+                    onChange={(v) => updateAdjustment(a.id, "description", v)}
+                    multiline
                   />
                 </div>
-                {i < doc.flowSteps.length - 1 && (
-                  <ChevronRight size={14} className="text-muted-foreground shrink-0" />
-                )}
               </div>
             ))}
           </div>
         </Section>
 
-        {/* Change Points */}
+        {/* Technical Plan */}
         <Section
-          icon={<GitBranch size={14} className="text-primary shrink-0" />}
-          title="需求变更点"
+          icon={<FolderCode size={14} className="text-primary shrink-0" />}
+          title="技术方案（涉及文件）"
         >
           <div className="space-y-2">
-            {doc.changePoints.map((cp) => {
-              const badge = changeTypeConfig[cp.type];
+            {doc.technicalItems.map((t) => {
+              const badge = changeTypeConfig[t.type];
               return (
                 <div
-                  key={cp.id}
+                  key={t.id}
                   className="flex items-start gap-3 rounded-lg border border-border bg-muted/20 px-4 py-3"
                 >
                   <span
@@ -331,16 +282,16 @@ const RequirementDoc = ({ data, onChange, onConfirm, onRevise, onOpenEditor }: R
                     {badge.label}
                   </span>
                   <div className="text-sm min-w-0">
-                    <div className="font-medium text-foreground">
+                    <div className="font-medium text-foreground font-mono text-xs">
                       <EditableText
-                        value={cp.module}
-                        onChange={(v) => updateChangePoint(cp.id, "module", v)}
+                        value={t.file}
+                        onChange={(v) => updateTechnicalItem(t.id, "file", v)}
                       />
                     </div>
                     <div className="text-muted-foreground text-xs mt-0.5">
                       <EditableText
-                        value={cp.description}
-                        onChange={(v) => updateChangePoint(cp.id, "description", v)}
+                        value={t.description}
+                        onChange={(v) => updateTechnicalItem(t.id, "description", v)}
                       />
                     </div>
                   </div>
@@ -367,7 +318,7 @@ const RequirementDoc = ({ data, onChange, onConfirm, onRevise, onOpenEditor }: R
               onClick={(e) => { e.stopPropagation(); onConfirm(); }}
               className="h-8 px-5 rounded-lg bg-primary text-primary-foreground text-xs font-medium hover:bg-primary/90 transition-colors"
             >
-              确认需求，开始开发
+              确认 Plan，开始开发
             </button>
           )}
         </div>

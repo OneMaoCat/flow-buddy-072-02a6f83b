@@ -1,10 +1,8 @@
 import { useState, useRef, useCallback } from "react";
 import {
   FileText,
-  Users,
-  GitBranch,
-  Workflow,
-  ChevronRight,
+  Lightbulb,
+  FolderCode,
   ImagePlus,
   UserPlus,
   X,
@@ -28,9 +26,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import type {
   RequirementDocData,
-  UserScenario,
-  ChangePoint,
-  FlowStep,
+  AdjustmentItem,
+  TechnicalItem,
 } from "./RequirementDoc";
 
 /* ─── Types ─── */
@@ -49,7 +46,7 @@ interface DocComment {
   content: string;
   time: string;
   resolved: boolean;
-  section?: "background" | "scenarios" | "flowSteps" | "changePoints";
+  section?: "background" | "adjustments" | "technicalItems";
   suggestion?: string;
 }
 
@@ -61,7 +58,7 @@ const mockReviewers: Reviewer[] = [
 
 const mockComments: DocComment[] = [
   { id: "cm1", author: "张三", avatar: "张", content: "邮箱验证规则建议增加对企业邮箱的支持", time: "10 分钟前", resolved: false, section: "background", suggestion: "当前系统的用户登录页面在表单验证方面存在若干问题，包括邮箱格式校验缺失、密码强度提示不明确、必填项未做前端拦截等。这些问题导致用户体验不佳，同时也增加了后端无效请求的处理压力。本次需求旨在全面修复登录表单验证逻辑，补充对企业邮箱格式的支持，并补充对应的单元测试以防止回归。" },
-  { id: "cm2", author: "李四", avatar: "李", content: "流程图中缺少「忘记密码」的分支路径", time: "25 分钟前", resolved: false, section: "flowSteps", suggestion: "新增「忘记密码」步骤" },
+  { id: "cm2", author: "李四", avatar: "李", content: "建议在技术方案中增加密码强度指示器组件", time: "25 分钟前", resolved: false, section: "technicalItems", suggestion: "src/components/PasswordStrengthBar.tsx" },
   { id: "cm3", author: "张三", avatar: "张", content: "密码强度校验的正则已确认", time: "1 小时前", resolved: true },
   { id: "cm4", author: "李四", avatar: "李", content: "表单错误提示的文案已对齐设计稿", time: "2 小时前", resolved: true },
 ];
@@ -83,7 +80,6 @@ const reviewStatusConfig = {
 const DocBlock = ({
   children,
   className,
-  onAddImage,
 }: {
   children: React.ReactNode;
   className?: string;
@@ -97,7 +93,6 @@ const DocBlock = ({
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      {/* Block actions - show on hover */}
       {hovered && (
         <div className="absolute -left-10 top-1/2 -translate-y-1/2 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
           <button className="p-0.5 rounded hover:bg-accent text-muted-foreground/40 hover:text-muted-foreground transition-colors">
@@ -198,44 +193,32 @@ const RequirementDocEditor = ({ data, onChange, onClose, onConfirm }: Requiremen
     [doc, onChange]
   );
 
-  const updateScenario = (id: string, field: keyof UserScenario, value: string) => {
-    update({ scenarios: doc.scenarios.map((s) => (s.id === id ? { ...s, [field]: value } : s)) });
+  const updateAdjustment = (id: string, field: keyof AdjustmentItem, value: string) => {
+    update({ adjustments: doc.adjustments.map((a) => (a.id === id ? { ...a, [field]: value } : a)) });
   };
 
-  const addScenario = () => {
+  const addAdjustment = () => {
     update({
-      scenarios: [...doc.scenarios, { id: `s${Date.now()}`, actor: "", action: "", expectedResult: "" }],
+      adjustments: [...doc.adjustments, { id: `a${Date.now()}`, title: "", description: "" }],
     });
   };
 
-  const removeScenario = (id: string) => {
-    update({ scenarios: doc.scenarios.filter((s) => s.id !== id) });
+  const removeAdjustment = (id: string) => {
+    update({ adjustments: doc.adjustments.filter((a) => a.id !== id) });
   };
 
-  const updateChangePoint = (id: string, field: keyof ChangePoint, value: string) => {
-    update({ changePoints: doc.changePoints.map((c) => (c.id === id ? { ...c, [field]: value } : c)) });
+  const updateTechnicalItem = (id: string, field: keyof TechnicalItem, value: string) => {
+    update({ technicalItems: doc.technicalItems.map((t) => (t.id === id ? { ...t, [field]: value } : t)) });
   };
 
-  const addChangePoint = () => {
+  const addTechnicalItem = () => {
     update({
-      changePoints: [...doc.changePoints, { id: `c${Date.now()}`, module: "", description: "", type: "add" as const }],
+      technicalItems: [...doc.technicalItems, { id: `t${Date.now()}`, file: "", description: "", type: "add" as const }],
     });
   };
 
-  const removeChangePoint = (id: string) => {
-    update({ changePoints: doc.changePoints.filter((c) => c.id !== id) });
-  };
-
-  const updateFlowStep = (id: string, label: string) => {
-    update({ flowSteps: doc.flowSteps.map((f) => (f.id === id ? { ...f, label } : f)) });
-  };
-
-  const addFlowStep = () => {
-    update({ flowSteps: [...doc.flowSteps, { id: `f${Date.now()}`, label: "" }] });
-  };
-
-  const removeFlowStep = (id: string) => {
-    update({ flowSteps: doc.flowSteps.filter((f) => f.id !== id) });
+  const removeTechnicalItem = (id: string) => {
+    update({ technicalItems: doc.technicalItems.filter((t) => t.id !== id) });
   };
 
   const addImage = (section: string) => {
@@ -280,7 +263,7 @@ const RequirementDocEditor = ({ data, onChange, onClose, onConfirm }: Requiremen
     <div className="flex h-full bg-background">
       {/* Main document area */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Top bar (Feishu-style) */}
+        {/* Top bar */}
         <div className="flex items-center justify-between px-4 h-12 border-b border-border shrink-0">
           <div className="flex items-center gap-2">
             <button
@@ -292,12 +275,11 @@ const RequirementDocEditor = ({ data, onChange, onClose, onConfirm }: Requiremen
             <div className="w-px h-4 bg-border mx-1" />
             <FileText size={14} className="text-primary" />
             <span className="text-sm font-medium text-foreground truncate max-w-[200px]">
-              {doc.title || "未命名文档"}
+              {doc.title || "未命名 Plan"}
             </span>
           </div>
 
           <div className="flex items-center gap-1.5">
-            {/* Reviewers avatars */}
             <div className="flex -space-x-1.5 mr-2">
               {reviewers.slice(0, 3).map((r) => (
                 <div
@@ -340,7 +322,7 @@ const RequirementDocEditor = ({ data, onChange, onClose, onConfirm }: Requiremen
             {onConfirm && (
               <Button size="sm" className="h-7 text-xs gap-1.5 ml-1" onClick={onConfirm}>
                 <CheckCircle2 size={12} />
-                确认需求，开始开发
+                确认 Plan，开始开发
               </Button>
             )}
           </div>
@@ -354,7 +336,7 @@ const RequirementDocEditor = ({ data, onChange, onClose, onConfirm }: Requiremen
               <DocInput
                 value={doc.title}
                 onChange={(v) => update({ title: v })}
-                placeholder="输入文档标题..."
+                placeholder="输入 Plan 标题..."
                 className="text-[28px] font-bold leading-tight tracking-tight"
               />
             </DocBlock>
@@ -368,7 +350,9 @@ const RequirementDocEditor = ({ data, onChange, onClose, onConfirm }: Requiremen
               <span>·</span>
               <span>{reviewers.length} 位评审人</span>
               <span>·</span>
-              <span>{doc.scenarios.length} 个用户场景</span>
+              <span>{doc.adjustments.length} 项调整</span>
+              <span>·</span>
+              <span>{doc.technicalItems.length} 个涉及文件</span>
             </div>
 
             {/* ──── 需求背景 ──── */}
@@ -384,7 +368,6 @@ const RequirementDocEditor = ({ data, onChange, onClose, onConfirm }: Requiremen
                 className="text-sm leading-7 text-foreground/80"
               />
             </DocBlock>
-            {/* Image insert */}
             {(images.get("background") || []).map((imgId) => (
               <ImageBlock key={imgId} />
             ))}
@@ -393,137 +376,67 @@ const RequirementDocEditor = ({ data, onChange, onClose, onConfirm }: Requiremen
               onAddImage={() => addImage("background")}
             />
 
-            {/* ──── 用户场景 ──── */}
-            <HeadingBlock level={2} icon={<Users size={16} />}>
-              用户场景
+            {/* ──── 调整方案 ──── */}
+            <HeadingBlock level={2} icon={<Lightbulb size={16} />}>
+              调整方案
             </HeadingBlock>
             <div className="space-y-3">
-              {doc.scenarios.map((s, i) => (
-                <DocBlock key={s.id}>
+              {doc.adjustments.map((a, i) => (
+                <DocBlock key={a.id}>
                   <div className="group/card rounded-lg border border-border/60 bg-card/50 hover:border-border hover:shadow-sm transition-all">
                     <div className="flex items-center justify-between px-4 pt-3 pb-2">
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-mono text-muted-foreground/50">
-                          #{i + 1}
+                        <span className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary">
+                          {i + 1}
                         </span>
-                        <span className="text-xs text-muted-foreground">用户场景</span>
+                        <DocInput
+                          value={a.title}
+                          onChange={(v) => updateAdjustment(a.id, "title", v)}
+                          placeholder="调整项标题"
+                          className="text-sm font-medium"
+                        />
                       </div>
                       <button
-                        onClick={() => removeScenario(s.id)}
+                        onClick={() => removeAdjustment(a.id)}
                         className="p-1 rounded hover:bg-accent text-muted-foreground/30 hover:text-destructive opacity-0 group-hover/card:opacity-100 transition-all"
                       >
                         <Trash2 size={12} />
                       </button>
                     </div>
-                    <div className="px-4 pb-3 space-y-1">
-                      <div className="flex items-start">
-                        <span className="text-[11px] text-muted-foreground/50 w-16 pt-1.5 shrink-0 select-none">
-                          角色
-                        </span>
-                        <DocInput
-                          value={s.actor}
-                          onChange={(v) => updateScenario(s.id, "actor", v)}
-                          placeholder="如：普通用户、管理员"
-                          className="text-sm"
-                        />
-                      </div>
-                      <div className="flex items-start">
-                        <span className="text-[11px] text-muted-foreground/50 w-16 pt-1.5 shrink-0 select-none">
-                          操作
-                        </span>
-                        <DocInput
-                          value={s.action}
-                          onChange={(v) => updateScenario(s.id, "action", v)}
-                          placeholder="用户执行了什么操作..."
-                          className="text-sm"
-                        />
-                      </div>
-                      <div className="flex items-start">
-                        <span className="text-[11px] text-muted-foreground/50 w-16 pt-1.5 shrink-0 select-none">
-                          预期
-                        </span>
-                        <DocInput
-                          value={s.expectedResult}
-                          onChange={(v) => updateScenario(s.id, "expectedResult", v)}
-                          placeholder="预期得到什么结果..."
-                          className="text-sm"
-                        />
-                      </div>
+                    <div className="px-4 pb-3">
+                      <DocInput
+                        value={a.description}
+                        onChange={(v) => updateAdjustment(a.id, "description", v)}
+                        placeholder="描述具体的调整内容和方案..."
+                        multiline
+                        className="text-sm text-muted-foreground"
+                      />
                     </div>
                   </div>
                 </DocBlock>
               ))}
             </div>
             <AddBlockButton
-              label="添加场景"
-              onAddText={addScenario}
-              onAddImage={() => addImage("scenarios")}
+              label="添加调整项"
+              onAddText={addAdjustment}
+              onAddImage={() => addImage("adjustments")}
             />
 
-            {/* ──── 流程图 ──── */}
-            <HeadingBlock level={2} icon={<Workflow size={16} />}>
-              业务流程
-            </HeadingBlock>
-            <DocBlock>
-              <div className="rounded-lg border border-border/60 bg-card/30 p-5">
-                <div className="flex flex-wrap items-center gap-2">
-                  {doc.flowSteps.map((step, i) => (
-                    <div key={step.id} className="flex items-center gap-2">
-                      <div className="group/step relative">
-                        <DocInput
-                          value={step.label}
-                          onChange={(v) => updateFlowStep(step.id, v)}
-                          placeholder="步骤名称"
-                          className="text-sm text-center rounded-lg border border-border bg-background px-4 py-2.5 min-w-[80px] hover:border-primary/30 focus:border-primary/50 transition-colors"
-                        />
-                        <button
-                          onClick={() => removeFlowStep(step.id)}
-                          className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-muted border border-border text-muted-foreground flex items-center justify-center opacity-0 group-hover/step:opacity-100 hover:bg-destructive hover:text-destructive-foreground hover:border-destructive transition-all"
-                        >
-                          <X size={8} />
-                        </button>
-                      </div>
-                      {i < doc.flowSteps.length - 1 && (
-                        <ChevronRight
-                          size={14}
-                          className="text-muted-foreground/30 shrink-0"
-                        />
-                      )}
-                    </div>
-                  ))}
-                  <button
-                    onClick={addFlowStep}
-                    className="rounded-lg border border-dashed border-border/60 px-4 py-2.5 text-sm text-muted-foreground/40 hover:border-primary/30 hover:text-muted-foreground transition-colors"
-                  >
-                    + 步骤
-                  </button>
-                </div>
-              </div>
-            </DocBlock>
-            {(images.get("flow") || []).map((imgId) => (
-              <ImageBlock key={imgId} />
-            ))}
-            <AddBlockButton
-              onAddText={() => {}}
-              onAddImage={() => addImage("flow")}
-            />
-
-            {/* ──── 需求变更点 ──── */}
-            <HeadingBlock level={2} icon={<GitBranch size={16} />}>
-              变更清单
+            {/* ──── 技术方案 ──── */}
+            <HeadingBlock level={2} icon={<FolderCode size={16} />}>
+              技术方案（涉及文件）
             </HeadingBlock>
             <div className="space-y-1">
-              {doc.changePoints.map((cp) => {
-                const cfg = changeTypeConfig[cp.type];
+              {doc.technicalItems.map((t) => {
+                const cfg = changeTypeConfig[t.type];
                 return (
-                  <DocBlock key={cp.id}>
+                  <DocBlock key={t.id}>
                     <div className="group/cp flex items-start gap-3 py-2 px-1 rounded-md hover:bg-accent/30 transition-colors">
-                      {/* Type dot + selector */}
                       <div className="flex items-center gap-2 pt-1 shrink-0">
                         <span className={cn("w-2 h-2 rounded-full", cfg.dot)} />
                         <select
-                          value={cp.type}
-                          onChange={(e) => updateChangePoint(cp.id, "type", e.target.value)}
+                          value={t.type}
+                          onChange={(e) => updateTechnicalItem(t.id, "type", e.target.value)}
                           className="text-[11px] text-muted-foreground bg-transparent outline-none cursor-pointer border-none p-0"
                         >
                           <option value="add">新增</option>
@@ -533,20 +446,20 @@ const RequirementDocEditor = ({ data, onChange, onClose, onConfirm }: Requiremen
                       </div>
                       <div className="flex-1 min-w-0">
                         <DocInput
-                          value={cp.module}
-                          onChange={(v) => updateChangePoint(cp.id, "module", v)}
-                          placeholder="模块/组件名称"
-                          className="text-sm font-medium"
+                          value={t.file}
+                          onChange={(v) => updateTechnicalItem(t.id, "file", v)}
+                          placeholder="文件路径，如 src/components/Login.tsx"
+                          className="text-sm font-medium font-mono"
                         />
                         <DocInput
-                          value={cp.description}
-                          onChange={(v) => updateChangePoint(cp.id, "description", v)}
+                          value={t.description}
+                          onChange={(v) => updateTechnicalItem(t.id, "description", v)}
                           placeholder="变更内容描述..."
                           className="text-xs text-muted-foreground -mt-1"
                         />
                       </div>
                       <button
-                        onClick={() => removeChangePoint(cp.id)}
+                        onClick={() => removeTechnicalItem(t.id)}
                         className="p-1 rounded hover:bg-accent text-muted-foreground/20 hover:text-destructive opacity-0 group-hover/cp:opacity-100 transition-all shrink-0 mt-0.5"
                       >
                         <Trash2 size={12} />
@@ -557,9 +470,9 @@ const RequirementDocEditor = ({ data, onChange, onClose, onConfirm }: Requiremen
               })}
             </div>
             <AddBlockButton
-              label="添加变更"
-              onAddText={addChangePoint}
-              onAddImage={() => addImage("changes")}
+              label="添加文件"
+              onAddText={addTechnicalItem}
+              onAddImage={() => addImage("technical")}
             />
 
             {/* Bottom spacing */}
@@ -571,7 +484,6 @@ const RequirementDocEditor = ({ data, onChange, onClose, onConfirm }: Requiremen
       {/* ──── Comment sidebar ──── */}
       {showComments && (
         <div className="w-[280px] border-l border-border flex flex-col shrink-0 bg-background">
-          {/* Sidebar header */}
           <div className="flex items-center justify-between px-4 h-12 border-b border-border">
             <span className="text-sm font-medium text-foreground">评论与评审</span>
             <button
@@ -601,7 +513,6 @@ const RequirementDocEditor = ({ data, onChange, onClose, onConfirm }: Requiremen
                     邀请
                   </Button>
                 </div>
-                {/* Reviewer pills */}
                 <div className="mt-3 space-y-1.5">
                   {reviewers.map((r) => (
                     <div
@@ -627,12 +538,10 @@ const RequirementDocEditor = ({ data, onChange, onClose, onConfirm }: Requiremen
                 </div>
               </div>
 
-              {/* Divider */}
               <div className="border-t border-border" />
 
-              {/* Comments - grouped */}
+              {/* Comments */}
               <div>
-                {/* Unresolved group */}
                 <Collapsible defaultOpen>
                   <CollapsibleTrigger className="flex items-center gap-1.5 w-full text-[11px] font-medium text-muted-foreground mb-3 uppercase tracking-wider hover:text-foreground transition-colors group/trigger">
                     <ChevronDown size={12} className="transition-transform group-data-[state=closed]/trigger:-rotate-90" />
@@ -650,7 +559,6 @@ const RequirementDocEditor = ({ data, onChange, onClose, onConfirm }: Requiremen
                             <span className="text-[10px] text-muted-foreground/50 ml-auto">{c.time}</span>
                           </div>
                           <p className="text-xs text-foreground/70 leading-relaxed">{c.content}</p>
-                          {/* Suggestion preview */}
                           {c.suggestion && (
                             <div className="mt-2 px-2.5 py-2 rounded-md bg-primary/5 border border-primary/10">
                               <p className="text-[10px] text-muted-foreground mb-1">建议修改：</p>
@@ -661,13 +569,11 @@ const RequirementDocEditor = ({ data, onChange, onClose, onConfirm }: Requiremen
                             {c.suggestion && (
                               <button
                                 onClick={() => {
-                                  // Apply suggestion to doc
                                   if (c.section === "background" && c.suggestion) {
                                     update({ background: c.suggestion });
-                                  } else if (c.section === "flowSteps" && c.suggestion) {
-                                    update({ flowSteps: [...doc.flowSteps, { id: `f${Date.now()}`, label: c.suggestion }] });
+                                  } else if (c.section === "technicalItems" && c.suggestion) {
+                                    update({ technicalItems: [...doc.technicalItems, { id: `t${Date.now()}`, file: c.suggestion, description: "根据评审建议新增", type: "add" as const }] });
                                   }
-                                  // Auto-resolve
                                   setComments(comments.map((cm) => cm.id === c.id ? { ...cm, resolved: true } : cm));
                                 }}
                                 className="flex items-center gap-1 text-[10px] text-primary hover:text-primary/80 font-medium transition-colors"
@@ -693,7 +599,6 @@ const RequirementDocEditor = ({ data, onChange, onClose, onConfirm }: Requiremen
                   </CollapsibleContent>
                 </Collapsible>
 
-                {/* Resolved group */}
                 {comments.filter((c) => c.resolved).length > 0 && (
                   <Collapsible>
                     <CollapsibleTrigger className="flex items-center gap-1.5 w-full text-[11px] font-medium text-muted-foreground mb-3 uppercase tracking-wider hover:text-foreground transition-colors group/trigger">
