@@ -17,6 +17,9 @@ import ProjectSidebarLayout from "@/components/ProjectSidebarLayout";
 import RequirementPreview from "@/components/RequirementPreview";
 import SidebarConversationList from "@/components/SidebarConversationList";
 import { buildMockConversations, type Conversation } from "@/data/conversations";
+import { buildMockNotifications } from "@/data/notifications";
+import NotificationCenter from "@/components/NotificationCenter";
+import type { AppNotification } from "@/data/notifications";
 import {
   createInitialRequirements, formatTime, logTemplates, generateTestsForRequirement,
   type Requirement, type Agent, type AgentStatus, type RequirementStatus, type LogEntry, type TestItemStatus,
