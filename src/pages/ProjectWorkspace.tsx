@@ -23,7 +23,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import type { RequirementDocData } from "@/components/RequirementDoc";
 import type { ReviewInfo } from "@/data/reviewTypes";
-import { createDefaultReview, isReviewApproved } from "@/data/reviewTypes";
+import { createDefaultReview, isReviewApproved, buildMockAIReview, AI_REVIEW_MODELS } from "@/data/reviewTypes";
 import {
   type Conversation,
   type ChatMessage,
