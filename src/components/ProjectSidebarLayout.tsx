@@ -119,7 +119,7 @@ const ProjectSidebarLayout = ({
             {/* Nav items */}
             <div className="flex flex-col">
               {navItems.map((item, i) => (
-                <div key={i} className={`px-3 ${item.separator ? "py-2 border-b border-border" : "py-1"}`}>
+                <div key={i} className={`px-3 ${(item as any).separator ? "py-2 border-b border-border" : "py-1"}`}>
                   <button
                     onClick={item.onClick}
                     className={`w-full flex items-center gap-2 px-2 py-2 rounded-lg text-sm transition-colors ${
@@ -129,7 +129,12 @@ const ProjectSidebarLayout = ({
                     }`}
                   >
                     {item.icon}
-                    <span>{item.label}</span>
+                    <span className="flex-1 text-left">{item.label}</span>
+                    {(item as any).badge && (
+                      <span className="inline-flex items-center justify-center h-4 min-w-4 px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-semibold">
+                        {(item as any).badge}
+                      </span>
+                    )}
                   </button>
                 </div>
               ))}
