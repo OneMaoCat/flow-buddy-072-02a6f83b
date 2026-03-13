@@ -187,26 +187,52 @@ const CodeReviewTab = ({ review, onUpdateReview }: CodeReviewTabProps) => {
         </div>
       </div>
 
-      {/* Comment input */}
-      <div className="p-3 border-t border-border bg-muted/20">
-        <div className="flex gap-2">
-          <Textarea
-            value={commentText}
-            onChange={(e) => setCommentText(e.target.value)}
-            placeholder="添加审查评论…"
-            className="min-h-[60px] text-xs resize-none"
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) addComment();
-            }}
-          />
-          <Button
-            size="sm"
-            className="h-auto px-3"
-            onClick={addComment}
-            disabled={!commentText.trim()}
-          >
-            <Send size={14} />
-          </Button>
+      {/* Bottom action bar: approve + comment */}
+      <div className="border-t border-border bg-muted/20">
+        {/* Approve / Request Changes buttons */}
+        {!approved && (
+          <div className="flex items-center gap-2 px-3 pt-3">
+            <Button
+              size="sm"
+              className="flex-1 gap-1.5 h-9 text-xs"
+              onClick={approveAll}
+            >
+              <CheckCircle2 size={13} />
+              审查通过
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-9 text-xs gap-1"
+              onClick={requestChanges}
+            >
+              <XCircle size={12} />
+              需要修改
+            </Button>
+          </div>
+        )}
+
+        {/* Comment input */}
+        <div className="p-3">
+          <div className="flex gap-2">
+            <Textarea
+              value={commentText}
+              onChange={(e) => setCommentText(e.target.value)}
+              placeholder="添加审查评论…"
+              className="min-h-[60px] text-xs resize-none"
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) addComment();
+              }}
+            />
+            <Button
+              size="sm"
+              className="h-auto px-3"
+              onClick={addComment}
+              disabled={!commentText.trim()}
+            >
+              <Send size={14} />
+            </Button>
+          </div>
         </div>
       </div>
     </div>
