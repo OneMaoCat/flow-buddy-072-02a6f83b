@@ -365,9 +365,7 @@ const ChatArea = ({
         <div className="flex-1 min-w-0">
           <DevInProgressCard
             requirement={planFlow.requirement || "新需求"}
-            onViewDetail={() => {
-              setRightPanelOpen(true);
-            }}
+            onViewDetail={onViewInProgressDetail}
           />
         </div>
       </div>
