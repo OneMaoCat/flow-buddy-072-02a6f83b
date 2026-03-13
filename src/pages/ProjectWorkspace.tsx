@@ -436,8 +436,6 @@ const ChatArea = ({
   selectedCardId,
   onSelectCard,
   onViewInProgressDetail,
-  testsPassed,
-  previewConfirmed,
   rightPanelOpen,
   onToggleRightPanel,
 }: {
