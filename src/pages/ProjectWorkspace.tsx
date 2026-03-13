@@ -75,6 +75,8 @@ const ProjectWorkspace = () => {
   const devInProgress = activeConversation?.devInProgress || false;
   const selectedCard = devCards.find((c) => c.id === selectedCardId) || null;
 
+  const unreadNotificationCount = notifications.filter((n) => !n.read).length;
+
   const totalTaskCount = conversations.reduce(
     (sum, c) => sum + c.tasks.length + (c.devInProgress ? 1 : 0),
     0
