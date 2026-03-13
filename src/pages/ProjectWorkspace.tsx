@@ -174,8 +174,9 @@ const ProjectWorkspace = () => {
       );
       setConversations((prev) => addTaskToConversation(prev, convId, result));
       notifyDevComplete(result.requirementTitle);
+      startAIReview(result.id);
     }, delay);
-  }, [activeConversationId, planFlow.requirement, id]);
+  }, [activeConversationId, planFlow.requirement, id, startAIReview]);
 
   const startAIReview = useCallback((cardId: string) => {
     setReviewingIds((prev) => new Set(prev).add(cardId));
