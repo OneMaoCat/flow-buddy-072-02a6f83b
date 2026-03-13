@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
-import { PanelRightOpen, PanelRightClose, ListTodo, Loader2, Circle, Check, Users, Bell, CheckCheck } from "lucide-react";
+import { PanelRightOpen, PanelRightClose, ListTodo, Loader2, Circle, Check, Shield, Bell, CheckCheck } from "lucide-react";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 import PlanFlow from "@/components/PlanFlow";
@@ -23,7 +23,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import type { RequirementDocData } from "@/components/RequirementDoc";
 import type { ReviewInfo } from "@/data/reviewTypes";
-import { createDefaultReview, isReviewApproved } from "@/data/reviewTypes";
+import { createDefaultReview, isReviewApproved, buildMockAIReview, AI_REVIEW_MODELS } from "@/data/reviewTypes";
 import {
   type Conversation,
   type ChatMessage,
@@ -55,16 +55,8 @@ const ProjectWorkspace = () => {
   const [reviewingIds, setReviewingIds] = useState<Set<string>>(new Set(["task-2"]));
   const [reviewStatus, setReviewStatus] = useState<Map<string, ReviewInfo>>(() => {
     const m = new Map<string, ReviewInfo>();
-    // Mock: task-2 is in review with one approval
-    m.set("task-2", {
-      reviewers: [
-        { id: "u1", name: "吴承霖", status: "approved" },
-        { id: "u2", name: "邱翔", status: "pending" },
-      ],
-      comments: [
-        { id: "c1", author: "吴承霖", text: "支付逻辑看起来没问题，LGTM", timestamp: Date.now() - 300_000 },
-      ],
-    });
+    // Mock: task-2 has completed AI review
+    m.set("task-2", buildMockAIReview());
     return m;
   });
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
@@ -151,6 +143,8 @@ const ProjectWorkspace = () => {
         );
         setConversations((prev) => addTaskToConversation(prev, capturedConvId, result));
         notifyDevComplete(result.requirementTitle);
+        // Auto-trigger AI Code Review
+        startAIReview(result.id);
       }, delay);
     }
   };
@@ -163,6 +157,57 @@ const ProjectWorkspace = () => {
   const handleCloseDocEditor = () => {
     setEditingDoc(null);
   };
+
+  const startAIReview = useCallback((cardId: string) => {
+    setReviewingIds((prev) => new Set(prev).add(cardId));
+    const initialReview = createDefaultReview();
+    initialReview.aiReviewStatus = "running";
+    initialReview.aiReviewers = AI_REVIEW_MODELS.map((m) => ({ ...m, status: "pending" as const }));
+    setReviewStatus((prev) => {
+      const next = new Map(prev);
+      next.set(cardId, initialReview);
+      return next;
+    });
+    toast.success("AI Code Review 已启动，多个模型正在审查代码…");
+
+    AI_REVIEW_MODELS.forEach((model, i) => {
+      setTimeout(() => {
+        setReviewStatus((prev) => {
+          const current = prev.get(cardId);
+          if (!current) return prev;
+          const next = new Map(prev);
+          const updatedReviewers = (current.aiReviewers || []).map((r) =>
+            r.id === model.id ? { ...r, status: "reviewing" as const } : r
+          );
+          next.set(cardId, { ...current, aiReviewers: updatedReviewers });
+          return next;
+        });
+      }, 1000 + i * 1500);
+
+      setTimeout(() => {
+        setReviewStatus((prev) => {
+          const current = prev.get(cardId);
+          if (!current) return prev;
+          const finalReview = buildMockAIReview();
+          const next = new Map(prev);
+          const updatedReviewers = (finalReview.aiReviewers || []).map((r, ri) => ({
+            ...r,
+            status: (ri <= i ? "done" : ri === i + 1 ? "reviewing" : "pending") as "done" | "reviewing" | "pending",
+          }));
+          const allDone = i === AI_REVIEW_MODELS.length - 1;
+          next.set(cardId, {
+            ...finalReview,
+            aiReviewers: allDone ? finalReview.aiReviewers : updatedReviewers,
+            aiReviewStatus: allDone ? "done" : "running",
+          });
+          if (allDone) {
+            toast.success(`AI Code Review 完成，综合评分 ${finalReview.overallScore} 分`);
+          }
+          return next;
+        });
+      }, 2500 + i * 1500);
+    });
+  }, []);
 
   const handleDevSubmitted = useCallback(() => {
     if (!activeConversationId) return;
@@ -180,17 +225,12 @@ const ProjectWorkspace = () => {
       );
       setConversations((prev) => addTaskToConversation(prev, convId, result));
       notifyDevComplete(result.requirementTitle);
+      startAIReview(result.id);
     }, delay);
-  }, [activeConversationId, planFlow.requirement, id]);
+  }, [activeConversationId, planFlow.requirement, id, startAIReview]);
 
   const handleRequestReview = (cardId: string) => {
-    setReviewingIds((prev) => new Set(prev).add(cardId));
-    setReviewStatus((prev) => {
-      const next = new Map(prev);
-      next.set(cardId, createDefaultReview());
-      return next;
-    });
-    toast.success("已发起 Code Review，等待团队审查");
+    startAIReview(cardId);
   };
 
   const handleUpdateReview = (cardId: string, review: ReviewInfo) => {
@@ -200,7 +240,7 @@ const ProjectWorkspace = () => {
       return next;
     });
     if (isReviewApproved(review)) {
-      toast.success("所有审查人已通过，可以发布到测试环境 🎉");
+      toast.success("AI 审查通过，可以发布到测试环境 🎉");
     }
   };
 
@@ -232,6 +272,7 @@ const ProjectWorkspace = () => {
       const result = buildMockDevResult(cardId, planFlow.requirement || "需求修复", id || "demo");
       setConversations((prev) => addTaskToConversation(prev, convId, result));
       notifyDevComplete(result.requirementTitle);
+      startAIReview(result.id);
     }, 3000 + Math.random() * 3000);
   };
 
@@ -578,17 +619,17 @@ const ChatArea = ({
                         {deployed
                           ? <Check size={12} className="text-emerald-500 shrink-0" />
                           : reviewing
-                            ? <Users size={12} className="text-amber-500 shrink-0" />
+                            ? <Shield size={12} className="text-primary shrink-0" />
                             : <Circle size={10} className="text-orange-500 fill-orange-500 shrink-0" />
                         }
                         <span className="truncate flex-1">{card.requirementTitle}</span>
                         <span className={cn(
                           "text-[10px] px-1.5 py-0.5 rounded-full shrink-0 font-medium",
                           deployed ? "text-emerald-600 bg-emerald-500/10"
-                            : reviewing ? "text-amber-600 bg-amber-500/10"
+                            : reviewing ? "text-primary bg-primary/10"
                             : "text-orange-600 bg-orange-500/10"
                         )}>
-                          {deployed ? "已发布" : reviewing ? "审查中" : "待审查"}
+                          {deployed ? "已发布" : reviewing ? "AI 审查中" : "待审查"}
                         </span>
                       </button>
                     );

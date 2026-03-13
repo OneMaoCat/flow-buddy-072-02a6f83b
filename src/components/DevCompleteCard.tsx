@@ -11,7 +11,7 @@ import {
   Sparkles,
   GitBranch,
   Pencil,
-  Users,
+  Shield,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -129,6 +129,7 @@ const buildProcessSteps = (result: DevCompleteResult): ProcessStep[] => {
     { icon: <Code2 size={12} />, label: "编写代码", detail: result.files.map((f) => f.path.split("/").pop()).join("、") },
     { icon: <Pencil size={12} />, label: "修改代码", detail: `${result.files.length} 个文件 · +${totalAdds} -${totalDels}` },
     { icon: <TestTube2 size={12} />, label: "运行测试", detail: `${passedTests}/${result.tests.length} 用例通过` },
+    { icon: <Shield size={12} />, label: "Code Review", detail: "AI 多模型审查" },
   ];
 };
 
@@ -176,6 +177,7 @@ export const DevInProgressCard = ({
     { icon: <Code2 size={12} />, label: "编写代码", detail: "正在生成代码…" },
     { icon: <Pencil size={12} />, label: "修改代码", detail: "处理文件变更中…" },
     { icon: <TestTube2 size={12} />, label: "运行测试", detail: "待执行" },
+    { icon: <Shield size={12} />, label: "Code Review", detail: "AI 多模型审查" },
   ];
 
   useEffect(() => {
@@ -282,12 +284,12 @@ const DevCompleteCard = ({ result, deployed, reviewing, reviewApproved, selected
           </p>
         </div>
         {deployed ? (
-          <Badge className="text-[10px] bg-green-500/15 text-green-500 border-0">已发布</Badge>
+          <Badge className="text-[10px] bg-emerald-500/15 text-emerald-500 border-0">已发布</Badge>
         ) : reviewApproved ? (
-          <Badge className="text-[10px] bg-green-500/15 text-green-500 border-0">审查通过</Badge>
+          <Badge className="text-[10px] bg-emerald-500/15 text-emerald-500 border-0">审查通过</Badge>
         ) : reviewing ? (
-          <Badge className="text-[10px] bg-amber-500/15 text-amber-600 border-0 gap-1">
-            <Users size={10} /> 审查中
+          <Badge className="text-[10px] bg-primary/15 text-primary border-0 gap-1">
+            <Shield size={10} /> AI 审查中
           </Badge>
         ) : null}
         <div className="flex items-center gap-1 text-xs text-primary font-medium shrink-0">
