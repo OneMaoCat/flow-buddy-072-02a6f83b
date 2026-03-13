@@ -1,49 +1,61 @@
-# 需求平台 + 异步开发 + 消息卡片验收
 
-## 已完成
 
-### 1. DevCompleteCard — 聊天区验收卡片 ✅
-- 代码变更 Tab（文件列表 + diff 视图）
-- 产品预览 Tab（复用 RequirementPreview）
-- 自测报告 Tab（测试用例列表 + 通过率）
-- 操作栏（发起 Code Review / 打回修改）
+# 消息中心升级 — 从"通知列表"到"可操作的研发消息中枢"
 
-### 2. PlanFlow 改造 ✅
-- 确认需求后不再跳转 /dev 页面
-- 触发 onDevSubmitted 回调启动异步模拟
+用户反馈非常精准：当前消息中心能"告诉用户发生了什么"，但还不够"告诉用户该做什么"。以下按优先级分 6 步改造。
 
-### 3. ProjectWorkspace 状态管理 ✅
-- devCards 数组管理已完成的开发结果
-- 异步模拟 3-7s 后推送 DevCompleteCard 到聊天区
-- 发布/打回操作 + toast 反馈
+---
 
-### 4. DevNotification 浏览器通知 ✅
-- Notification API 权限请求
-- 后台标签页系统通知 + sonner toast
+## 改造一：新增「需要我处理」筛选 + 动作型消息置顶
 
-### 5. 侧边栏任务追踪列表 ✅
-- SidebarTaskList 组件：按状态分组（开发中/待审查/审查中/已发布）
-- ProjectSidebarLayout 增加 taskList/taskCount props，Collapsible 区域
-- ProjectWorkspace 连接数据，点击任务项定位卡片+打开详情面板
-- 聊天区卡片增加 data-card-id，支持 scrollIntoView 定位
+- 筛选栏新增「需要处理」Tab，筛出 `review_requested` + `review_rejected` 类型
+- 数据层给 `AppNotification` 增加 `actionRequired: boolean` 字段
+- 「需要处理」的消息在"全部"视图中也置顶显示，与普通消息拉开层级
 
-### 6. 两层结合 — 开发过程展示增强 ✅
-- DevInProgressCard 6 步里程碑（拉取分支→分析需求→制定方案→编写代码→修改代码→运行测试）
-- 每步带具体 detail 信息（分支名、文件名等）
-- 进行中/完成后均可点击「查看详情」打开右侧面板
+## 改造二：每条消息增加动作按钮
 
-### 7. Code Review 审查流程 ✅
-- 开发完成后主按钮改为「发起 Code Review」
-- 审查 Tab：审查人列表（通过/待审状态）、邀请审查人、评论区
-- 状态流转：开发完成 → 审查中 → 审查通过 → 发布到测试环境
-- 操作栏按状态切换（未审查/审查中/审查通过/已发布）
-- SidebarTaskList 增加「审查中」分组
+根据消息类型，右侧显示明确的操作入口：
+- `review_requested` → "去审查"
+- `review_rejected` → "查看意见"
+- `deployed` → "查看预览"
+- `dev_complete` → "查看详情"
+- `review_approved` → "查看详情"
 
-### 8. 开发执行中心改版 — AI 研发执行中枢 ✅
-- **改版一**：需求包 + 子任务两层结构（RequirementGroup 按模块分组，表格视图可折叠展开）
-- **改版二**：「需你处理」专区（ActionRequiredBar 顶部横条，聚合阻塞 + 待验收，红点提示）
-- **改版三**：决策卡片增强（二级状态标签、风险等级、测试摘要、类型图标、变更摘要、快捷操作按钮）
-- **改版四**：AI 执行透明度（subStatus 实时显示当前阶段如「编码中 · LoginForm.tsx」）
-- **改版五**：详情面板「需求上下文」Tab（用户原话、AI 理解摘要、AI 拆解依据、所属需求包）
-- 新增 blocked 状态 + blockReason 阻塞管理
-- 看板新增阻塞列，卡片内嵌快捷通过/解除阻塞按钮
+按钮点击复用现有 `onClickNotification`，视觉上让用户知道"点了去哪"。
+
+## 改造三：消息优先级视觉分层
+
+三类消息用不同视觉处理：
+- **动作型**（需要处理）：左侧加橙色竖条，图标背景用橙色/红色调
+- **结果型**（开发完成、审查通过）：保持当前灰色调
+- **发布型**（已发布）：图标背景用绿色调
+
+未读 + 动作型双重强调，让用户一眼抓住重点。
+
+## 改造四：补充上下文摘要
+
+`AppNotification` 新增 `contextSummary?: string` 字段，mock 数据中为每条消息补一句话摘要：
+- "AI 已完成后端接入与回调逻辑，等待你确认实现是否符合预期"
+- "审查未通过，建议补充异常兜底与缓存策略说明"
+
+显示在描述下方，用更小字号 + 浅色，降低阅读负担但提供决策上下文。
+
+## 改造五：时间分组
+
+消息按「今天」「昨天」「更早」分组，插入分隔标题。用 `formatTimeAgo` 中的时间差计算归属。
+
+## 改造六：需求包聚合（折叠）
+
+同一个 `taskId` 或 `conversationId` 的多条消息折叠为一组，默认只显示最新一条，展开可看历史。mock 数据中为 `conv-1` 和 `conv-2` 各添加更多消息以演示聚合效果。
+
+---
+
+## 涉及文件
+
+| 文件 | 改动 |
+|------|------|
+| `src/data/notifications.ts` | 增加 `actionRequired`、`contextSummary`、`actionLabel` 字段；补充更多 mock 数据；新增时间分组工具函数 |
+| `src/components/NotificationCenter.tsx` | 全面重构：筛选栏加「需要处理」、消息卡片加动作按钮 + 优先级视觉 + 上下文摘要、时间分组渲染、需求包折叠 |
+
+不影响 `ProjectWorkspace`、`DevExecution` 等页面的现有逻辑，所有新字段均为可选。
+
