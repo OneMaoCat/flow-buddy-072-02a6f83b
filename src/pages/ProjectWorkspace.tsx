@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
-import { PanelRightOpen, PanelRightClose, ListTodo, Loader2, Circle, Check } from "lucide-react";
+import { PanelRightOpen, PanelRightClose, ListTodo, Loader2, Circle, Check, Users } from "lucide-react";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 import PlanFlow from "@/components/PlanFlow";
@@ -20,6 +20,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import type { RequirementDocData } from "@/components/RequirementDoc";
+import type { ReviewInfo } from "@/data/reviewTypes";
+import { createDefaultReview, isReviewApproved } from "@/data/reviewTypes";
 import {
   type Conversation,
   type ChatMessage,
@@ -46,6 +48,21 @@ const ProjectWorkspace = () => {
   const [conversations, setConversations] = useState<Conversation[]>(mockData.conversations);
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [deployedIds, setDeployedIds] = useState<Set<string>>(mockData.deployedIds);
+  const [reviewingIds, setReviewingIds] = useState<Set<string>>(new Set(["task-2"]));
+  const [reviewStatus, setReviewStatus] = useState<Map<string, ReviewInfo>>(() => {
+    const m = new Map<string, ReviewInfo>();
+    // Mock: task-2 is in review with one approval
+    m.set("task-2", {
+      reviewers: [
+        { id: "u1", name: "吴承霖", status: "approved" },
+        { id: "u2", name: "邱翔", status: "pending" },
+      ],
+      comments: [
+        { id: "c1", author: "吴承霖", text: "支付逻辑看起来没问题，LGTM", timestamp: Date.now() - 300_000 },
+      ],
+    });
+    return m;
+  });
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
   const [planFlow, setPlanFlow] = useState<{ active: boolean; requirement: string }>({ active: false, requirement: "" });
 
@@ -96,7 +113,6 @@ const ProjectWorkspace = () => {
     if (!data.text.trim()) return;
     setShowDeepFlow(false);
 
-    // Reuse active conversation or create a new one
     let convId = activeConversationId;
     if (!convId) {
       const newConv = createConversation(data.text);
@@ -104,7 +120,6 @@ const ProjectWorkspace = () => {
       setActiveConversationId(newConv.id);
       convId = newConv.id;
     } else {
-      // Add user message to existing conversation
       setConversations((prev) => addMessageToConversation(prev, convId!, data.text));
     }
 
@@ -157,6 +172,27 @@ const ProjectWorkspace = () => {
     }, delay);
   }, [activeConversationId, planFlow.requirement, id]);
 
+  const handleRequestReview = (cardId: string) => {
+    setReviewingIds((prev) => new Set(prev).add(cardId));
+    setReviewStatus((prev) => {
+      const next = new Map(prev);
+      next.set(cardId, createDefaultReview());
+      return next;
+    });
+    toast.success("已发起 Code Review，等待团队审查");
+  };
+
+  const handleUpdateReview = (cardId: string, review: ReviewInfo) => {
+    setReviewStatus((prev) => {
+      const next = new Map(prev);
+      next.set(cardId, review);
+      return next;
+    });
+    if (isReviewApproved(review)) {
+      toast.success("所有审查人已通过，可以发布到测试环境 🎉");
+    }
+  };
+
   const handleDeploy = (cardId: string) => {
     setDeployedIds((prev) => new Set(prev).add(cardId));
     toast.success("已发布到测试环境 🚀");
@@ -164,6 +200,17 @@ const ProjectWorkspace = () => {
 
   const handleReject = (cardId: string) => {
     if (!activeConversationId) return;
+    // Clean up review state
+    setReviewingIds((prev) => {
+      const next = new Set(prev);
+      next.delete(cardId);
+      return next;
+    });
+    setReviewStatus((prev) => {
+      const next = new Map(prev);
+      next.delete(cardId);
+      return next;
+    });
     toast("已打回修改，AI 将重新处理", { icon: "🔄" });
     const convId = activeConversationId;
     setConversations((prev) => {
@@ -189,7 +236,6 @@ const ProjectWorkspace = () => {
     setEditingDoc(null);
     setRightPanelOpen(true);
     scrollToCard(cardId);
-    // Find which conversation owns this card
     for (const conv of conversations) {
       if (conv.tasks.some((t) => t.id === cardId)) {
         setActiveConversationId(conv.id);
@@ -199,9 +245,7 @@ const ProjectWorkspace = () => {
   }, [scrollToCard, conversations]);
 
   const mainContent = showDeepFlow ? (
-    <DeepFlowPanel
-      onSubmit={handleSubmit}
-    />
+    <DeepFlowPanel onSubmit={handleSubmit} />
   ) : (
     <ChatArea
       planFlow={planFlow}
@@ -212,6 +256,8 @@ const ProjectWorkspace = () => {
       devCards={devCards}
       chatMessages={chatMessages}
       deployedIds={deployedIds}
+      reviewingIds={reviewingIds}
+      reviewStatus={reviewStatus}
       devInProgress={devInProgress}
       onDeploy={handleDeploy}
       onReject={handleReject}
@@ -270,8 +316,12 @@ const ProjectWorkspace = () => {
                   result={selectedCard}
                   onDeploy={handleDeploy}
                   onReject={handleReject}
+                  onRequestReview={handleRequestReview}
                   onClose={() => setSelectedCardId(null)}
                   deployed={deployedIds.has(selectedCard.id)}
+                  reviewing={reviewingIds.has(selectedCard.id)}
+                  reviewInfo={reviewStatus.get(selectedCard.id)}
+                  onUpdateReview={handleUpdateReview}
                 />
               ) : (
                 <RightPanel
@@ -299,6 +349,8 @@ const ChatArea = ({
   devCards,
   chatMessages,
   deployedIds,
+  reviewingIds,
+  reviewStatus,
   devInProgress,
   onDeploy,
   onReject,
@@ -314,6 +366,8 @@ const ChatArea = ({
   devCards: DevCompleteResult[];
   chatMessages: ChatMessage[];
   deployedIds: Set<string>;
+  reviewingIds: Set<string>;
+  reviewStatus: Map<string, ReviewInfo>;
   devInProgress: boolean;
   onDeploy: (id: string) => void;
   onReject: (id: string) => void;
@@ -331,30 +385,38 @@ const ChatArea = ({
       </div>
     </div>
   );
-  const renderCard = (card: DevCompleteResult) => (
-    <div
-      key={card.id}
-      data-card-id={card.id}
-      className="flex justify-start animate-in fade-in slide-in-from-bottom-2 duration-300"
-    >
-      <div className="flex items-start gap-3 max-w-[90%]">
-        <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center shrink-0">
-          <span className="text-foreground text-xs font-bold">DF</span>
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-sm text-muted-foreground mb-2">开发已完成，点击查看详情：</p>
-          <DevCompleteCard
-            result={card}
-            onDeploy={onDeploy}
-            onReject={onReject}
-            deployed={deployedIds.has(card.id)}
-            selected={selectedCardId === card.id}
-            onClick={() => onSelectCard(card.id)}
-          />
+
+  const renderCard = (card: DevCompleteResult) => {
+    const isReviewing = reviewingIds.has(card.id);
+    const review = reviewStatus.get(card.id);
+    const reviewApproved = review ? isReviewApproved(review) : false;
+    return (
+      <div
+        key={card.id}
+        data-card-id={card.id}
+        className="flex justify-start animate-in fade-in slide-in-from-bottom-2 duration-300"
+      >
+        <div className="flex items-start gap-3 max-w-[90%]">
+          <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center shrink-0">
+            <span className="text-foreground text-xs font-bold">DF</span>
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm text-muted-foreground mb-2">开发已完成，点击查看详情：</p>
+            <DevCompleteCard
+              result={card}
+              onDeploy={onDeploy}
+              onReject={onReject}
+              deployed={deployedIds.has(card.id)}
+              reviewing={isReviewing}
+              reviewApproved={reviewApproved}
+              selected={selectedCardId === card.id}
+              onClick={() => onSelectCard(card.id)}
+            />
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const renderInProgress = () => (
     <div className="flex justify-start animate-in fade-in slide-in-from-bottom-2 duration-300">
@@ -375,7 +437,6 @@ const ChatArea = ({
   const taskCount = devCards.length + (devInProgress ? 1 : 0);
   const [popoverOpen, setPopoverOpen] = useState(false);
 
-  // Interleave messages and cards: show messages[0], card[0], messages[1], card[1], ...
   const renderTimeline = () => {
     const items: React.ReactNode[] = [];
     const msgCount = chatMessages.length;
@@ -442,6 +503,7 @@ const ChatArea = ({
                   )}
                   {devCards.map((card) => {
                     const deployed = deployedIds.has(card.id);
+                    const reviewing = reviewingIds.has(card.id) && !deployed;
                     return (
                       <button
                         key={card.id}
@@ -453,14 +515,18 @@ const ChatArea = ({
                       >
                         {deployed
                           ? <Check size={12} className="text-emerald-500 shrink-0" />
-                          : <Circle size={10} className="text-orange-500 fill-orange-500 shrink-0" />
+                          : reviewing
+                            ? <Users size={12} className="text-amber-500 shrink-0" />
+                            : <Circle size={10} className="text-orange-500 fill-orange-500 shrink-0" />
                         }
                         <span className="truncate flex-1">{card.requirementTitle}</span>
                         <span className={cn(
                           "text-[10px] px-1.5 py-0.5 rounded-full shrink-0 font-medium",
-                          deployed ? "text-emerald-600 bg-emerald-500/10" : "text-orange-600 bg-orange-500/10"
+                          deployed ? "text-emerald-600 bg-emerald-500/10"
+                            : reviewing ? "text-amber-600 bg-amber-500/10"
+                            : "text-orange-600 bg-orange-500/10"
                         )}>
-                          {deployed ? "已发布" : "待验收"}
+                          {deployed ? "已发布" : reviewing ? "审查中" : "待审查"}
                         </span>
                       </button>
                     );
