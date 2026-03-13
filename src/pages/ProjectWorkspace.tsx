@@ -233,9 +233,8 @@ const ProjectWorkspace = () => {
   };
 
   const handleNotificationClick = useCallback((notif: AppNotification) => {
-    // Mark as read
     setNotifications((prev) => prev.map((n) => n.id === notif.id ? { ...n, read: true } : n));
-    // Navigate to conversation/task
+    setShowNotificationCenter(false);
     if (notif.conversationId) {
       setActiveConversationId(notif.conversationId);
       setShowDeepFlow(false);
