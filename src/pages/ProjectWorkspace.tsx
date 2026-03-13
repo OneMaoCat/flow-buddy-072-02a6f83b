@@ -234,11 +234,7 @@ const ProjectWorkspace = () => {
 
   const handleNotificationClick = useCallback((notif: AppNotification) => {
     setNotifications((prev) => prev.map((n) => n.id === notif.id ? { ...n, read: true } : n));
-    setShowNotificationCenter(false);
-    if (notif.conversationId) {
-      setActiveConversationId(notif.conversationId);
-      setShowDeepFlow(false);
-    }
+    // Show task detail in right panel directly — don't navigate to private conversations
     if (notif.taskId) {
       setSelectedCardId(notif.taskId);
       setRightPanelOpen(true);
