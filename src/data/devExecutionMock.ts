@@ -1,6 +1,14 @@
 // ---------- Types ----------
 export type AgentStatus = "waiting" | "running" | "done" | "error";
-export type RequirementStatus = "waiting" | "running" | "done" | "testing" | "review" | "accepted" | "rejected";
+export type RequirementStatus = "waiting" | "running" | "done" | "testing" | "review" | "accepted" | "rejected" | "blocked";
+
+export type SubStatus =
+  | "需求解析" | "方案生成" | "编码中" | "修复中"
+  | "单元测试" | "集成测试" | "回归测试"
+  | "等待确认" | "等待预览" | "等待发布";
+
+export type RiskLevel = "low" | "medium" | "high";
+export type TaskType = "frontend" | "backend" | "database" | "api" | "deploy" | "docs";
 
 export interface Agent {
   id: string;
@@ -29,16 +37,15 @@ export interface TestResult {
 
 export interface Submitter {
   name: string;
-  avatar: string; // initials or emoji
-  color: string;  // tailwind bg class token
+  avatar: string;
+  color: string;
 }
 
-export const mockSubmitters: Submitter[] = [
-  { name: "吴承霖", avatar: "吴", color: "bg-blue-500" },
-  { name: "邱翔", avatar: "邱", color: "bg-emerald-500" },
-  { name: "李泽龙", avatar: "李", color: "bg-violet-500" },
-  { name: "张东杰", avatar: "张", color: "bg-orange-500" },
-];
+export interface SourceContext {
+  userPrompt: string;
+  aiSummary: string;
+  aiReasoning: string;
+}
 
 export interface Requirement {
   id: string;
@@ -50,6 +57,26 @@ export interface Requirement {
   testResult?: TestResult;
   submitter: Submitter;
   submittedAt: Date;
+  // New fields
+  subStatus?: SubStatus;
+  riskLevel: RiskLevel;
+  taskType: TaskType;
+  blockReason?: string;
+  sourceContext: SourceContext;
+  groupId: string;
+  changedFiles?: number;
+  linesAdded?: number;
+  linesRemoved?: number;
+}
+
+export interface RequirementGroup {
+  id: string;
+  name: string;
+  sourceDescription: string;
+  aiSummary: string;
+  requirements: string[]; // requirement ids
+  submitter: Submitter;
+  submittedAt: Date;
 }
 
 export interface LogEntry {
@@ -58,6 +85,13 @@ export interface LogEntry {
   agentName: string;
   message: string;
 }
+
+export const mockSubmitters: Submitter[] = [
+  { name: "吴承霖", avatar: "吴", color: "bg-blue-500" },
+  { name: "邱翔", avatar: "邱", color: "bg-emerald-500" },
+  { name: "李泽龙", avatar: "李", color: "bg-violet-500" },
+  { name: "张东杰", avatar: "张", color: "bg-orange-500" },
+];
 
 // ---------- Test case templates per agent icon ----------
 const testTemplatesByIcon: Record<string, string[]> = {
@@ -73,7 +107,6 @@ export const generateTestsForRequirement = (req: { id: string; title: string; ag
   const tests: TestItem[] = [];
   const usedNames = new Set<string>();
   const shortTitle = req.title.slice(0, 6);
-  
   for (const agent of req.agents) {
     const templates = testTemplatesByIcon[agent.icon] || ["{title} 功能验证"];
     for (const tpl of templates) {
@@ -84,9 +117,63 @@ export const generateTestsForRequirement = (req: { id: string; title: string; ag
       }
     }
   }
-  // Cap at 3-6 tests
   return tests.slice(0, Math.min(6, Math.max(3, tests.length)));
 };
+
+// ---------- Derive taskType from agents ----------
+const deriveTaskType = (agents: { icon: string }[]): TaskType => {
+  const icons = agents.map(a => a.icon);
+  if (icons.includes("db")) return "database";
+  if (icons.includes("api")) return "api";
+  if (icons.includes("ui") && !icons.includes("code")) return "frontend";
+  if (icons.includes("code") && !icons.includes("ui")) return "backend";
+  return "frontend";
+};
+
+// ---------- Derive riskLevel ----------
+const deriveRiskLevel = (agents: { icon: string }[]): RiskLevel => {
+  if (agents.length >= 4) return "high";
+  if (agents.length >= 3) return "medium";
+  return "low";
+};
+
+// ---------- Source context templates ----------
+const sourceContextTemplates: Record<string, { userPrompt: string; aiSummary: string; aiReasoning: string }> = {
+  "用户模块": {
+    userPrompt: "帮我把用户相关的功能都做一遍，包括登录注册、个人中心、权限这些",
+    aiSummary: "用户系统全链路开发：涵盖认证、个人中心、权限管理、第三方登录等 8 个子任务",
+    aiReasoning: "用户模块是系统基础设施，拆分为独立的认证、UI、权限子任务以降低耦合度，优先完成登录验证作为其他功能的前置依赖",
+  },
+  "支付模块": {
+    userPrompt: "需要接入支付功能，支持下单、退款、发票，还要有优惠券",
+    aiSummary: "支付系统完整集成：包含支付接入、订单管理、退款流程、发票生成、优惠券系统等 6 个子任务",
+    aiReasoning: "支付模块涉及资金安全，拆分为独立子任务并增加安全审查 Agent。优惠券系统需要独立数据模型，因此单独拆出",
+  },
+  "通知模块": {
+    userPrompt: "做一个完整的消息通知系统，站内通知、邮件、推送都要支持",
+    aiSummary: "多渠道通知系统：涵盖站内通知、邮件服务、推送集成、偏好设置、已读同步等 5 个子任务",
+    aiReasoning: "通知系统按渠道拆分（站内/邮件/推送），每个渠道独立开发和测试。偏好设置作为统一入口单独处理",
+  },
+  "报表模块": {
+    userPrompt: "需要数据看板和报表功能，支持实时监控和数据导出",
+    aiSummary: "数据分析与报表系统：包含仪表盘、CSV导出、实时监控、定时报表、行为分析等 6 个子任务",
+    aiReasoning: "报表模块按数据流向拆分：采集（埋点）→ 聚合（数据处理）→ 展示（图表）→ 导出（CSV/报表），确保数据管道完整",
+  },
+  "系统模块": {
+    userPrompt: "把系统的基础架构完善一下，包括设置、日志、文件管理、i18n、主题、性能监控、安全这些",
+    aiSummary: "系统基础设施完善：涵盖设置页面、审计日志、文件管理、国际化、主题、性能监控等 12 个子任务",
+    aiReasoning: "系统模块任务较多但相互独立，可高度并行执行。CI/CD 和安全扫描作为质量保障放在最后",
+  },
+};
+
+// ---------- Block reasons for demo ----------
+const blockReasons = [
+  "需要确认 UI 交互方案",
+  "等待 API 文档补充",
+  "依赖第三方服务授权",
+  "测试环境部署失败",
+  "需求描述存在歧义",
+];
 
 // ---------- Templates for generating requirements ----------
 const categories: { prefix: string; items: { title: string; previewPath?: string; agents: Omit<Agent, "id" | "progress" | "status">[] }[] }[] = [
@@ -154,14 +241,25 @@ const categories: { prefix: string; items: { title: string; previewPath?: string
   },
 ];
 
-export const createInitialRequirements = (): Requirement[] => {
+export const createInitialRequirements = (): { requirements: Requirement[]; groups: RequirementGroup[] } => {
   const reqs: Requirement[] = [];
+  const groups: RequirementGroup[] = [];
   let reqIdx = 0;
 
   for (const cat of categories) {
+    const groupId = `group-${cat.prefix}`;
+    const groupReqIds: string[] = [];
+    const groupSubmitter = mockSubmitters[groups.length % mockSubmitters.length];
+    const ctx = sourceContextTemplates[cat.prefix] || {
+      userPrompt: `请帮我完成${cat.prefix}相关的开发`,
+      aiSummary: `${cat.prefix}全链路开发`,
+      aiReasoning: `按功能模块拆分为独立子任务`,
+    };
+
     for (const item of cat.items) {
       reqIdx++;
       const reqId = `req-${reqIdx}`;
+      groupReqIds.push(reqId);
       const agents: Agent[] = item.agents.map((a, i) => ({
         ...a,
         id: `${reqId}-a${i}`,
@@ -179,11 +277,32 @@ export const createInitialRequirements = (): Requirement[] => {
         previewPath: item.previewPath,
         submitter,
         submittedAt,
+        riskLevel: deriveRiskLevel(item.agents),
+        taskType: deriveTaskType(item.agents),
+        sourceContext: {
+          userPrompt: ctx.userPrompt,
+          aiSummary: ctx.aiSummary,
+          aiReasoning: ctx.aiReasoning,
+        },
+        groupId,
+        changedFiles: Math.floor(Math.random() * 8) + 2,
+        linesAdded: Math.floor(Math.random() * 300) + 50,
+        linesRemoved: Math.floor(Math.random() * 80) + 5,
       });
     }
+
+    groups.push({
+      id: groupId,
+      name: cat.prefix,
+      sourceDescription: ctx.userPrompt,
+      aiSummary: ctx.aiSummary,
+      requirements: groupReqIds,
+      submitter: groupSubmitter,
+      submittedAt: new Date(Date.now() - Math.floor(Math.random() * 3600_000 * 8)),
+    });
   }
 
-  // First 3 requirements: already reviewed (all agents done, tests passed)
+  // First 3 requirements: already reviewed
   const PRE_DONE = 3;
   for (let i = 0; i < PRE_DONE && i < reqs.length; i++) {
     reqs[i].status = "review";
@@ -199,14 +318,41 @@ export const createInitialRequirements = (): Requirement[] => {
     reqs[i].testResult = { tests, retryCount: 0, isRetrying: false };
   }
 
+  // Add some blocked tasks for demo
+  const blockCandidates = reqs.filter(r => r.status === "waiting").slice(0, 2);
+  blockCandidates.forEach((r, i) => {
+    r.status = "blocked";
+    r.blockReason = blockReasons[i % blockReasons.length];
+    r.subStatus = "等待确认";
+  });
+
   // Start next 8 as running
-  for (let i = PRE_DONE; i < Math.min(PRE_DONE + 8, reqs.length); i++) {
-    reqs[i].status = "running";
-    const first = reqs[i].agents.find(a => !a.dependsOn);
-    if (first) first.status = "running";
+  let started = 0;
+  for (let i = 0; i < reqs.length && started < 8; i++) {
+    if (reqs[i].status === "waiting") {
+      reqs[i].status = "running";
+      const first = reqs[i].agents.find(a => !a.dependsOn);
+      if (first) first.status = "running";
+      started++;
+    }
   }
 
-  return reqs;
+  return { requirements: reqs, groups };
+};
+
+// ---------- SubStatus derivation ----------
+export const deriveSubStatus = (req: Requirement): SubStatus | undefined => {
+  if (req.status === "blocked") return req.subStatus || "等待确认";
+  if (req.status !== "running") return undefined;
+  const runningAgent = req.agents.find(a => a.status === "running");
+  if (!runningAgent) return "需求解析";
+  const doneCount = req.agents.filter(a => a.status === "done").length;
+  if (doneCount === 0 && runningAgent.progress < 30) return "需求解析";
+  if (doneCount === 0 && runningAgent.progress < 60) return "方案生成";
+  if (runningAgent.icon === "test") return "单元测试";
+  if (runningAgent.icon === "review") return "编码中";
+  if (req.rejectReason) return "修复中";
+  return "编码中";
 };
 
 export const logTemplates: Record<string, string[]> = {
