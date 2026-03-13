@@ -6,10 +6,7 @@ import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/componen
 import PlanFlow from "@/components/PlanFlow";
 import PromptBar from "@/components/PromptBar";
 import DeepFlowPanel from "@/components/DeepFlowPanel";
-import TestPanel from "@/components/TestPanel";
-import PreviewPanel from "@/components/PreviewPanel";
-import PublishDialog from "@/components/PublishDialog";
-import ProductionStatus from "@/components/ProductionStatus";
+import ProjectSidebarLayout from "@/components/ProjectSidebarLayout";
 import ProjectSidebarLayout from "@/components/ProjectSidebarLayout";
 import RequirementDocEditor from "@/components/RequirementDocEditor";
 import DevCompleteCard, { DevInProgressCard, buildMockDevResult, type DevCompleteResult } from "@/components/DevCompleteCard";
