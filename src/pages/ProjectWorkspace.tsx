@@ -339,7 +339,7 @@ const ProjectWorkspace = () => {
               </button>
             )}
           </div>
-        ) : (
+        ) : showDeepFlow ? undefined : (
           <>
             <PublishDialog testsPassed={testsPassed} previewConfirmed={previewConfirmed} />
             <button
