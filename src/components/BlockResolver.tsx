@@ -1,10 +1,11 @@
 import { useState } from "react";
 import {
   MessageSquare, Palette, Package, GitMerge, Shield, XCircle,
-  CheckCircle2, ChevronRight, AlertTriangle, Zap,
+  CheckCircle2, ChevronRight, AlertTriangle, Zap, Plus, ExternalLink,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import type { BlockInfo, BlockType } from "@/data/devExecutionMock";
 
