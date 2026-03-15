@@ -28,6 +28,9 @@ interface TestCase {
   name: string;
   passed: boolean;
   duration: number;
+  filePath?: string;
+  errorMessage?: string;
+  aiSuggestion?: string;
 }
 
 export interface AcceptanceIssue {
