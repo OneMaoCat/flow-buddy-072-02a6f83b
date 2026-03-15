@@ -558,62 +558,8 @@ const DevExecution = () => {
   );
 };
 
-// ==================== ACTION REQUIRED BAR ====================
-const ActionRequiredBar = ({
-  items, onSelect, onAccept, onUnblock, onViewAll,
-}: {
-  items: Requirement[];
-  onSelect: (id: string) => void;
-  onAccept: (id: string) => void;
-  onUnblock: (id: string, resolution?: string) => void;
-  onViewAll: () => void;
-}) => {
-  const blockedCount = items.filter(r => r.status === "blocked").length;
-  const reviewCount = items.filter(r => r.status === "review").length;
 
-  return (
-    <div className="shrink-0 border-b border-red-500/20 bg-red-500/5 px-4 py-1.5">
-      <div className="flex items-center gap-2 overflow-x-auto">
-        <div className="flex items-center gap-1.5 shrink-0">
-          <AlertTriangle size={13} className="text-red-500" />
-          <span className="text-[11px] font-semibold text-red-600">需你处理</span>
-          <Badge variant="destructive" className="text-[10px] h-4 px-1.5">{items.length}</Badge>
-        </div>
-        <div className="w-px h-4 bg-red-500/20 shrink-0" />
-        {items.slice(0, 5).map(item => (
-          <button
-            key={item.id}
-            onClick={() => onSelect(item.id)}
-            className="flex items-center gap-1.5 px-2 py-1 rounded-md border border-border/60 bg-card text-left shrink-0 hover:shadow-sm transition-all text-[11px] min-w-0"
-          >
-            {item.status === "blocked" ? (
-              <>
-                <AlertTriangle size={11} className="text-red-500 shrink-0" />
-                {item.blockInfo && (
-                  <span className={cn("text-[9px] px-1 py-0.5 rounded shrink-0", blockTypeMeta[item.blockInfo.type].color)}>
-                    {blockTypeMeta[item.blockInfo.type].label}
-                  </span>
-                )}
-              </>
-            ) : (
-              <ShieldCheck size={11} className="text-orange-500 shrink-0" />
-            )}
-            <span className="truncate max-w-[100px] font-medium">{item.title}</span>
-            {item.status === "blocked" ? (
-              <span onClick={e => { e.stopPropagation(); onUnblock(item.id); }}
-                className="text-[10px] text-green-600 hover:underline shrink-0 cursor-pointer">解除</span>
-            ) : (
-              <span onClick={e => { e.stopPropagation(); onAccept(item.id); }}
-                className="text-[10px] text-green-600 hover:underline shrink-0 cursor-pointer">通过</span>
-            )}
-          </button>
-        ))}
-        <div className="flex-1" />
-        <button onClick={onViewAll} className="text-[10px] text-primary hover:underline shrink-0">查看全部 →</button>
-      </div>
-    </div>
-  );
-};
+
 
 // ==================== TABLE VIEW ====================
 const TableView = ({
