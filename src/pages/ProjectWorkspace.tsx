@@ -712,8 +712,10 @@ const ChatArea = ({
               otherTexts={processOtherTexts}
               onDecide={onProcessDecide}
               onOtherText={onProcessOtherText}
+              onConfirmAcceptance={onProcessAcceptance}
               onConfirmMerge={onProcessMerge}
               allResolved={processAllResolved}
+              acceptanceConfirmed={processAcceptanceConfirmed}
               mergeApproved={processMergeApproved}
             />
           );
