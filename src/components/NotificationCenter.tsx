@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Bell, ChevronRight } from "lucide-react";
+import { Bell, ChevronRight, CheckCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { AppNotification, NotificationType, TimeGroup } from "@/data/notifications";
 import {
