@@ -502,6 +502,10 @@ const DevExecution = () => {
                     rejectReason={rejectReason}
                     setRejectReason={setRejectReason}
                     projectId={id || ""}
+                    onNavigateToConversation={(convId) => {
+                      setActiveConversationId(convId);
+                      navigate(`/project/${id || ""}`);
+                    }}
                   />
                 </div>
               </ResizablePanel>
