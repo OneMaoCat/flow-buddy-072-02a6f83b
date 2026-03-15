@@ -14,6 +14,7 @@ import SidebarConversationList from "@/components/SidebarConversationList";
 import { requestNotificationPermission, notifyDevComplete } from "@/components/DevNotification";
 import NotificationCenter from "@/components/NotificationCenter";
 import { type AppNotification, buildMockNotifications } from "@/data/notifications";
+import PreviewPanel from "@/components/PreviewPanel";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -126,6 +127,7 @@ const ProjectWorkspace = () => {
       setConversations((prev) =>
         setConversationDevInProgress(prev, convId!, true)
       );
+      setRightPanelOpen(true);
       const capturedConvId = convId;
       const delay = 3000 + Math.random() * 4000;
       setTimeout(() => {
@@ -458,7 +460,9 @@ const ProjectWorkspace = () => {
                   reviewInfo={reviewStatus.get(selectedCard.id)}
                   onUpdateReview={handleUpdateReview}
                 />
-              ) : null}
+              ) : (
+                <PreviewPanel />
+              )}
             </ResizablePanel>
           </ResizablePanelGroup>
         ) : mainContent
