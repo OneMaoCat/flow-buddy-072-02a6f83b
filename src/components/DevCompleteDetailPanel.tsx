@@ -267,6 +267,7 @@ const AcceptanceQA = ({
       </div>
     </div>
   );
+};
 
 /* ── Timeline Step ── */
 interface TimelineStep {
