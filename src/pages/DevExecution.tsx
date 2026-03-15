@@ -361,7 +361,6 @@ const DevExecution = () => {
 
   const filterTabs: { key: FilterTab; label: string; count: number; urgent?: boolean }[] = [
     { key: "all", label: "全部", count: counts.total },
-    { key: "action", label: "需你处理", count: counts.action, urgent: counts.action > 0 },
     { key: "running", label: "执行中", count: counts.running },
     { key: "testing", label: "测试中", count: counts.testing },
     { key: "review", label: "待验收", count: counts.review },
