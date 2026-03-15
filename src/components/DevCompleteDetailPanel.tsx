@@ -164,6 +164,7 @@ export const AcceptanceQA = ({
   onDeployAnyway?: () => void;
 }) => {
   const [decisions, setDecisions] = useState<Record<string, string>>({});
+  const [customTexts, setCustomTexts] = useState<Record<string, string>>({});
   const [currentIdx, setCurrentIdx] = useState(0);
   const total = issues.length;
   const current = issues[currentIdx];
