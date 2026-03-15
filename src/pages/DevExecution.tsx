@@ -32,6 +32,8 @@ import {
 import { generateDiffForRequirement, type DiffFile } from "@/data/diffMock";
 import GitDiffViewer from "@/components/GitDiffViewer";
 import BlockResolver, { blockTypeMeta } from "@/components/BlockResolver";
+import CodeReviewTab from "@/components/CodeReviewTab";
+import { createDefaultReview } from "@/data/reviewTypes";
 
 // ---------- Icon map ----------
 const agentIcons: Record<string, React.ReactNode> = {
