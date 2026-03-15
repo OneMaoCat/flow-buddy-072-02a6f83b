@@ -5,9 +5,10 @@ interface PromptBarProps {
   onSubmit?: (data: { text: string; isPlanMode: boolean }) => void;
   defaultText?: string;
   compact?: boolean;
+  contextSlot?: React.ReactNode;
 }
 
-const PromptBar = ({ onSubmit, defaultText, compact }: PromptBarProps) => {
+const PromptBar = ({ onSubmit, defaultText, compact, contextSlot }: PromptBarProps) => {
   const [planMode, setPlanMode] = useState(false);
   const [text, setText] = useState("");
 
@@ -30,7 +31,13 @@ const PromptBar = ({ onSubmit, defaultText, compact }: PromptBarProps) => {
 
   return (
     <div className={`w-full mx-auto ${compact ? "" : "max-w-[860px]"}`}>
-      <div className="flex items-center gap-2 border-2 border-prompt-border rounded-[18px] bg-prompt px-3 py-2 shadow-sm focus-within:border-primary/40 focus-within:shadow-md transition-all">
+      <div className="border-2 border-prompt-border rounded-[18px] bg-prompt shadow-sm focus-within:border-primary/40 focus-within:shadow-md transition-all overflow-hidden">
+        {contextSlot && (
+          <div className="border-b border-border/40">
+            {contextSlot}
+          </div>
+        )}
+        <div className="flex items-center gap-2 px-3 py-2">
         <button className="shrink-0 w-9 h-9 rounded-full flex items-center justify-center hover:bg-secondary transition-colors text-muted-foreground">
           <Plus size={20} />
         </button>
@@ -62,6 +69,7 @@ const PromptBar = ({ onSubmit, defaultText, compact }: PromptBarProps) => {
         >
           <ArrowUp size={18} />
         </button>
+        </div>
       </div>
     </div>
   );
