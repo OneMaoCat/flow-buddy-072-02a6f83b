@@ -1,14 +1,85 @@
+# 需求平台 + 异步开发 + 消息卡片验收
 
+## 已完成
 
-# 删除横向时间轴步骤条
+### 1. DevCompleteCard — 聊天区验收卡片 ✅
+- 代码变更 Tab（文件列表 + diff 视图）
+- 产品预览 Tab（复用 RequirementPreview）
+- 自测报告 Tab（测试用例列表 + 通过率）
+- 操作栏（发起 Code Review / 打回修改）
 
-## 改动
+### 2. PlanFlow 改造 ✅
+- 确认需求后不再跳转 /dev 页面
+- 触发 onDevSubmitted 回调启动异步模拟
 
-删除 overview 画布中的 **Horizontal Timeline** 区块（lines 528-561），以及相关的 `TimelineStep` 类型定义和 `statusDot` 常量、`timelineSteps` 数组。
+### 3. ProjectWorkspace 状态管理 ✅
+- devCards 数组管理已完成的开发结果
+- 异步模拟 3-7s 后推送 DevCompleteCard 到聊天区
+- 发布/打回操作 + toast 反馈
 
-| 文件 | 改动 |
-|------|------|
-| `src/components/DevCompleteDetailPanel.tsx` | 删除 `TimelineStep` 接口（~L327-333）、`statusDot` 常量（~L335-340）、`timelineSteps` 数组（~L401-408）、时间轴渲染区块（~L528-561）；清理不再使用的 icon import（`GitBranch`, `Shield`, `Eye` 如无其他引用） |
+### 4. DevNotification 浏览器通知 ✅
+- Notification API 权限请求
+- 后台标签页系统通知 + sonner toast
 
-删除后，指标卡片下方直接接详情折叠区，布局更紧凑。
+### 5. 侧边栏任务追踪列表 ✅
+- SidebarTaskList 组件：按状态分组（开发中/待审查/审查中/已发布）
+- ProjectSidebarLayout 增加 taskList/taskCount props，Collapsible 区域
+- ProjectWorkspace 连接数据，点击任务项定位卡片+打开详情面板
+- 聊天区卡片增加 data-card-id，支持 scrollIntoView 定位
 
+### 6. 两层结合 — 开发过程展示增强 ✅
+- DevInProgressCard 6 步里程碑（拉取分支→分析需求→制定方案→编写代码→修改代码→运行测试）
+- 每步带具体 detail 信息（分支名、文件名等）
+- 进行中/完成后均可点击「查看详情」打开右侧面板
+
+### 7. Code Review 审查流程 ✅
+- 开发完成后主按钮改为「发起 Code Review」
+- 审查 Tab：审查人列表（通过/待审状态）、邀请审查人、评论区
+- 状态流转：开发完成 → 审查中 → 审查通过 → 发布到测试环境
+- 操作栏按状态切换（未审查/审查中/审查通过/已发布）
+- SidebarTaskList 增加「审查中」分组
+
+### 8. 开发执行中心改版 — AI 研发执行中枢 ✅
+- **改版一**：需求包 + 子任务两层结构（RequirementGroup 按模块分组，表格视图可折叠展开）
+- **改版二**：「需你处理」专区（ActionRequiredBar 顶部横条，聚合阻塞 + 待验收，红点提示）
+- **改版三**：决策卡片增强（二级状态标签、风险等级、测试摘要、类型图标、变更摘要、快捷操作按钮）
+- **改版四**：AI 执行透明度（subStatus 实时显示当前阶段如「编码中 · LoginForm.tsx」）
+- **改版五**：详情面板「需求上下文」Tab（用户原话、AI 理解摘要、AI 拆解依据、所属需求包）
+- 新增 blocked 状态 + blockReason 阻塞管理
+- 看板新增阻塞列，卡片内嵌快捷通过/解除阻塞按钮
+
+### 9. 消息中心升级 — 可操作的研发消息中枢 ✅
+- 「需要处理」筛选 Tab + 动作型消息置顶
+- 每条消息增加动作按钮（去审查/查看预览/查看详情等）
+- 消息优先级视觉分层（动作型橙色竖条、发布型绿色图标背景）
+- 上下文摘要（contextSummary 一句话描述）
+- 时间分组（今天/昨天/更早）
+- 需求包聚合折叠（同 taskId 消息折叠，展开查看历史）
+
+### 10. AI 驱动验收决策面板 ✅
+- 验收报告有问题时，替换"打回修改"为结构化 Q&A 决策面板
+- AI 自动从 critical/warning findings + 失败测试提炼问题列表
+- 每个问题提供 3 个选项（AI 修复 / 跳过 / 手动处理），推荐项高亮
+- 用户点选完毕后一键确认，toast 反馈显示决策结果
+- 无问题时直接显示"确认发布"按钮
+- verdict banner 快捷按钮改为锚点跳转到问题决策区
+
+### 11. 验收报告叙事式优化 ✅
+- ReportSection 改为无边框叙事式布局，分隔线分区，更大字号和留白
+- 智能默认折叠：正常 Section 折叠仅显示一行摘要，有问题的 Section 自动展开
+- 每个 Section 折叠态显示内联摘要（文件数、评分、通过率等）
+- Section 状态图标（✓/⚠/✗）直观标识
+- Verdict banner 更大更醒目
+
+### 12. 待处理问题置顶到输入框上方 ✅
+- AcceptanceQA 决策面板从详情面板底部移到聊天区 PromptBar 上方
+- 选中有问题的任务时，输入框上方立即显示问题决策面板
+- 详情面板底部改为状态提示（"请在输入框上方完成问题决策"）
+- Verdict banner 快捷按钮改为 Badge 标识待决策数量
+
+### 13. 验收报告画布化改版 ✅
+- 概览报告从线性折叠列表改为画布式仪表盘布局
+- 顶部：精简 verdict banner + 2x2 指标卡片区（综合评分环形图、测试通过率、代码变更量、执行耗时）
+- 中部：横向时间轴（5 步圆点+连线+状态色，悬停显示详情）
+- 底部：折叠详情区（任务背景、代码变更、AI Review 发现项卡片化+左侧色条、测试报告、产品预览）
+- AI 审查模型评分改为并排卡片展示

@@ -17,7 +17,7 @@ import {
   X,
   Shield,
   LayoutDashboard,
-  GitBranch,
+  
   Code2,
   AlertTriangle,
   Clock,
@@ -324,20 +324,8 @@ export const AcceptanceQA = ({
   );
 };
 
-/* ── Timeline Step ── */
-interface TimelineStep {
-  icon: React.ReactNode;
-  label: string;
-  detail: string;
-  status: "done" | "running" | "warning" | "error";
-}
 
-const statusDot: Record<TimelineStep["status"], string> = {
-  done: "bg-emerald-500",
-  running: "bg-primary animate-pulse",
-  warning: "bg-amber-500",
-  error: "bg-destructive",
-};
+
 
 /* ── Main Component ── */
 const DevCompleteDetailPanel = ({
@@ -398,14 +386,8 @@ const DevCompleteDetailPanel = ({
     </Badge>
   ) : null;
 
-  // Timeline steps
-  const timelineSteps: TimelineStep[] = [
-    { icon: <GitBranch size={13} />, label: "拉取分支 & 分析需求", detail: "自动创建开发分支，解析需求文档", status: "done" },
-    { icon: <Code2 size={13} />, label: "编写代码", detail: `${result.files.length} 个文件变更，+${totalAdds} -${totalDels} 行`, status: "done" },
-    { icon: <TestTube2 size={13} />, label: "运行测试", detail: allTestsPassed ? `全部 ${result.tests.length} 项测试通过` : `${passedTests}/${result.tests.length} 项通过`, status: allTestsPassed ? "done" : "error" },
-    { icon: <Shield size={13} />, label: "AI Code Review", detail: aiReviewDone ? `综合评分 ${reviewInfo?.overallScore ?? "-"} 分` : aiReviewRunning ? "审查进行中…" : "等待审查", status: aiReviewDone ? (hasCritical ? "error" : hasWarning ? "warning" : "done") : "running" },
-    { icon: <Eye size={13} />, label: "等待验收", detail: deployed ? "已发布" : "请查看报告并决定", status: deployed ? "done" : "running" },
-  ];
+
+
 
   const testPassRate = result.tests.length > 0 ? Math.round((passedTests / result.tests.length) * 100) : 0;
 
@@ -525,40 +507,8 @@ const DevCompleteDetailPanel = ({
               </div>
             </div>
 
-            {/* ── Horizontal Timeline ── */}
-            <div className="rounded-xl border border-border bg-muted/10 px-4 py-4">
-              <div className="flex items-center">
-                {timelineSteps.map((step, i) => (
-                  <div key={i} className="flex items-center flex-1 min-w-0 last:flex-none group">
-                    <div className="flex flex-col items-center gap-1.5 relative">
-                      <div className={cn(
-                        "w-6 h-6 rounded-full flex items-center justify-center shrink-0 border-2 transition-colors",
-                        step.status === "done" && "border-emerald-500 bg-emerald-500/10",
-                        step.status === "running" && "border-primary bg-primary/10",
-                        step.status === "warning" && "border-amber-500 bg-amber-500/10",
-                        step.status === "error" && "border-destructive bg-destructive/10",
-                      )}>
-                        <div className={cn("w-2 h-2 rounded-full", statusDot[step.status])} />
-                      </div>
-                      <span className="text-[10px] text-muted-foreground font-medium whitespace-nowrap">{step.label.split(" & ")[0].split("·")[0].trim()}</span>
-                      {/* Hover tooltip */}
-                      <div className="absolute bottom-full mb-2 hidden group-hover:block z-10">
-                        <div className="bg-popover border border-border rounded-lg px-3 py-2 shadow-lg whitespace-nowrap">
-                          <p className="text-xs font-medium text-foreground">{step.label}</p>
-                          <p className="text-[10px] text-muted-foreground mt-0.5">{step.detail}</p>
-                        </div>
-                      </div>
-                    </div>
-                    {i < timelineSteps.length - 1 && (
-                      <div className={cn(
-                        "flex-1 h-px mx-1.5",
-                        step.status === "done" ? "bg-emerald-500/40" : "bg-border"
-                      )} />
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
+
+
 
             {/* ── Detail Sections (collapsible cards) ── */}
             <div className="space-y-3">
