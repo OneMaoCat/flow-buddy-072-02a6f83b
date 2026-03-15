@@ -670,16 +670,15 @@ const DevCompleteDetailPanel = ({
               </div>
             </ReportSection>
 
-            {/* ── Bottom: AcceptanceQA or Deploy ── */}
+            {/* ── Bottom: Deploy or status hint ── */}
             {!deployed && !readOnly && (
               <div id="acceptance-qa-section" className="pt-2 pb-2">
                 {aiReviewDone ? (
                   hasIssues ? (
-                    <AcceptanceQA
-                      issues={acceptanceIssues}
-                      onConfirm={(decisions) => onReject(result.id, decisions)}
-                      onDeployAnyway={() => onDeploy(result.id)}
-                    />
+                    <div className="flex items-center justify-center gap-2 py-3 px-4 rounded-lg bg-amber-500/5 border border-amber-500/15">
+                      <AlertTriangle size={14} className="text-amber-500 shrink-0" />
+                      <span className="text-xs text-muted-foreground">请在输入框上方完成问题决策后继续</span>
+                    </div>
                   ) : (
                     <Button
                       size="sm"
