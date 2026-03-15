@@ -169,7 +169,7 @@ export const buildMockNotifications = (): AppNotification[] => [
     type: "review_approved",
     title: "审查已通过",
     description: "搜索功能性能优化",
-    actor: "张东杰",
+    actor: "沈楚城",
     conversationId: "conv-1",
     timestamp: now - 28 * 3600_000,
     read: true,
