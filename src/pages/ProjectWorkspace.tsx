@@ -592,48 +592,6 @@ const ChatArea = ({
         )}
       </div>
       <div className="sticky bottom-0 bg-background/80 backdrop-blur-md border-t border-border">
-        {/* Context reference bar */}
-        {selectedCardId && (() => {
-          const card = devCards.find(c => c.id === selectedCardId);
-          if (!card) return null;
-          const deployed = deployedIds.has(card.id);
-          const reviewing = reviewingIds.has(card.id) && !deployed;
-          const review = reviewStatus.get(card.id);
-          const reviewDone = review?.aiReviewStatus === "done";
-          const statusLabel = deployed ? "已发布" : reviewing ? (reviewDone ? "审查完成" : "AI 审查中") : "待审查";
-          const statusColor = deployed ? "text-emerald-500" : reviewing ? "text-primary" : "text-amber-500";
-          const statusIcon = deployed
-            ? <Check size={12} className="text-emerald-500" />
-            : reviewing
-              ? (reviewDone ? <Shield size={12} className="text-emerald-500" /> : <Shield size={12} className="text-primary animate-pulse" />)
-              : <Circle size={10} className="text-amber-500 fill-amber-500" />;
-
-          return (
-            <div className="px-4 pt-2.5 pb-0 animate-fade-in">
-              <div className="relative flex items-start gap-2.5 pl-3 pr-2 py-2 rounded-t-xl bg-muted/60 border border-b-0 border-border/60">
-                {/* Left quote accent bar */}
-                <div className="absolute left-0 top-2 bottom-2 w-[3px] rounded-full bg-primary" />
-                <div className="flex-1 min-w-0 ml-1">
-                  <div className="flex items-center gap-1.5 mb-0.5">
-                    <span className="text-[10px] font-medium text-muted-foreground/70">回复</span>
-                    <span className="text-[10px] text-muted-foreground/50">·</span>
-                    <div className="flex items-center gap-1">
-                      {statusIcon}
-                      <span className={cn("text-[10px] font-medium", statusColor)}>{statusLabel}</span>
-                    </div>
-                  </div>
-                  <p className="text-[12px] font-medium text-foreground/80 truncate leading-snug">{card.requirementTitle}</p>
-                </div>
-                <button
-                  onClick={() => onSelectCard(card.id)}
-                  className="shrink-0 mt-0.5 text-[10px] text-muted-foreground hover:text-foreground transition-colors px-1.5 py-0.5 rounded hover:bg-accent/50"
-                >
-                  查看 →
-                </button>
-              </div>
-            </div>
-          );
-        })()}
         <div className="p-3 flex items-center gap-2">
           {taskCount > 0 && (
             <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
@@ -690,9 +648,44 @@ const ChatArea = ({
             </Popover>
           )}
           <div className="flex-1">
-            <PromptBar onSubmit={onSubmit} compact />
+            <PromptBar
+              onSubmit={onSubmit}
+              compact
+              contextSlot={selectedCardId ? (() => {
+                const card = devCards.find(c => c.id === selectedCardId);
+                if (!card) return null;
+                const deployed = deployedIds.has(card.id);
+                const reviewing = reviewingIds.has(card.id) && !deployed;
+                const review = reviewStatus.get(card.id);
+                const reviewDone = review?.aiReviewStatus === "done";
+                const statusLabel = deployed ? "已发布" : reviewing ? (reviewDone ? "审查完成" : "AI 审查中") : "待审查";
+                const statusIcon = deployed
+                  ? <Check size={12} className="text-emerald-500" />
+                  : reviewing
+                    ? (reviewDone ? <Shield size={12} className="text-emerald-500" /> : <Shield size={12} className="text-primary animate-pulse" />)
+                    : <Circle size={10} className="text-amber-500 fill-amber-500" />;
+                return (
+                  <div className="flex items-center gap-2 px-3 py-1.5 animate-fade-in">
+                    <div className="w-[3px] self-stretch rounded-full bg-primary shrink-0" />
+                    <div className="flex-1 min-w-0 flex items-center gap-1.5">
+                      {statusIcon}
+                      <span className="text-[11px] font-medium text-foreground/80 truncate">{card.requirementTitle}</span>
+                      <span className="text-[10px] text-muted-foreground/60">·</span>
+                      <span className="text-[10px] text-muted-foreground shrink-0">{statusLabel}</span>
+                    </div>
+                    <button
+                      onClick={() => onSelectCard(card.id)}
+                      className="shrink-0 p-0.5 rounded hover:bg-accent/50 text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                );
+              })() : undefined}
+            />
           </div>
         </div>
+      </div>
       </div>
     </div>
   );
