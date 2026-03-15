@@ -557,7 +557,7 @@ const ChatArea = ({
   processActionableIssues,
   processAllResolved,
   onProcessDecide,
-  onProcessOtherText,
+  onProcessAcceptance,
   onProcessMerge,
 }: {
   projectId: string;

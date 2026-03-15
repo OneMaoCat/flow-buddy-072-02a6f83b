@@ -361,8 +361,8 @@ interface DevProcessDetailPanelProps {
 
 const DevProcessDetailPanel = ({
   result, onClose,
-  issueDecisions, otherTexts, mergeApproved,
-  onDecide, onOtherText, onConfirmMerge,
+  issueDecisions, otherTexts, acceptanceConfirmed, mergeApproved,
+  onDecide, onOtherText, onConfirmAcceptance, onConfirmMerge,
 }: DevProcessDetailPanelProps) => {
   const totalAdds = result.files.reduce((s, f) => s + f.additions, 0);
   const totalDels = result.files.reduce((s, f) => s + f.deletions, 0);
