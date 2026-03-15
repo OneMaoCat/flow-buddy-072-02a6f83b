@@ -386,14 +386,8 @@ const DevCompleteDetailPanel = ({
     </Badge>
   ) : null;
 
-  // Timeline steps
-  const timelineSteps: TimelineStep[] = [
-    { icon: <GitBranch size={13} />, label: "拉取分支 & 分析需求", detail: "自动创建开发分支，解析需求文档", status: "done" },
-    { icon: <Code2 size={13} />, label: "编写代码", detail: `${result.files.length} 个文件变更，+${totalAdds} -${totalDels} 行`, status: "done" },
-    { icon: <TestTube2 size={13} />, label: "运行测试", detail: allTestsPassed ? `全部 ${result.tests.length} 项测试通过` : `${passedTests}/${result.tests.length} 项通过`, status: allTestsPassed ? "done" : "error" },
-    { icon: <Shield size={13} />, label: "AI Code Review", detail: aiReviewDone ? `综合评分 ${reviewInfo?.overallScore ?? "-"} 分` : aiReviewRunning ? "审查进行中…" : "等待审查", status: aiReviewDone ? (hasCritical ? "error" : hasWarning ? "warning" : "done") : "running" },
-    { icon: <Eye size={13} />, label: "等待验收", detail: deployed ? "已发布" : "请查看报告并决定", status: deployed ? "done" : "running" },
-  ];
+
+
 
   const testPassRate = result.tests.length > 0 ? Math.round((passedTests / result.tests.length) * 100) : 0;
 
