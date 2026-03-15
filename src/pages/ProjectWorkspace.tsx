@@ -591,8 +591,52 @@ const ChatArea = ({
           </div>
         )}
       </div>
-      <div className="sticky bottom-0 bg-background/80 backdrop-blur-md border-t border-border p-3">
-        <div className="flex items-center gap-2">
+      <div className="sticky bottom-0 bg-background/80 backdrop-blur-md border-t border-border">
+        {/* Context reference bar */}
+        {selectedCardId && (() => {
+          const card = devCards.find(c => c.id === selectedCardId);
+          if (!card) return null;
+          const deployed = deployedIds.has(card.id);
+          const reviewing = reviewingIds.has(card.id) && !deployed;
+          const review = reviewStatus.get(card.id);
+          const reviewDone = review?.aiReviewStatus === "done";
+          const statusLabel = deployed ? "已发布" : reviewing ? (reviewDone ? "审查完成" : "AI 审查中") : "待审查";
+          const statusColor = deployed ? "text-emerald-500" : reviewing ? "text-primary" : "text-amber-500";
+          const statusIcon = deployed
+            ? <Check size={12} className="text-emerald-500" />
+            : reviewing
+              ? (reviewDone ? <Shield size={12} className="text-emerald-500" /> : <Shield size={12} className="text-primary animate-pulse" />)
+              : <Circle size={10} className="text-amber-500 fill-amber-500" />;
+
+          return (
+            <div className="px-3 pt-2 pb-1 animate-fade-in">
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-secondary/50 border border-border/50">
+                <div className="w-1 h-4 rounded-full bg-primary shrink-0" />
+                <span className="text-[11px] text-muted-foreground shrink-0">上下文</span>
+                <span className="text-[11px] font-medium text-foreground truncate flex-1">{card.requirementTitle}</span>
+                <div className="flex items-center gap-1 shrink-0">
+                  {statusIcon}
+                  <span className={cn("text-[10px] font-medium", statusColor)}>{statusLabel}</span>
+                </div>
+                <button
+                  onClick={() => onSelectCard(card.id)}
+                  className="text-[10px] text-primary hover:text-primary/80 transition-colors shrink-0"
+                >
+                  查看详情
+                </button>
+                <button
+                  onClick={() => {
+                    // Deselect - clear context
+                    // We can't directly clear selectedCardId from here, so we use a trick
+                    // by "selecting" a non-existent card — but better to expose a clear handler
+                  }}
+                  className="hidden"
+                />
+              </div>
+            </div>
+          );
+        })()}
+        <div className="p-3 flex items-center gap-2">
           {taskCount > 0 && (
             <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
               <PopoverTrigger asChild>
