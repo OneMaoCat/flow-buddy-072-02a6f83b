@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   Code2, TestTube2, Eye, Plug, Database, Palette, AlertCircle, CheckCircle2,
