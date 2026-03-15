@@ -96,6 +96,7 @@ const NotificationCenter = ({
             <span className="inline-flex items-center justify-center h-4 min-w-4 px-1 rounded-full bg-foreground text-background text-[10px] font-semibold shrink-0 mr-1">
               {unreadCount}
             </span>
+          )}
           {typeFilters.map((f) => {
             const count = getFilterCount(f.value);
             const isActive = filter === f.value;
