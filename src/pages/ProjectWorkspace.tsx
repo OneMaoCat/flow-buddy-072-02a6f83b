@@ -704,7 +704,7 @@ const ChatArea = ({
       {(() => {
         // Check if ProcessReviewQA should be shown (process panel open with unresolved issues)
         let processQAPanel: React.ReactNode = null;
-        if (processCardId && processActionableIssues.length > 0) {
+        if (processCardId && processActionableIssues.length > 0 && !processMergeApproved) {
           processQAPanel = (
             <ProcessReviewQA
               issues={processActionableIssues}
