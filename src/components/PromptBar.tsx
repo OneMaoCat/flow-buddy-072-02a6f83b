@@ -69,6 +69,7 @@ const PromptBar = ({ onSubmit, defaultText, compact, contextSlot }: PromptBarPro
         >
           <ArrowUp size={18} />
         </button>
+        </div>
       </div>
     </div>
   );
