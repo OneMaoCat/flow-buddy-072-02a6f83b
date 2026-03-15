@@ -67,6 +67,9 @@ const ProjectWorkspace = () => {
   const selectedCard = devCards.find((c) => c.id === selectedCardId)
     || conversations.flatMap((c) => c.tasks).find((c) => c.id === selectedCardId)
     || null;
+  const processCard = devCards.find((c) => c.id === processCardId)
+    || conversations.flatMap((c) => c.tasks).find((c) => c.id === processCardId)
+    || null;
 
   const unreadNotificationCount = notifications.filter((n) => !n.read).length;
 
