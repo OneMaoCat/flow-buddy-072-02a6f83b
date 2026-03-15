@@ -767,56 +767,15 @@ const DevCompleteDetailPanel = ({
                     <span className="text-sm text-muted-foreground">AI 正在审查代码…</span>
                   </div>
                 ) : (
-                  <div className="space-y-4">
-                    {/* Reviewer scores */}
-                    <div className="flex gap-2.5">
-                      {(reviewInfo?.aiReviewers || []).map((r) => (
-                        <div key={r.id} className="flex-1 rounded-lg border border-border bg-muted/15 px-3 py-2.5">
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm">{r.icon}</span>
-                            <span className="text-[10px] text-muted-foreground font-medium">{r.displayName}</span>
-                            <span className="ml-auto text-base font-bold text-foreground">
-                              {r.score}
-                            </span>
-                          </div>
-                          {r.summary && (
-                            <p className="text-[10px] text-muted-foreground mt-1.5 leading-relaxed line-clamp-2">{r.summary}</p>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                    {/* Findings as cards */}
-                    {allFindings.length > 0 && (
-                      <div className="space-y-2">
-                        <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">发现项 ({allFindings.length})</div>
-                        {allFindings
-                          .sort((a, b) => {
-                            const order: FindingSeverity[] = ["critical", "warning", "suggestion", "praise"];
-                            return order.indexOf(a.severity) - order.indexOf(b.severity);
-                          })
-                          .map((f) => {
-                            const cfg = severityConfig[f.severity];
-                            return (
-                              <div key={f.id} className="flex items-stretch rounded-lg border border-border overflow-hidden">
-                                <div className={cn(
-                                  "w-1 shrink-0",
-                                  f.severity === "critical" ? "bg-foreground" : f.severity === "warning" ? "bg-foreground/50" : f.severity === "praise" ? "bg-foreground/30" : "bg-foreground/20"
-                                )} />
-                                <div className="flex-1 px-3 py-2.5 min-w-0">
-                                  <div className="flex items-center gap-1.5 flex-wrap">
-                                    <Badge variant="outline" className={cn("text-[9px] h-4 px-1.5 border-0", cfg.bg, cfg.text)}>{cfg.label}</Badge>
-                                    <span className="text-xs font-medium text-foreground">{f.title}</span>
-                                    {f.filePath && (
-                                      <span className="text-[10px] opacity-50 font-mono">{f.filePath}{f.lineRange ? `:${f.lineRange}` : ""}</span>
-                                    )}
-                                  </div>
-                                  <p className="text-[11px] text-muted-foreground mt-1 leading-relaxed">{f.description}</p>
-                                </div>
-                              </div>
-                            );
-                          })}
-                      </div>
-                    )}
+                  <div className="space-y-3">
+                    {(reviewInfo?.aiReviewers || []).map((r, rIdx) => {
+                      const findings = r.findings || [];
+                      const rCritical = findings.filter(f => f.severity === "critical").length;
+                      const rWarning = findings.filter(f => f.severity === "warning").length;
+                      return (
+                        <ReviewerCard key={r.id} reviewer={r} defaultOpen={rIdx === 0 || rCritical > 0} criticalCount={rCritical} warningCount={rWarning} />
+                      );
+                    })}
                   </div>
                 )}
               </ReportSection>
