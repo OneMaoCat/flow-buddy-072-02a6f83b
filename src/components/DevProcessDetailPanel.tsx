@@ -142,8 +142,10 @@ export const ProcessReviewQA = ({
   otherTexts,
   onDecide,
   onOtherText,
+  onConfirmAcceptance,
   onConfirmMerge,
   allResolved,
+  acceptanceConfirmed,
   mergeApproved,
 }: {
   issues: AIReviewFinding[];
@@ -151,8 +153,10 @@ export const ProcessReviewQA = ({
   otherTexts: Record<string, string>;
   onDecide: (id: string, decision: IssueDecision) => void;
   onOtherText: (id: string, text: string) => void;
+  onConfirmAcceptance: () => void;
   onConfirmMerge: () => void;
   allResolved: boolean;
+  acceptanceConfirmed: boolean;
   mergeApproved: boolean;
 }) => {
   const [currentIdx, setCurrentIdx] = useState(0);
@@ -160,6 +164,7 @@ export const ProcessReviewQA = ({
   const current = issues[currentIdx];
   const resolvedCount = issues.filter(i => decisions[i.id]).length;
 
+  // Phase 3: merge approved — done
   if (mergeApproved) {
     return (
       <div className="flex items-center gap-2 px-3 py-2 text-xs text-green-500">
@@ -169,17 +174,40 @@ export const ProcessReviewQA = ({
     );
   }
 
+  // Phase 2b: acceptance confirmed, waiting for merge confirmation
+  if (acceptanceConfirmed) {
+    return (
+      <div className="px-3 py-3 space-y-2">
+        <div className="flex items-center gap-2 text-xs">
+          <CheckCircle2 size={12} className="text-green-500" />
+          <span className="text-foreground font-medium">人工验收通过</span>
+        </div>
+        <p className="text-[11px] text-muted-foreground">确认将功能分支合并到主分支？合并后将自动触发全流程回归测试。</p>
+        <Button size="sm" onClick={onConfirmMerge} className="gap-1.5 text-xs h-8">
+          <GitMerge size={12} />
+          确认合并主分支
+        </Button>
+      </div>
+    );
+  }
+
+  // Phase 2a: all issues resolved, waiting for acceptance
   if (allResolved) {
     return (
-      <div className="px-3 py-2 space-y-2">
+      <div className="px-3 py-3 space-y-3">
         <div className="flex items-center gap-2 text-xs">
           <CheckCircle2 size={12} className="text-green-500" />
           <span className="text-foreground font-medium">全部 {total} 个问题已处理</span>
         </div>
-        <div className="flex items-center gap-2">
-          <Button size="sm" onClick={onConfirmMerge} className="gap-1.5 text-xs h-8">
-            <GitMerge size={12} />
-            确认合并主分支
+        <div className="rounded-lg border border-border p-3 space-y-2">
+          <div className="flex items-center gap-2">
+            <UserCheck size={14} className="text-orange-500" />
+            <span className="text-xs font-semibold text-foreground">人工验收</span>
+          </div>
+          <p className="text-[11px] text-muted-foreground">请确认功能是否符合需求、UI 是否一致、边界情况是否覆盖。验收通过后将进入合并流程。</p>
+          <Button size="sm" onClick={onConfirmAcceptance} className="gap-1.5 text-xs h-8">
+            <CheckCircle2 size={12} />
+            验收通过，继续
           </Button>
         </div>
       </div>
@@ -321,19 +349,20 @@ export const ProcessReviewQA = ({
 interface DevProcessDetailPanelProps {
   result: DevCompleteResult;
   onClose: () => void;
-  // Lifted state from parent
   issueDecisions: Record<string, IssueDecision>;
   otherTexts: Record<string, string>;
+  acceptanceConfirmed: boolean;
   mergeApproved: boolean;
   onDecide: (id: string, decision: IssueDecision) => void;
   onOtherText: (id: string, text: string) => void;
+  onConfirmAcceptance: () => void;
   onConfirmMerge: () => void;
 }
 
 const DevProcessDetailPanel = ({
   result, onClose,
-  issueDecisions, otherTexts, mergeApproved,
-  onDecide, onOtherText, onConfirmMerge,
+  issueDecisions, otherTexts, acceptanceConfirmed, mergeApproved,
+  onDecide, onOtherText, onConfirmAcceptance, onConfirmMerge,
 }: DevProcessDetailPanelProps) => {
   const totalAdds = result.files.reduce((s, f) => s + f.additions, 0);
   const totalDels = result.files.reduce((s, f) => s + f.deletions, 0);
@@ -534,7 +563,7 @@ const DevProcessDetailPanel = ({
     {
       icon: <UserCheck size={14} />,
       title: "人工验收",
-      status: mergeApproved ? "done" : allIssuesResolved ? "active" : "pending",
+      status: acceptanceConfirmed ? "done" : allIssuesResolved ? "active" : "pending",
       visible: true,
       content: (
         <div className="text-xs text-muted-foreground space-y-3">
@@ -543,9 +572,9 @@ const DevProcessDetailPanel = ({
               <Clock size={12} />
               <span>请先处理上方 Code Review 中的问题</span>
             </div>
-          ) : !mergeApproved ? (
+          ) : !acceptanceConfirmed ? (
             <div className="space-y-2">
-              <p className="text-foreground font-medium">验收项已满足</p>
+              <p className="text-foreground font-medium">等待人工验收</p>
               {[
                 { label: "功能实现符合需求描述", checked: true },
                 { label: "UI 交互与设计稿一致", checked: true },
@@ -557,12 +586,12 @@ const DevProcessDetailPanel = ({
                   <span className={item.checked ? "text-foreground" : "text-muted-foreground/50"}>{item.label}</span>
                 </div>
               ))}
-              <p className="text-[10px] text-orange-500">👇 请在下方输入框区域确认合并</p>
+              <p className="text-[10px] text-orange-500">👇 请在下方输入框区域确认验收</p>
             </div>
           ) : (
             <div className="flex items-center gap-2 text-green-500">
               <CheckCircle2 size={12} />
-              <span className="font-medium">已确认合并，正在执行后续流程...</span>
+              <span className="font-medium">人工验收通过</span>
             </div>
           )}
         </div>
@@ -571,9 +600,18 @@ const DevProcessDetailPanel = ({
     // ── 合并主分支 ──
     {
       icon: <GitMerge size={14} />, title: "合并主分支",
-      status: mergeApproved ? "done" : "pending",
-      visible: mergeApproved,
-      content: (
+      status: mergeApproved ? "done" : acceptanceConfirmed ? "active" : "pending",
+      visible: acceptanceConfirmed,
+      content: !mergeApproved ? (
+        <div className="text-xs text-muted-foreground space-y-2">
+          <div className="flex items-center gap-2">
+            <code className="px-1.5 py-0.5 rounded bg-muted text-foreground font-mono text-[11px]">{branchName}</code>
+            <ArrowRight size={10} className="text-muted-foreground/50" />
+            <code className="px-1.5 py-0.5 rounded bg-muted text-foreground font-mono text-[11px]">main</code>
+          </div>
+          <p className="text-[10px] text-orange-500">👇 请在下方输入框区域确认合并</p>
+        </div>
+      ) : (
         <div className="text-xs text-muted-foreground space-y-2">
           <div className="flex items-center gap-2">
             <code className="px-1.5 py-0.5 rounded bg-muted text-foreground font-mono text-[11px]">{branchName}</code>

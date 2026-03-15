@@ -63,6 +63,7 @@ const ProjectWorkspace = () => {
   // Process panel shared state
   const [processIssueDecisions, setProcessIssueDecisions] = useState<Record<string, IssueDecision>>({});
   const [processOtherTexts, setProcessOtherTexts] = useState<Record<string, string>>({});
+  const [processAcceptanceConfirmed, setProcessAcceptanceConfirmed] = useState(false);
   const [processMergeApproved, setProcessMergeApproved] = useState(false);
 
   const processReview = useMemo(() => buildProcessReview(), []);
@@ -74,6 +75,10 @@ const ProjectWorkspace = () => {
   }, []);
   const handleProcessOtherText = useCallback((id: string, text: string) => {
     setProcessOtherTexts(prev => ({ ...prev, [id]: text }));
+  }, []);
+  const handleProcessAcceptance = useCallback(() => {
+    setProcessAcceptanceConfirmed(true);
+    toast.success("人工验收通过，请确认合并主分支");
   }, []);
   const handleProcessMerge = useCallback(() => {
     setProcessMergeApproved(true);
@@ -415,11 +420,13 @@ const ProjectWorkspace = () => {
       processCardId={processCardId}
       processIssueDecisions={processIssueDecisions}
       processOtherTexts={processOtherTexts}
+      processAcceptanceConfirmed={processAcceptanceConfirmed}
       processMergeApproved={processMergeApproved}
       processActionableIssues={processActionableIssues}
       processAllResolved={processAllResolved}
       onProcessDecide={handleProcessDecide}
       onProcessOtherText={handleProcessOtherText}
+      onProcessAcceptance={handleProcessAcceptance}
       onProcessMerge={handleProcessMerge}
     />
   );
@@ -502,9 +509,11 @@ const ProjectWorkspace = () => {
                   onClose={() => { setProcessCardId(null); setRightPanelOpen(false); }}
                   issueDecisions={processIssueDecisions}
                   otherTexts={processOtherTexts}
+                  acceptanceConfirmed={processAcceptanceConfirmed}
                   mergeApproved={processMergeApproved}
                   onDecide={handleProcessDecide}
                   onOtherText={handleProcessOtherText}
+                  onConfirmAcceptance={handleProcessAcceptance}
                   onConfirmMerge={handleProcessMerge}
                 />
               ) : (
@@ -544,11 +553,13 @@ const ChatArea = ({
   processCardId,
   processIssueDecisions,
   processOtherTexts,
+  processAcceptanceConfirmed,
   processMergeApproved,
   processActionableIssues,
   processAllResolved,
   onProcessDecide,
   onProcessOtherText,
+  onProcessAcceptance,
   onProcessMerge,
 }: {
   projectId: string;
@@ -575,11 +586,13 @@ const ChatArea = ({
   processCardId: string | null;
   processIssueDecisions: Record<string, IssueDecision>;
   processOtherTexts: Record<string, string>;
+  processAcceptanceConfirmed: boolean;
   processMergeApproved: boolean;
   processActionableIssues: import("@/data/reviewTypes").AIReviewFinding[];
   processAllResolved: boolean;
   onProcessDecide: (id: string, decision: IssueDecision) => void;
   onProcessOtherText: (id: string, text: string) => void;
+  onProcessAcceptance: () => void;
   onProcessMerge: () => void;
 }) => {
   const renderUserMessage = (msg: ChatMessage) => (
@@ -699,8 +712,10 @@ const ChatArea = ({
               otherTexts={processOtherTexts}
               onDecide={onProcessDecide}
               onOtherText={onProcessOtherText}
+              onConfirmAcceptance={onProcessAcceptance}
               onConfirmMerge={onProcessMerge}
               allResolved={processAllResolved}
+              acceptanceConfirmed={processAcceptanceConfirmed}
               mergeApproved={processMergeApproved}
             />
           );
