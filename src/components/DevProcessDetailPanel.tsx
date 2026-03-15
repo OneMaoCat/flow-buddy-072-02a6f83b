@@ -129,6 +129,15 @@ const DevProcessDetailPanel = ({ result, onClose }: DevProcessDetailPanelProps) 
       ),
     },
     {
+      icon: <MonitorPlay size={14} />,
+      title: "UI 测试",
+      content: (
+        <div className="text-xs text-muted-foreground">
+          <UITestReplay steps={buildMockUITestSteps()} />
+        </div>
+      ),
+    },
+    {
       icon: <Shield size={14} />,
       title: "AI Code Review",
       content: (
