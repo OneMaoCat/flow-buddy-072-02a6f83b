@@ -602,7 +602,16 @@ const DevProcessDetailPanel = ({
       icon: <GitMerge size={14} />, title: "合并主分支",
       status: mergeApproved ? "done" : acceptanceConfirmed ? "active" : "pending",
       visible: acceptanceConfirmed,
-      content: (
+      content: !mergeApproved ? (
+        <div className="text-xs text-muted-foreground space-y-2">
+          <div className="flex items-center gap-2">
+            <code className="px-1.5 py-0.5 rounded bg-muted text-foreground font-mono text-[11px]">{branchName}</code>
+            <ArrowRight size={10} className="text-muted-foreground/50" />
+            <code className="px-1.5 py-0.5 rounded bg-muted text-foreground font-mono text-[11px]">main</code>
+          </div>
+          <p className="text-[10px] text-orange-500">👇 请在下方输入框区域确认合并</p>
+        </div>
+      ) : (
         <div className="text-xs text-muted-foreground space-y-2">
           <div className="flex items-center gap-2">
             <code className="px-1.5 py-0.5 rounded bg-muted text-foreground font-mono text-[11px]">{branchName}</code>
