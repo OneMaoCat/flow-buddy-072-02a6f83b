@@ -360,6 +360,7 @@ const ProjectWorkspace = () => {
       onReject={handleReject}
       selectedCardId={selectedCardId}
       onSelectCard={handleSelectCard}
+      onClearCard={() => setSelectedCardId(null)}
       onViewInProgressDetail={() => setRightPanelOpen(true)}
       rightPanelOpen={rightPanelOpen}
       onToggleRightPanel={() => setRightPanelOpen(!rightPanelOpen)}
