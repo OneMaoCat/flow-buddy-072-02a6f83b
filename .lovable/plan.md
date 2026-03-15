@@ -1,57 +1,82 @@
-# 需求平台 + 异步开发 + 消息卡片验收
 
-## 已完成
 
-### 1. DevCompleteCard — 聊天区验收卡片 ✅
-- 代码变更 Tab（文件列表 + diff 视图）
-- 产品预览 Tab（复用 RequirementPreview）
-- 自测报告 Tab（测试用例列表 + 通过率）
-- 操作栏（发起 Code Review / 打回修改）
+# 开发执行中心详情面板 — 增加 GitLab 风格 Code Diff 页签
 
-### 2. PlanFlow 改造 ✅
-- 确认需求后不再跳转 /dev 页面
-- 触发 onDevSubmitted 回调启动异步模拟
+## 现状分析
 
-### 3. ProjectWorkspace 状态管理 ✅
-- devCards 数组管理已完成的开发结果
-- 异步模拟 3-7s 后推送 DevCompleteCard 到聊天区
-- 发布/打回操作 + toast 反馈
+当前 `DetailPanel`（DevExecution.tsx）有 4 个 Tab：开发过程、产品预览、测试报告、需求上下文。缺少代码变更（Diff）查看能力。虽然 `DevCompleteDetailPanel` 有简易 Diff 展示，但样式较简陋，不具备 GitLab Code Review 的核心体验：行号、展开/折叠文件、inline 评论。
 
-### 4. DevNotification 浏览器通知 ✅
-- Notification API 权限请求
-- 后台标签页系统通知 + sonner toast
+## 改动方案
 
-### 5. 侧边栏任务追踪列表 ✅
-- SidebarTaskList 组件：按状态分组（开发中/待审查/审查中/已发布）
-- ProjectSidebarLayout 增加 taskList/taskCount props，Collapsible 区域
-- ProjectWorkspace 连接数据，点击任务项定位卡片+打开详情面板
-- 聊天区卡片增加 data-card-id，支持 scrollIntoView 定位
+### 1. 新建 `src/components/GitDiffViewer.tsx` — GitLab 风格 Diff 组件
 
-### 6. 两层结合 — 开发过程展示增强 ✅
-- DevInProgressCard 6 步里程碑（拉取分支→分析需求→制定方案→编写代码→修改代码→运行测试）
-- 每步带具体 detail 信息（分支名、文件名等）
-- 进行中/完成后均可点击「查看详情」打开右侧面板
+核心功能：
+- **文件列表 sidebar**：左侧显示变更文件树，点击跳转到对应文件 diff
+- **Unified diff 视图**：每个文件展示为一个可折叠的 diff block，带文件头（路径 + additions/deletions 统计）
+- **行号显示**：左侧旧文件行号，右侧新文件行号（双列行号，仿 GitLab）
+- **行级高亮**：添加行绿色背景、删除行红色背景、上下文行无色
+- **Inline 评论**：点击行号旁的 `+` 按钮弹出评论输入框，评论显示在对应行下方（mock 数据）
+- **文件折叠/展开**：每个文件 block 可折叠，默认展开
 
-### 7. Code Review 审查流程 ✅
-- 开发完成后主按钮改为「发起 Code Review」
-- 审查 Tab：审查人列表（通过/待审状态）、邀请审查人、评论区
-- 状态流转：开发完成 → 审查中 → 审查通过 → 发布到测试环境
-- 操作栏按状态切换（未审查/审查中/审查通过/已发布）
-- SidebarTaskList 增加「审查中」分组
+### 2. 扩展 Mock 数据（`devExecutionMock.ts`）
 
-### 8. 开发执行中心改版 — AI 研发执行中枢 ✅
-- **改版一**：需求包 + 子任务两层结构（RequirementGroup 按模块分组，表格视图可折叠展开）
-- **改版二**：「需你处理」专区（ActionRequiredBar 顶部横条，聚合阻塞 + 待验收，红点提示）
-- **改版三**：决策卡片增强（二级状态标签、风险等级、测试摘要、类型图标、变更摘要、快捷操作按钮）
-- **改版四**：AI 执行透明度（subStatus 实时显示当前阶段如「编码中 · LoginForm.tsx」）
-- **改版五**：详情面板「需求上下文」Tab（用户原话、AI 理解摘要、AI 拆解依据、所属需求包）
-- 新增 blocked 状态 + blockReason 阻塞管理
-- 看板新增阻塞列，卡片内嵌快捷通过/解除阻塞按钮
+给 `Requirement` 类型增加 `diffFiles` 字段，复用 `DevCompleteCard` 中的 `DiffFile` 类型但增加行号信息：
+```ts
+interface DiffLine {
+  type: "add" | "del" | "ctx";
+  content: string;
+  oldLine?: number;
+  newLine?: number;
+}
 
-### 9. 消息中心升级 — 可操作的研发消息中枢 ✅
-- 「需要处理」筛选 Tab + 动作型消息置顶
-- 每条消息增加动作按钮（去审查/查看预览/查看详情等）
-- 消息优先级视觉分层（动作型橙色竖条、发布型绿色图标背景）
-- 上下文摘要（contextSummary 一句话描述）
-- 时间分组（今天/昨天/更早）
-- 需求包聚合折叠（同 taskId 消息折叠，展开查看历史）
+interface DiffFile {
+  path: string;
+  additions: number;
+  deletions: number;
+  lines: DiffLine[];
+  collapsed?: boolean;
+}
+```
+
+为已完成/待验收的 Requirement 自动生成 mock diff 数据。
+
+### 3. DetailPanel 增加「代码变更」Tab（`DevExecution.tsx`）
+
+在现有 4 个 Tab 旁新增第 5 个：
+```
+开发过程 | 产品预览 | 代码变更 | 测试报告 | 需求上下文
+```
+- 仅在 `req.status` 为 `review`、`accepted`、`done`、`testing` 时显示该 Tab
+- Tab 内渲染 `GitDiffViewer` 组件
+
+### 4. GitDiffViewer 布局细节
+
+```text
+┌─ 文件变更概览 ────────────────────────────────┐
+│  3 个文件变更  +84  -12                        │
+├─ src/components/LoginForm.tsx ──── +24 -8 ── ▾ │
+│  3 │  3 │   const [email, setEmail] = ...      │
+│  4 │    │ - // TODO: add validation             │
+│    │  4 │ + const emailRegex = /^[^\s@]+.../    │
+│    │  5 │ + const isValidEmail = ...            │
+│  + │    │   [点击添加评论]                       │
+│    ├── 💬 李泽龙: 这里建议提取为常量 ──────────│
+│  5 │  6 │                                       │
+├─ src/components/FormErrorTip.tsx ── +18 -0 ─ ▾ │
+│ ...                                             │
+└─────────────────────────────────────────────────┘
+```
+
+- 行号列宽固定，字体 mono，背景略灰
+- 添加行 `bg-emerald-500/10`，删除行 `bg-red-500/10`
+- 文件头 sticky，带文件图标、路径、统计、折叠按钮
+- 评论气泡：圆角卡片，头像 + 姓名 + 内容，嵌在 diff 行之间
+
+### 5. 涉及文件
+
+| 文件 | 改动 |
+|------|------|
+| `src/components/GitDiffViewer.tsx` | **新建** — GitLab 风格 diff 查看器 |
+| `src/data/devExecutionMock.ts` | 扩展类型，增加 mock diff 数据生成函数 |
+| `src/pages/DevExecution.tsx` | DetailPanel 增加「代码变更」Tab |
+
