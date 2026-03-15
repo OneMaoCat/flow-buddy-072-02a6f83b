@@ -86,7 +86,7 @@ export const buildMockNotifications = (): AppNotification[] => [
     type: "review_rejected",
     title: "审查需要修改",
     description: "支付模块重构 — 微信支付接入",
-    actor: "邱翔",
+    actor: "李泽龙",
     conversationId: "conv-1",
     taskId: "task-2",
     timestamp: now - 1 * 3600_000,
