@@ -553,10 +553,12 @@ const ChatArea = ({
   processCardId,
   processIssueDecisions,
   processOtherTexts,
+  processAcceptanceConfirmed,
   processMergeApproved,
   processActionableIssues,
   processAllResolved,
   onProcessDecide,
+  onProcessOtherText,
   onProcessAcceptance,
   onProcessMerge,
 }: {
@@ -584,11 +586,13 @@ const ChatArea = ({
   processCardId: string | null;
   processIssueDecisions: Record<string, IssueDecision>;
   processOtherTexts: Record<string, string>;
+  processAcceptanceConfirmed: boolean;
   processMergeApproved: boolean;
   processActionableIssues: import("@/data/reviewTypes").AIReviewFinding[];
   processAllResolved: boolean;
   onProcessDecide: (id: string, decision: IssueDecision) => void;
   onProcessOtherText: (id: string, text: string) => void;
+  onProcessAcceptance: () => void;
   onProcessMerge: () => void;
 }) => {
   const renderUserMessage = (msg: ChatMessage) => (
