@@ -387,8 +387,6 @@ export const createInitialRequirements = (): { requirements: Requirement[]; grou
       duration: Math.floor(Math.random() * 300) + 50,
     }));
     reqs[i].testResult = { tests, retryCount: 0, isRetrying: false };
-    // Attach completed AI code review
-    const { buildMockAIReview } = require("@/data/reviewTypes");
     reqs[i].reviewInfo = buildMockAIReview();
   }
 
