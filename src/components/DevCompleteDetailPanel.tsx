@@ -507,40 +507,8 @@ const DevCompleteDetailPanel = ({
               </div>
             </div>
 
-            {/* ── Horizontal Timeline ── */}
-            <div className="rounded-xl border border-border bg-muted/10 px-4 py-4">
-              <div className="flex items-center">
-                {timelineSteps.map((step, i) => (
-                  <div key={i} className="flex items-center flex-1 min-w-0 last:flex-none group">
-                    <div className="flex flex-col items-center gap-1.5 relative">
-                      <div className={cn(
-                        "w-6 h-6 rounded-full flex items-center justify-center shrink-0 border-2 transition-colors",
-                        step.status === "done" && "border-emerald-500 bg-emerald-500/10",
-                        step.status === "running" && "border-primary bg-primary/10",
-                        step.status === "warning" && "border-amber-500 bg-amber-500/10",
-                        step.status === "error" && "border-destructive bg-destructive/10",
-                      )}>
-                        <div className={cn("w-2 h-2 rounded-full", statusDot[step.status])} />
-                      </div>
-                      <span className="text-[10px] text-muted-foreground font-medium whitespace-nowrap">{step.label.split(" & ")[0].split("·")[0].trim()}</span>
-                      {/* Hover tooltip */}
-                      <div className="absolute bottom-full mb-2 hidden group-hover:block z-10">
-                        <div className="bg-popover border border-border rounded-lg px-3 py-2 shadow-lg whitespace-nowrap">
-                          <p className="text-xs font-medium text-foreground">{step.label}</p>
-                          <p className="text-[10px] text-muted-foreground mt-0.5">{step.detail}</p>
-                        </div>
-                      </div>
-                    </div>
-                    {i < timelineSteps.length - 1 && (
-                      <div className={cn(
-                        "flex-1 h-px mx-1.5",
-                        step.status === "done" ? "bg-emerald-500/40" : "bg-border"
-                      )} />
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
+
+
 
             {/* ── Detail Sections (collapsible cards) ── */}
             <div className="space-y-3">
