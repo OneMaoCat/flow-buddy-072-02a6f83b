@@ -29,6 +29,8 @@ import {
   type Requirement, type RequirementGroup, type Agent, type AgentStatus, type RequirementStatus,
   type LogEntry, type TestItemStatus, type SubStatus, type RiskLevel, type TaskType,
 } from "@/data/devExecutionMock";
+import { generateDiffForRequirement, type DiffFile } from "@/data/diffMock";
+import GitDiffViewer from "@/components/GitDiffViewer";
 
 // ---------- Icon map ----------
 const agentIcons: Record<string, React.ReactNode> = {
@@ -878,6 +880,11 @@ const DetailPanel = ({
           <TabsTrigger value="preview" className="text-xs gap-1.5">
             <Eye size={12} /> 产品预览
           </TabsTrigger>
+          {["review", "accepted", "done", "testing"].includes(req.status) && (
+            <TabsTrigger value="diff" className="text-xs gap-1.5">
+              <GitBranch size={12} /> 代码变更
+            </TabsTrigger>
+          )}
           <TabsTrigger value="tests" className="text-xs gap-1.5">
             <TestTube2 size={12} /> 测试报告
           </TabsTrigger>
@@ -972,7 +979,12 @@ const DetailPanel = ({
           )}
         </TabsContent>
 
-        {/* Tests */}
+        {/* Code Diff */}
+        {["review", "accepted", "done", "testing"].includes(req.status) && (
+          <TabsContent value="diff" className="flex-1 min-h-0 m-0">
+            <GitDiffViewer files={generateDiffForRequirement(req)} />
+          </TabsContent>
+        )}
         <TabsContent value="tests" className="flex-1 min-h-0 m-0 overflow-y-auto">
           <div className="p-4">
             {req.testResult ? (
