@@ -689,9 +689,26 @@ const ChatArea = ({
         )}
       </div>
       {(() => {
+        // Check if ProcessReviewQA should be shown (process panel open with unresolved issues)
+        let processQAPanel: React.ReactNode = null;
+        if (processCardId && processActionableIssues.length > 0) {
+          processQAPanel = (
+            <ProcessReviewQA
+              issues={processActionableIssues}
+              decisions={processIssueDecisions}
+              otherTexts={processOtherTexts}
+              onDecide={onProcessDecide}
+              onOtherText={onProcessOtherText}
+              onConfirmMerge={onProcessMerge}
+              allResolved={processAllResolved}
+              mergeApproved={processMergeApproved}
+            />
+          );
+        }
+
         // Check if AcceptanceQA should be shown
         let qaPanel: React.ReactNode = null;
-        if (selectedCardId) {
+        if (!processQAPanel && selectedCardId) {
           const card = devCards.find(c => c.id === selectedCardId);
           if (card && !deployedIds.has(card.id)) {
             const review = reviewStatus.get(card.id);
@@ -713,12 +730,15 @@ const ChatArea = ({
             }
           }
         }
-        const showQA = !!qaPanel;
+        const showQA = !!qaPanel || !!processQAPanel;
 
         return (
           <div className="sticky bottom-0 bg-background/80 backdrop-blur-md border-t border-border">
-            {showQA ? (
-              /* QA mode: only show the issue carousel, hide everything else */
+            {processQAPanel ? (
+              <div className="p-3">
+                {processQAPanel}
+              </div>
+            ) : showQA ? (
               <div className="p-3">
                 {qaPanel}
               </div>
