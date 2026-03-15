@@ -54,6 +54,7 @@ export interface DevCompleteResult {
   elapsed: number;
   sourceContext?: { userPrompt: string; aiSummary: string };
   aiChangeSummary?: string;
+  coveragePercent?: number;
 }
 
 export const buildMockDevResult = (
