@@ -1,6 +1,107 @@
-import { X, GitBranch, Search, Sparkles, Code2, Pencil, TestTube2, Shield, CheckCircle2, FileCode2, MonitorPlay, MousePointerClick, Type, Eye, ArrowRight, Loader2 } from "lucide-react";
+import { useState } from "react";
+import { X, GitBranch, Search, Sparkles, Code2, Pencil, TestTube2, Shield, CheckCircle2, FileCode2, MonitorPlay, MousePointerClick, Type, Eye, ArrowRight, Loader2, ChevronDown, ChevronUp } from "lucide-react";
 import type { DevCompleteResult } from "@/components/DevCompleteCard";
 import { buildMockUITestSteps, type UITestStep } from "@/components/UITestReplay";
+import mockPreviewImg from "@/assets/mock-preview.jpg";
+import { cn } from "@/lib/utils";
+
+const actionIcons: Record<UITestStep["action"], React.ReactNode> = {
+  click: <MousePointerClick size={11} />,
+  type: <Type size={11} />,
+  verify: <Eye size={11} />,
+  navigate: <ArrowRight size={11} />,
+  wait: <Loader2 size={11} />,
+};
+const actionLabels: Record<UITestStep["action"], string> = {
+  click: "点击", type: "输入", verify: "验证", navigate: "导航", wait: "等待",
+};
+
+/* ── UI Test Process Log with screenshots ── */
+const UITestProcessLog = () => {
+  const uiSteps = buildMockUITestSteps();
+  const uiPassed = uiSteps.filter(s => s.passed).length;
+  const [expandedStep, setExpandedStep] = useState<string | null>(null);
+
+  return (
+    <div className="text-xs text-muted-foreground space-y-2">
+      <p className="text-foreground font-medium">
+        {uiPassed}/{uiSteps.length} 步骤通过 · {uiSteps.reduce((s, t) => s + t.duration, 0)}ms
+      </p>
+      <div className="space-y-0.5">
+        {uiSteps.map((s, i) => {
+          const isExpanded = expandedStep === s.id;
+          return (
+            <div key={s.id}>
+              <button
+                onClick={() => setExpandedStep(isExpanded ? null : s.id)}
+                className="w-full flex items-start gap-2 py-1.5 px-1 rounded-md hover:bg-muted/50 transition-colors text-left"
+              >
+                <div className="mt-0.5 w-4 h-4 rounded-full bg-muted flex items-center justify-center shrink-0 text-[8px] font-bold text-muted-foreground">
+                  {i + 1}
+                </div>
+                <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                  <span className="inline-flex items-center gap-0.5 text-muted-foreground/70 shrink-0">
+                    {actionIcons[s.action]}
+                    <span className="text-[10px]">{actionLabels[s.action]}</span>
+                  </span>
+                  <span className="truncate">{s.description}</span>
+                </div>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <span className="text-[10px] text-muted-foreground/40 tabular-nums">{s.duration}ms</span>
+                  <CheckCircle2 size={11} className={s.passed ? "text-green-500" : "text-destructive"} />
+                  {isExpanded ? <ChevronUp size={10} className="text-muted-foreground/40" /> : <ChevronDown size={10} className="text-muted-foreground/40" />}
+                </div>
+              </button>
+              {isExpanded && (
+                <div className="ml-6 mb-2 mt-1 animate-in fade-in slide-in-from-top-1 duration-200">
+                  <div className="rounded-md border border-border overflow-hidden">
+                    {/* Mini browser chrome */}
+                    <div className="flex items-center gap-1 px-2 py-1 bg-muted/50 border-b border-border">
+                      <div className="flex gap-0.5">
+                        <div className="w-1.5 h-1.5 rounded-full bg-foreground/15" />
+                        <div className="w-1.5 h-1.5 rounded-full bg-foreground/10" />
+                        <div className="w-1.5 h-1.5 rounded-full bg-foreground/10" />
+                      </div>
+                      <div className="flex-1 mx-1 px-1.5 py-0.5 rounded bg-background/60 text-[8px] text-muted-foreground font-mono truncate">
+                        localhost:5173{s.action === "navigate" ? s.target : "/login"}
+                      </div>
+                    </div>
+                    {/* Screenshot with action indicator overlay */}
+                    <div className="relative">
+                      <img
+                        src={mockPreviewImg}
+                        alt={`步骤 ${i + 1}: ${s.description}`}
+                        className="w-full h-32 object-cover object-top"
+                      />
+                      <div className="absolute inset-0 bg-background/20" />
+                      {/* Action indicator dot */}
+                      <div
+                        className="absolute z-10"
+                        style={{ left: `${s.indicatorX}%`, top: `${s.indicatorY}%`, transform: "translate(-50%, -50%)" }}
+                      >
+                        <div className="w-6 h-6 rounded-full border-2 border-primary bg-primary/20 flex items-center justify-center animate-pulse">
+                          <div className="w-2 h-2 rounded-full bg-primary" />
+                        </div>
+                      </div>
+                      {/* Action label */}
+                      <div className="absolute bottom-2 left-2 right-2">
+                        <div className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-background/90 backdrop-blur-sm border border-border text-[9px] font-medium text-foreground shadow-sm">
+                          {actionIcons[s.action]}
+                          {s.description}
+                          {s.value && <span className="text-muted-foreground ml-1">"{s.value}"</span>}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
 
 interface DevProcessDetailPanelProps {
   result: DevCompleteResult;
@@ -131,45 +232,7 @@ const DevProcessDetailPanel = ({ result, onClose }: DevProcessDetailPanelProps) 
     {
       icon: <MonitorPlay size={14} />,
       title: "UI 测试",
-      content: (() => {
-        const uiSteps = buildMockUITestSteps();
-        const uiPassed = uiSteps.filter(s => s.passed).length;
-        const actionIcons: Record<UITestStep["action"], React.ReactNode> = {
-          click: <MousePointerClick size={11} />,
-          type: <Type size={11} />,
-          verify: <Eye size={11} />,
-          navigate: <ArrowRight size={11} />,
-          wait: <Loader2 size={11} />,
-        };
-        const actionLabels: Record<UITestStep["action"], string> = {
-          click: "点击", type: "输入", verify: "验证", navigate: "导航", wait: "等待",
-        };
-        return (
-          <div className="text-xs text-muted-foreground space-y-2">
-            <p className="text-foreground font-medium">{uiPassed}/{uiSteps.length} 步骤通过 · {uiSteps.reduce((s, t) => s + t.duration, 0)}ms</p>
-            <div className="space-y-1">
-              {uiSteps.map((s, i) => (
-                <div key={s.id} className="flex items-start gap-2">
-                  <div className="mt-0.5 w-4 h-4 rounded-full bg-muted flex items-center justify-center shrink-0 text-[8px] font-bold text-muted-foreground">
-                    {i + 1}
-                  </div>
-                  <div className="flex items-center gap-1.5 flex-1 min-w-0">
-                    <span className="inline-flex items-center gap-0.5 text-muted-foreground/70 shrink-0">
-                      {actionIcons[s.action]}
-                      <span className="text-[10px]">{actionLabels[s.action]}</span>
-                    </span>
-                    <span className="truncate">{s.description}</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    <span className="text-[10px] text-muted-foreground/40 tabular-nums">{s.duration}ms</span>
-                    <CheckCircle2 size={11} className={s.passed ? "text-green-500" : "text-destructive"} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        );
-      })(),
+      content: <UITestProcessLog />,
     },
     {
       icon: <Shield size={14} />,
