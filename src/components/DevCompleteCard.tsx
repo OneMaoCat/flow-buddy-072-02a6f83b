@@ -52,6 +52,11 @@ export const buildMockDevResult = (
   previewPath: "/login",
   projectId,
   elapsed: Math.floor(Math.random() * 20) + 5,
+  sourceContext: {
+    userPrompt: title,
+    aiSummary: `用户希望为登录页面增加表单校验功能，包括邮箱格式验证和密码强度检查。AI 将此需求拆解为：1) 新增正则校验逻辑；2) 创建错误提示组件 FormErrorTip；3) 编写完整的单元测试覆盖正常与异常场景。`,
+  },
+  aiChangeSummary: `本次变更围绕登录表单校验展开：在 LoginForm.tsx 中新增了邮箱正则校验和密码强度验证函数，替换了原有的简单 alert 提示为结构化的错误状态管理；新建了 FormErrorTip 组件用于统一展示表单错误信息；同时编写了 10 个测试用例覆盖邮箱格式、密码规则、表单提交阻止和组件显隐等场景，预估测试覆盖率 > 90%。`,
   files: [
     {
       path: "src/components/LoginForm.tsx",
