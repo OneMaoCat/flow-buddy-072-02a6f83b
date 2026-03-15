@@ -612,126 +612,139 @@ const ChatArea = ({
           </div>
         )}
       </div>
-      <div className="sticky bottom-0 bg-background/80 backdrop-blur-md border-t border-border">
-        {/* AcceptanceQA above PromptBar when selected card has pending issues */}
-        {(() => {
-          if (!selectedCardId) return null;
+      {(() => {
+        // Check if AcceptanceQA should be shown
+        let qaPanel: React.ReactNode = null;
+        if (selectedCardId) {
           const card = devCards.find(c => c.id === selectedCardId);
-          if (!card) return null;
-          const deployed = deployedIds.has(card.id);
-          if (deployed) return null;
-          const review = reviewStatus.get(card.id);
-          if (review?.aiReviewStatus !== "done") return null;
-          const allFindings = (review.aiReviewers || []).flatMap(
-            (r) => (r.findings || []).map((f) => ({ ...f, reviewer: r.displayName }))
-          );
-          const failedTests = card.tests.filter((t) => !t.passed);
-          const issues = buildAcceptanceIssues(allFindings, failedTests);
-          if (issues.length === 0) return null;
-          return (
-            <div className="px-3 pt-3 pb-1 border-b border-border">
-              <AcceptanceQA
-                issues={issues}
-                onConfirm={(decisions) => onReject(card.id, decisions)}
-                onDeployAnyway={() => onDeploy(card.id)}
-              />
-            </div>
-          );
-        })()}
-        <div className="p-3 flex items-center gap-2">
-          {taskCount > 0 && (
-            <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
-              <PopoverTrigger asChild>
-                <button className="relative p-2 rounded-lg hover:bg-secondary transition-colors text-muted-foreground">
-                  <ListTodo size={18} />
-                  <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center px-1">
-                    {taskCount}
-                  </span>
-                </button>
-              </PopoverTrigger>
-              <PopoverContent align="start" side="top" className="w-72 p-2">
-                <p className="text-xs font-medium text-muted-foreground px-2 py-1.5">当前对话任务</p>
-                <div className="flex flex-col gap-0.5 max-h-60 overflow-y-auto">
-                  {devInProgress && (
-                    <div className="flex items-center gap-2 px-2 py-1.5 rounded-md text-xs text-muted-foreground opacity-70">
-                      <Loader2 size={12} className="animate-spin text-primary shrink-0" />
-                      <span className="truncate flex-1">{planFlow.requirement || "新任务"}</span>
-                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary shrink-0 font-medium">开发中</span>
-                    </div>
-                  )}
-                  {devCards.map((card) => {
-                    const deployed = deployedIds.has(card.id);
-                    const reviewing = reviewingIds.has(card.id) && !deployed;
-                    return (
-                      <button
-                        key={card.id}
-                        onClick={() => { onSelectCard(card.id); setPopoverOpen(false); }}
-                        className={cn(
-                          "w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-xs transition-colors text-left",
-                          selectedCardId === card.id ? "bg-secondary text-foreground" : "text-muted-foreground hover:bg-secondary/50"
-                        )}
-                      >
-                        {deployed
-                          ? <Check size={12} className="text-emerald-500 shrink-0" />
-                          : reviewing
-                            ? <Shield size={12} className="text-primary shrink-0" />
-                            : <Circle size={10} className="text-orange-500 fill-orange-500 shrink-0" />
-                        }
-                        <span className="truncate flex-1">{card.requirementTitle}</span>
-                        <span className={cn(
-                          "text-[10px] px-1.5 py-0.5 rounded-full shrink-0 font-medium",
-                          deployed ? "text-emerald-600 bg-emerald-500/10"
-                            : reviewing ? "text-primary bg-primary/10"
-                            : "text-orange-600 bg-orange-500/10"
-                        )}>
-                          {deployed ? "已发布" : reviewing ? "AI 审查中" : "待审查"}
+          if (card && !deployedIds.has(card.id)) {
+            const review = reviewStatus.get(card.id);
+            if (review?.aiReviewStatus === "done") {
+              const allFindings = (review.aiReviewers || []).flatMap(
+                (r) => (r.findings || []).map((f) => ({ ...f, reviewer: r.displayName }))
+              );
+              const failedTests = card.tests.filter((t) => !t.passed);
+              const issues = buildAcceptanceIssues(allFindings, failedTests);
+              if (issues.length > 0) {
+                qaPanel = (
+                  <AcceptanceQA
+                    issues={issues}
+                    onConfirm={(decisions) => onReject(card.id, decisions)}
+                    onDeployAnyway={() => onDeploy(card.id)}
+                  />
+                );
+              }
+            }
+          }
+        }
+        const showQA = !!qaPanel;
+
+        return (
+          <div className="sticky bottom-0 bg-background/80 backdrop-blur-md border-t border-border">
+            {showQA ? (
+              /* QA mode: only show the issue carousel, hide everything else */
+              <div className="p-3">
+                {qaPanel}
+              </div>
+            ) : (
+              /* Normal mode: task list + PromptBar */
+              <div className="p-3 flex items-center gap-2">
+                {taskCount > 0 && (
+                  <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
+                    <PopoverTrigger asChild>
+                      <button className="relative p-2 rounded-lg hover:bg-secondary transition-colors text-muted-foreground">
+                        <ListTodo size={18} />
+                        <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center px-1">
+                          {taskCount}
                         </span>
                       </button>
-                    );
-                  })}
+                    </PopoverTrigger>
+                    <PopoverContent align="start" side="top" className="w-72 p-2">
+                      <p className="text-xs font-medium text-muted-foreground px-2 py-1.5">当前对话任务</p>
+                      <div className="flex flex-col gap-0.5 max-h-60 overflow-y-auto">
+                        {devInProgress && (
+                          <div className="flex items-center gap-2 px-2 py-1.5 rounded-md text-xs text-muted-foreground opacity-70">
+                            <Loader2 size={12} className="animate-spin text-primary shrink-0" />
+                            <span className="truncate flex-1">{planFlow.requirement || "新任务"}</span>
+                            <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary shrink-0 font-medium">开发中</span>
+                          </div>
+                        )}
+                        {devCards.map((card) => {
+                          const deployed = deployedIds.has(card.id);
+                          const reviewing = reviewingIds.has(card.id) && !deployed;
+                          return (
+                            <button
+                              key={card.id}
+                              onClick={() => { onSelectCard(card.id); setPopoverOpen(false); }}
+                              className={cn(
+                                "w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-xs transition-colors text-left",
+                                selectedCardId === card.id ? "bg-secondary text-foreground" : "text-muted-foreground hover:bg-secondary/50"
+                              )}
+                            >
+                              {deployed
+                                ? <Check size={12} className="text-emerald-500 shrink-0" />
+                                : reviewing
+                                  ? <Shield size={12} className="text-primary shrink-0" />
+                                  : <Circle size={10} className="text-orange-500 fill-orange-500 shrink-0" />
+                              }
+                              <span className="truncate flex-1">{card.requirementTitle}</span>
+                              <span className={cn(
+                                "text-[10px] px-1.5 py-0.5 rounded-full shrink-0 font-medium",
+                                deployed ? "text-emerald-600 bg-emerald-500/10"
+                                  : reviewing ? "text-primary bg-primary/10"
+                                  : "text-orange-600 bg-orange-500/10"
+                              )}>
+                                {deployed ? "已发布" : reviewing ? "AI 审查中" : "待审查"}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                )}
+                <div className="flex-1">
+                  <PromptBar
+                    onSubmit={onSubmit}
+                    compact
+                    contextSlot={selectedCardId ? (() => {
+                      const card = devCards.find(c => c.id === selectedCardId);
+                      if (!card) return null;
+                      const deployed = deployedIds.has(card.id);
+                      const reviewing = reviewingIds.has(card.id) && !deployed;
+                      const review = reviewStatus.get(card.id);
+                      const reviewDone = review?.aiReviewStatus === "done";
+                      const statusLabel = deployed ? "已发布" : reviewing ? (reviewDone ? "审查完成" : "AI 审查中") : "待审查";
+                      const statusIcon = deployed
+                        ? <Check size={12} className="text-emerald-500" />
+                        : reviewing
+                          ? (reviewDone ? <Shield size={12} className="text-emerald-500" /> : <Shield size={12} className="text-primary animate-pulse" />)
+                          : <Circle size={10} className="text-amber-500 fill-amber-500" />;
+                      return (
+                        <div className="flex items-center gap-2 px-3 py-1.5 animate-fade-in">
+                          <div className="w-[3px] self-stretch rounded-full bg-primary shrink-0" />
+                          <div className="flex-1 min-w-0 flex items-center gap-1.5">
+                            {statusIcon}
+                            <span className="text-[11px] font-medium text-foreground/80 truncate">{card.requirementTitle}</span>
+                            <span className="text-[10px] text-muted-foreground/60">·</span>
+                            <span className="text-[10px] text-muted-foreground shrink-0">{statusLabel}</span>
+                          </div>
+                          <button
+                            onClick={() => onClearCard()}
+                            className="shrink-0 p-0.5 rounded hover:bg-accent/50 text-muted-foreground hover:text-foreground transition-colors"
+                          >
+                            <X size={14} />
+                          </button>
+                        </div>
+                      );
+                    })() : undefined}
+                  />
                 </div>
-              </PopoverContent>
-            </Popover>
-          )}
-          <div className="flex-1">
-            <PromptBar
-              onSubmit={onSubmit}
-              compact
-              contextSlot={selectedCardId ? (() => {
-                const card = devCards.find(c => c.id === selectedCardId);
-                if (!card) return null;
-                const deployed = deployedIds.has(card.id);
-                const reviewing = reviewingIds.has(card.id) && !deployed;
-                const review = reviewStatus.get(card.id);
-                const reviewDone = review?.aiReviewStatus === "done";
-                const statusLabel = deployed ? "已发布" : reviewing ? (reviewDone ? "审查完成" : "AI 审查中") : "待审查";
-                const statusIcon = deployed
-                  ? <Check size={12} className="text-emerald-500" />
-                  : reviewing
-                    ? (reviewDone ? <Shield size={12} className="text-emerald-500" /> : <Shield size={12} className="text-primary animate-pulse" />)
-                    : <Circle size={10} className="text-amber-500 fill-amber-500" />;
-                return (
-                  <div className="flex items-center gap-2 px-3 py-1.5 animate-fade-in">
-                    <div className="w-[3px] self-stretch rounded-full bg-primary shrink-0" />
-                    <div className="flex-1 min-w-0 flex items-center gap-1.5">
-                      {statusIcon}
-                      <span className="text-[11px] font-medium text-foreground/80 truncate">{card.requirementTitle}</span>
-                      <span className="text-[10px] text-muted-foreground/60">·</span>
-                      <span className="text-[10px] text-muted-foreground shrink-0">{statusLabel}</span>
-                    </div>
-                    <button
-                      onClick={() => onClearCard()}
-                      className="shrink-0 p-0.5 rounded hover:bg-accent/50 text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                      <X size={14} />
-                    </button>
-                  </div>
-                );
-              })() : undefined}
-            />
+              </div>
+            )}
           </div>
-        </div>
-      </div>
+        );
+      })()}
     </div>
   );
 };
