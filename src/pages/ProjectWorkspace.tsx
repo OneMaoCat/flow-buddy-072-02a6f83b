@@ -15,6 +15,7 @@ import { requestNotificationPermission, notifyDevComplete } from "@/components/D
 import NotificationCenter from "@/components/NotificationCenter";
 import { type AppNotification, buildMockNotifications } from "@/data/notifications";
 import PreviewPanel from "@/components/PreviewPanel";
+import DevProcessDetailPanel from "@/components/DevProcessDetailPanel";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -55,6 +56,7 @@ const ProjectWorkspace = () => {
     return m;
   });
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
+  const [processCardId, setProcessCardId] = useState<string | null>(null);
   const [detailReadOnly, setDetailReadOnly] = useState(false);
   const [planFlow, setPlanFlow] = useState<{ active: boolean; requirement: string }>({ active: false, requirement: "" });
 
@@ -64,6 +66,9 @@ const ProjectWorkspace = () => {
   const devInProgress = activeConversation?.devInProgress || false;
   const selectedCard = devCards.find((c) => c.id === selectedCardId)
     || conversations.flatMap((c) => c.tasks).find((c) => c.id === selectedCardId)
+    || null;
+  const processCard = devCards.find((c) => c.id === processCardId)
+    || conversations.flatMap((c) => c.tasks).find((c) => c.id === processCardId)
     || null;
 
   const unreadNotificationCount = notifications.filter((n) => !n.read).length;
@@ -383,6 +388,7 @@ const ProjectWorkspace = () => {
       onSelectCard={handleSelectCard}
       onClearCard={() => setSelectedCardId(null)}
       onViewInProgressDetail={() => setRightPanelOpen(true)}
+      onViewProcess={(cardId: string) => { setProcessCardId(cardId); setSelectedCardId(null); setRightPanelOpen(true); }}
       rightPanelOpen={rightPanelOpen}
       onToggleRightPanel={() => setRightPanelOpen(!rightPanelOpen)}
     />
@@ -460,6 +466,11 @@ const ProjectWorkspace = () => {
                   reviewInfo={reviewStatus.get(selectedCard.id)}
                   onUpdateReview={handleUpdateReview}
                 />
+              ) : processCard ? (
+                <DevProcessDetailPanel
+                  result={processCard}
+                  onClose={() => { setProcessCardId(null); setRightPanelOpen(false); }}
+                />
               ) : (
                 <PreviewPanel />
               )}
@@ -491,6 +502,7 @@ const ChatArea = ({
   onSelectCard,
   onClearCard,
   onViewInProgressDetail,
+  onViewProcess,
   rightPanelOpen,
   onToggleRightPanel,
 }: {
@@ -512,6 +524,7 @@ const ChatArea = ({
   onSelectCard: (id: string) => void;
   onClearCard: () => void;
   onViewInProgressDetail: () => void;
+  onViewProcess: (cardId: string) => void;
   rightPanelOpen: boolean;
   onToggleRightPanel: () => void;
 }) => {
@@ -551,6 +564,7 @@ const ChatArea = ({
               reviewApproved={reviewApproved}
               selected={selectedCardId === card.id}
               onClick={() => onSelectCard(card.id)}
+              onViewProcess={() => onViewProcess(card.id)}
             />
           </div>
         </div>
