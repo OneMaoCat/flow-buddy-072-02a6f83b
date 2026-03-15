@@ -176,27 +176,15 @@ const DevExecution = () => {
     action: requirements.filter(r => r.status === "review" || r.status === "blocked").length,
   }), [requirements]);
 
-  // Action required items
-  const actionItems = useMemo(() =>
-    requirements.filter(r => r.status === "review" || r.status === "blocked")
-      .sort((a, b) => {
-        if (a.status === "blocked" && b.status !== "blocked") return -1;
-        if (b.status === "blocked" && a.status !== "blocked") return 1;
-        return 0;
-      }),
-    [requirements]
-  );
-
   const filtered = useMemo(() => {
     let list = requirements;
-    if (filter === "action") list = actionItems;
-    else if (filter !== "all") list = list.filter(r => r.status === filter);
+    if (filter !== "all") list = list.filter(r => r.status === filter);
     if (search.trim()) {
       const q = search.trim().toLowerCase();
       list = list.filter(r => r.title.toLowerCase().includes(q) || r.submitter.name.includes(q));
     }
     return list;
-  }, [requirements, filter, search, actionItems]);
+  }, [requirements, filter, search]);
 
   // ---- Simulation logic ----
   useEffect(() => {
