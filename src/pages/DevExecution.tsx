@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   Code2, TestTube2, Eye, Plug, Database, Palette, AlertCircle, CheckCircle2,
@@ -419,80 +420,86 @@ const DevExecution = () => {
           onClose={() => setShowNotificationCenter(false)}
         />
       ) : (
-        <div className="flex h-full overflow-hidden">
-          {/* Left: task list */}
-          <div className="flex flex-col h-full overflow-hidden min-w-0 flex-1">
-            {/* Action Required Bar */}
-            {actionItems.length > 0 && filter !== "action" && (
-              <ActionRequiredBar
-                items={actionItems}
-                onSelect={setSelectedReqId}
-                onAccept={handleAccept}
-                onUnblock={handleUnblock}
-                onViewAll={() => setFilter("action")}
-              />
-            )}
-
-            {/* Content */}
-            <ScrollArea className="flex-1 min-h-0">
-              {viewMode === "table" ? (
-                <TableView
-                  items={filtered}
-                  allItems={requirements}
-                  groups={groups}
-                  selectedId={selectedReqId}
+        <ResizablePanelGroup direction="horizontal" className="h-full">
+          <ResizablePanel defaultSize={selectedReq ? 60 : 100} minSize={35}>
+            <div className="flex flex-col h-full overflow-hidden min-w-0">
+              {/* Action Required Bar */}
+              {actionItems.length > 0 && filter !== "action" && (
+                <ActionRequiredBar
+                  items={actionItems}
                   onSelect={setSelectedReqId}
-                  getProgress={getReqProgress}
-                  expandedGroups={expandedGroups}
-                  toggleGroup={toggleGroup}
-                />
-              ) : (
-                <KanbanView
-                  items={requirements}
-                  groups={groups}
-                  columns={kanbanColumns}
-                  selectedId={selectedReqId}
-                  onSelect={setSelectedReqId}
-                  getProgress={getReqProgress}
                   onAccept={handleAccept}
                   onUnblock={handleUnblock}
+                  onViewAll={() => setFilter("action")}
                 />
               )}
-            </ScrollArea>
 
-            {/* Bottom action bar */}
-            {counts.review > 0 && (
-              <div className="shrink-0 border-t border-border bg-muted/30 px-4 py-2 flex items-center gap-3">
-                <span className="text-xs text-orange-600 font-medium">{counts.review} 个待验收</span>
-                <div className="flex-1" />
-                <Button size="sm" className="gap-1.5 bg-green-600 hover:bg-green-700 h-7 text-xs" onClick={handleAcceptAll}>
-                  <CheckCheck size={12} /> 一键全部通过
-                </Button>
-              </div>
-            )}
-          </div>
+              {/* Content */}
+              <ScrollArea className="flex-1 min-h-0">
+                {viewMode === "table" ? (
+                  <TableView
+                    items={filtered}
+                    allItems={requirements}
+                    groups={groups}
+                    selectedId={selectedReqId}
+                    onSelect={setSelectedReqId}
+                    getProgress={getReqProgress}
+                    expandedGroups={expandedGroups}
+                    toggleGroup={toggleGroup}
+                  />
+                ) : (
+                  <KanbanView
+                    items={requirements}
+                    groups={groups}
+                    columns={kanbanColumns}
+                    selectedId={selectedReqId}
+                    onSelect={setSelectedReqId}
+                    getProgress={getReqProgress}
+                    onAccept={handleAccept}
+                    onUnblock={handleUnblock}
+                  />
+                )}
+              </ScrollArea>
+
+              {/* Bottom action bar */}
+              {counts.review > 0 && (
+                <div className="shrink-0 border-t border-border bg-muted/30 px-4 py-2 flex items-center gap-3">
+                  <span className="text-xs text-orange-600 font-medium">{counts.review} 个待验收</span>
+                  <div className="flex-1" />
+                  <Button size="sm" className="gap-1.5 bg-green-600 hover:bg-green-700 h-7 text-xs" onClick={handleAcceptAll}>
+                    <CheckCheck size={12} /> 一键全部通过
+                  </Button>
+                </div>
+              )}
+            </div>
+          </ResizablePanel>
 
           {/* Right: detail panel */}
           {selectedReq && (
-            <div className="w-[560px] border-l border-border flex flex-col h-full bg-background shrink-0">
-              <DetailPanel
-                req={selectedReq}
-                group={groups.find(g => g.id === selectedReq.groupId)}
-                progress={getReqProgress(selectedReq)}
-                logs={logs.filter(l => l.reqId === selectedReq.id)}
-                onClose={() => setSelectedReqId(null)}
-                onAccept={handleAccept}
-                onReject={handleReject}
-                onUnblock={handleUnblock}
-                rejectingReq={rejectingReq}
-                setRejectingReq={setRejectingReq}
-                rejectReason={rejectReason}
-                setRejectReason={setRejectReason}
-                projectId={id || ""}
-              />
-            </div>
+            <>
+              <ResizableHandle withHandle />
+              <ResizablePanel defaultSize={40} minSize={25} maxSize={65}>
+                <div className="flex flex-col h-full bg-background">
+                  <DetailPanel
+                    req={selectedReq}
+                    group={groups.find(g => g.id === selectedReq.groupId)}
+                    progress={getReqProgress(selectedReq)}
+                    logs={logs.filter(l => l.reqId === selectedReq.id)}
+                    onClose={() => setSelectedReqId(null)}
+                    onAccept={handleAccept}
+                    onReject={handleReject}
+                    onUnblock={handleUnblock}
+                    rejectingReq={rejectingReq}
+                    setRejectingReq={setRejectingReq}
+                    rejectReason={rejectReason}
+                    setRejectReason={setRejectReason}
+                    projectId={id || ""}
+                  />
+                </div>
+              </ResizablePanel>
+            </>
           )}
-        </div>
+        </ResizablePanelGroup>
       )}
     </ProjectSidebarLayout>
   );
