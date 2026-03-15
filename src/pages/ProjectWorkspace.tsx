@@ -632,6 +632,8 @@ const ChatArea = ({
               selected={selectedCardId === card.id}
               onClick={() => onSelectCard(card.id)}
               onViewProcess={() => onViewProcess(card.id)}
+              acceptanceConfirmed={processAcceptanceConfirmed}
+              mergeApproved={processMergeApproved}
             />
           </div>
         </div>

@@ -165,10 +165,10 @@ const buildProcessSteps = (result: DevCompleteResult): ProcessStep[] => {
 
 /* ── DevProcessLog: completed steps ── */
 
-const DevProcessLog = ({ result }: { result: DevCompleteResult }) => {
+const DevProcessLog = ({ result, acceptanceConfirmed, mergeApproved }: { result: DevCompleteResult; acceptanceConfirmed?: boolean; mergeApproved?: boolean }) => {
   const steps = buildProcessSteps(result);
-  // First 7 steps are completed (up to Code Review), last 3 are pending
-  const completedCount = 7;
+  // First 7 steps always completed; step 7 (人工验收) if accepted; step 8 (合并主分支) if merged
+  const completedCount = mergeApproved ? 9 : acceptanceConfirmed ? 8 : 7;
 
   return (
     <div className="flex flex-col gap-0">
@@ -314,9 +314,11 @@ interface DevCompleteCardProps {
   selected?: boolean;
   onClick?: () => void;
   onViewProcess?: () => void;
+  acceptanceConfirmed?: boolean;
+  mergeApproved?: boolean;
 }
 
-const DevCompleteCard = ({ result, selected, onClick, onViewProcess }: DevCompleteCardProps) => {
+const DevCompleteCard = ({ result, selected, onClick, onViewProcess, acceptanceConfirmed, mergeApproved }: DevCompleteCardProps) => {
   return (
     <div
       className={cn(
@@ -325,7 +327,7 @@ const DevCompleteCard = ({ result, selected, onClick, onViewProcess }: DevComple
       )}
     >
       <div className="px-4 pt-3 pb-2">
-        <DevProcessLog result={result} />
+        <DevProcessLog result={result} acceptanceConfirmed={acceptanceConfirmed} mergeApproved={mergeApproved} />
       </div>
       <div className="flex items-center justify-end gap-3 px-4 py-2.5 border-t border-border bg-muted/30">
         <button
