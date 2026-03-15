@@ -14,6 +14,7 @@ import SidebarConversationList from "@/components/SidebarConversationList";
 import { requestNotificationPermission, notifyDevComplete } from "@/components/DevNotification";
 import NotificationCenter from "@/components/NotificationCenter";
 import { type AppNotification, buildMockNotifications } from "@/data/notifications";
+import PreviewPanel from "@/components/PreviewPanel";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
