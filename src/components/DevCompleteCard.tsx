@@ -327,7 +327,7 @@ const DevCompleteCard = ({ result, selected, onClick, onViewProcess, acceptanceC
       )}
     >
       <div className="px-4 pt-3 pb-2">
-        <DevProcessLog result={result} />
+        <DevProcessLog result={result} acceptanceConfirmed={acceptanceConfirmed} mergeApproved={mergeApproved} />
       </div>
       <div className="flex items-center justify-end gap-3 px-4 py-2.5 border-t border-border bg-muted/30">
         <button
