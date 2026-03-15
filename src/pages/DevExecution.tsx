@@ -518,7 +518,7 @@ const ActionRequiredBar = ({
   items: Requirement[];
   onSelect: (id: string) => void;
   onAccept: (id: string) => void;
-  onUnblock: (id: string) => void;
+  onUnblock: (id: string, resolution?: string) => void;
   onViewAll: () => void;
 }) => {
   const blockedCount = items.filter(r => r.status === "blocked").length;
