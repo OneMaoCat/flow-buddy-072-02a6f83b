@@ -371,7 +371,7 @@ export const createInitialRequirements = (): { requirements: Requirement[]; grou
     });
   }
 
-  // First 3 requirements: already reviewed
+  // First 3 requirements: already reviewed — add AI code review results
   const PRE_DONE = 3;
   for (let i = 0; i < PRE_DONE && i < reqs.length; i++) {
     reqs[i].status = "review";
@@ -385,6 +385,9 @@ export const createInitialRequirements = (): { requirements: Requirement[]; grou
       duration: Math.floor(Math.random() * 300) + 50,
     }));
     reqs[i].testResult = { tests, retryCount: 0, isRetrying: false };
+    // Attach completed AI code review
+    const { buildMockAIReview } = require("@/data/reviewTypes");
+    reqs[i].reviewInfo = buildMockAIReview();
   }
 
   // Add some blocked tasks for demo — use different block types
