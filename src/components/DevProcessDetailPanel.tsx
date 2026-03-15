@@ -142,8 +142,10 @@ export const ProcessReviewQA = ({
   otherTexts,
   onDecide,
   onOtherText,
+  onConfirmAcceptance,
   onConfirmMerge,
   allResolved,
+  acceptanceConfirmed,
   mergeApproved,
 }: {
   issues: AIReviewFinding[];
@@ -151,8 +153,10 @@ export const ProcessReviewQA = ({
   otherTexts: Record<string, string>;
   onDecide: (id: string, decision: IssueDecision) => void;
   onOtherText: (id: string, text: string) => void;
+  onConfirmAcceptance: () => void;
   onConfirmMerge: () => void;
   allResolved: boolean;
+  acceptanceConfirmed: boolean;
   mergeApproved: boolean;
 }) => {
   const [currentIdx, setCurrentIdx] = useState(0);
@@ -160,6 +164,7 @@ export const ProcessReviewQA = ({
   const current = issues[currentIdx];
   const resolvedCount = issues.filter(i => decisions[i.id]).length;
 
+  // Phase 3: merge approved — done
   if (mergeApproved) {
     return (
       <div className="flex items-center gap-2 px-3 py-2 text-xs text-green-500">
@@ -169,17 +174,40 @@ export const ProcessReviewQA = ({
     );
   }
 
+  // Phase 2b: acceptance confirmed, waiting for merge confirmation
+  if (acceptanceConfirmed) {
+    return (
+      <div className="px-3 py-3 space-y-2">
+        <div className="flex items-center gap-2 text-xs">
+          <CheckCircle2 size={12} className="text-green-500" />
+          <span className="text-foreground font-medium">人工验收通过</span>
+        </div>
+        <p className="text-[11px] text-muted-foreground">确认将功能分支合并到主分支？合并后将自动触发全流程回归测试。</p>
+        <Button size="sm" onClick={onConfirmMerge} className="gap-1.5 text-xs h-8">
+          <GitMerge size={12} />
+          确认合并主分支
+        </Button>
+      </div>
+    );
+  }
+
+  // Phase 2a: all issues resolved, waiting for acceptance
   if (allResolved) {
     return (
-      <div className="px-3 py-2 space-y-2">
+      <div className="px-3 py-3 space-y-3">
         <div className="flex items-center gap-2 text-xs">
           <CheckCircle2 size={12} className="text-green-500" />
           <span className="text-foreground font-medium">全部 {total} 个问题已处理</span>
         </div>
-        <div className="flex items-center gap-2">
-          <Button size="sm" onClick={onConfirmMerge} className="gap-1.5 text-xs h-8">
-            <GitMerge size={12} />
-            确认合并主分支
+        <div className="rounded-lg border border-border p-3 space-y-2">
+          <div className="flex items-center gap-2">
+            <UserCheck size={14} className="text-orange-500" />
+            <span className="text-xs font-semibold text-foreground">人工验收</span>
+          </div>
+          <p className="text-[11px] text-muted-foreground">请确认功能是否符合需求、UI 是否一致、边界情况是否覆盖。验收通过后将进入合并流程。</p>
+          <Button size="sm" onClick={onConfirmAcceptance} className="gap-1.5 text-xs h-8">
+            <CheckCircle2 size={12} />
+            验收通过，继续
           </Button>
         </div>
       </div>
