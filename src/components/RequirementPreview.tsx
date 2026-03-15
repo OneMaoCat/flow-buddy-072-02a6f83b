@@ -75,7 +75,7 @@ const RequirementPreview = ({ previewPath, requirementTitle, projectId, fullscre
         <div
           className={cn(
             "bg-background shadow-sm transition-all duration-300 flex flex-col overflow-hidden",
-            fullscreen ? "h-full rounded-none border-0" : "h-[280px] rounded-md border border-border"
+            fullscreen ? "h-full rounded-none border-0" : "h-[480px] rounded-md border border-border"
           )}
           style={{ width: currentDevice.width, maxWidth: "100%" }}
         >
