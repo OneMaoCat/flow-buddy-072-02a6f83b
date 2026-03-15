@@ -12,6 +12,7 @@ import {
   GitBranch,
   Pencil,
   Shield,
+  Eye,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -186,9 +187,11 @@ const DevProcessLog = ({ result }: { result: DevCompleteResult }) => {
 export const DevInProgressCard = ({
   requirement,
   onViewDetail,
+  onPreview,
 }: {
   requirement: string;
   onViewDetail?: () => void;
+  onPreview?: () => void;
 }) => {
   const [visibleSteps, setVisibleSteps] = useState(0);
   const branchName = `feature/req-${Date.now().toString(36).slice(-6)}`;
@@ -252,15 +255,26 @@ export const DevInProgressCard = ({
           <Loader2 size={12} className="animate-spin text-primary" />
           <span className="text-[11px] text-muted-foreground">AI 正在开发中…</span>
         </div>
-        {onViewDetail && (
-          <button
-            onClick={(e) => { e.stopPropagation(); onViewDetail(); }}
-            className="flex items-center gap-1 text-xs text-primary font-medium hover:text-primary/80 transition-colors"
-          >
-            <span>查看详情</span>
-            <ChevronRight size={14} />
-          </button>
-        )}
+        <div className="flex items-center gap-3">
+          {onPreview && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onPreview(); }}
+              className="flex items-center gap-1 text-xs text-muted-foreground font-medium hover:text-foreground transition-colors"
+            >
+              <Eye size={12} />
+              <span>页面预览</span>
+            </button>
+          )}
+          {onViewDetail && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onViewDetail(); }}
+              className="flex items-center gap-1 text-xs text-foreground/70 font-medium hover:text-foreground transition-colors"
+            >
+              <span>查看详情</span>
+              <ChevronRight size={14} />
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
