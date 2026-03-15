@@ -29,6 +29,8 @@ import {
   type Requirement, type RequirementGroup, type Agent, type AgentStatus, type RequirementStatus,
   type LogEntry, type TestItemStatus, type SubStatus, type RiskLevel, type TaskType,
 } from "@/data/devExecutionMock";
+import { generateDiffForRequirement, type DiffFile } from "@/data/diffMock";
+import GitDiffViewer from "@/components/GitDiffViewer";
 
 // ---------- Icon map ----------
 const agentIcons: Record<string, React.ReactNode> = {
