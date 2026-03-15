@@ -145,6 +145,7 @@ export const buildAcceptanceIssues = (
         { label: "让 AI 修复代码", value: "ai_fix", recommended: true },
         { label: "跳过此测试（标记为已知）", value: "skip" },
         { label: "我来手动修复", value: "manual" },
+        { label: "其他", value: "other", allowCustom: true },
       ],
     });
   });
