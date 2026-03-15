@@ -34,7 +34,7 @@ import { isReviewApproved } from "@/data/reviewTypes";
 interface DevCompleteDetailPanelProps {
   result: DevCompleteResult;
   onDeploy: (id: string) => void;
-  onReject: (id: string) => void;
+  onReject: (id: string, decisions?: Record<string, string>) => void;
   onRequestReview: (id: string) => void;
   onClose: () => void;
   deployed?: boolean;
