@@ -103,7 +103,7 @@ const severityConfig: Record<FindingSeverity, { bg: string; text: string; label:
 };
 
 /* ── Build acceptance issues from findings + failed tests ── */
-const buildAcceptanceIssues = (
+export const buildAcceptanceIssues = (
   allFindings: Array<{ id: string; severity: string; title: string; description: string; filePath?: string; lineRange?: string; reviewer: string }>,
   failedTests: Array<{ name: string; duration: number }>
 ): AcceptanceIssue[] => {
@@ -152,7 +152,7 @@ const buildAcceptanceIssues = (
 };
 
 /* ── AcceptanceQA Component ── */
-const AcceptanceQA = ({
+export const AcceptanceQA = ({
   issues,
   onConfirm,
   onDeployAnyway,
@@ -423,17 +423,10 @@ const DevCompleteDetailPanel = ({
                 </Button>
               )}
               {!deployed && !readOnly && aiReviewDone && hasIssues && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="h-8 text-xs gap-1 shrink-0"
-                  onClick={() => {
-                    const el = document.getElementById("acceptance-qa-section");
-                    el?.scrollIntoView({ behavior: "smooth", block: "start" });
-                  }}
-                >
-                  查看下方问题 ↓
-                </Button>
+                <Badge variant="outline" className="text-[10px] h-6 px-2 border-amber-500/30 text-amber-600 dark:text-amber-400 shrink-0 gap-1">
+                  <AlertTriangle size={10} />
+                  {acceptanceIssues.length} 个待决策
+                </Badge>
               )}
             </div>
 
@@ -670,16 +663,15 @@ const DevCompleteDetailPanel = ({
               </div>
             </ReportSection>
 
-            {/* ── Bottom: AcceptanceQA or Deploy ── */}
+            {/* ── Bottom: Deploy or status hint ── */}
             {!deployed && !readOnly && (
               <div id="acceptance-qa-section" className="pt-2 pb-2">
                 {aiReviewDone ? (
                   hasIssues ? (
-                    <AcceptanceQA
-                      issues={acceptanceIssues}
-                      onConfirm={(decisions) => onReject(result.id, decisions)}
-                      onDeployAnyway={() => onDeploy(result.id)}
-                    />
+                    <div className="flex items-center justify-center gap-2 py-3 px-4 rounded-lg bg-amber-500/5 border border-amber-500/15">
+                      <AlertTriangle size={14} className="text-amber-500 shrink-0" />
+                      <span className="text-xs text-muted-foreground">请在输入框上方完成问题决策后继续</span>
+                    </div>
                   ) : (
                     <Button
                       size="sm"

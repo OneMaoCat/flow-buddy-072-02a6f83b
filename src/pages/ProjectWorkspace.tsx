@@ -9,7 +9,7 @@ import DeepFlowPanel from "@/components/DeepFlowPanel";
 import ProjectSidebarLayout from "@/components/ProjectSidebarLayout";
 import RequirementDocEditor from "@/components/RequirementDocEditor";
 import DevCompleteCard, { DevInProgressCard, buildMockDevResult, type DevCompleteResult } from "@/components/DevCompleteCard";
-import DevCompleteDetailPanel from "@/components/DevCompleteDetailPanel";
+import DevCompleteDetailPanel, { AcceptanceQA, buildAcceptanceIssues } from "@/components/DevCompleteDetailPanel";
 import SidebarConversationList from "@/components/SidebarConversationList";
 import { requestNotificationPermission, notifyDevComplete } from "@/components/DevNotification";
 import NotificationCenter from "@/components/NotificationCenter";
@@ -500,7 +500,7 @@ const ChatArea = ({
   reviewStatus: Map<string, ReviewInfo>;
   devInProgress: boolean;
   onDeploy: (id: string) => void;
-  onReject: (id: string) => void;
+  onReject: (id: string, decisions?: Record<string, string>) => void;
   selectedCardId: string | null;
   onSelectCard: (id: string) => void;
   onClearCard: () => void;
@@ -613,6 +613,31 @@ const ChatArea = ({
         )}
       </div>
       <div className="sticky bottom-0 bg-background/80 backdrop-blur-md border-t border-border">
+        {/* AcceptanceQA above PromptBar when selected card has pending issues */}
+        {(() => {
+          if (!selectedCardId) return null;
+          const card = devCards.find(c => c.id === selectedCardId);
+          if (!card) return null;
+          const deployed = deployedIds.has(card.id);
+          if (deployed) return null;
+          const review = reviewStatus.get(card.id);
+          if (review?.aiReviewStatus !== "done") return null;
+          const allFindings = (review.aiReviewers || []).flatMap(
+            (r) => (r.findings || []).map((f) => ({ ...f, reviewer: r.displayName }))
+          );
+          const failedTests = card.tests.filter((t) => !t.passed);
+          const issues = buildAcceptanceIssues(allFindings, failedTests);
+          if (issues.length === 0) return null;
+          return (
+            <div className="px-3 pt-3 pb-1 border-b border-border">
+              <AcceptanceQA
+                issues={issues}
+                onConfirm={(decisions) => onReject(card.id, decisions)}
+                onDeployAnyway={() => onDeploy(card.id)}
+              />
+            </div>
+          );
+        })()}
         <div className="p-3 flex items-center gap-2">
           {taskCount > 0 && (
             <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
