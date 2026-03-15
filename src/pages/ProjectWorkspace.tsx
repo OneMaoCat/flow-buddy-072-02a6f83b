@@ -56,6 +56,7 @@ const ProjectWorkspace = () => {
     return m;
   });
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
+  const [processCardId, setProcessCardId] = useState<string | null>(null);
   const [detailReadOnly, setDetailReadOnly] = useState(false);
   const [planFlow, setPlanFlow] = useState<{ active: boolean; requirement: string }>({ active: false, requirement: "" });
 
