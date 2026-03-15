@@ -41,7 +41,7 @@ export interface AcceptanceIssue {
   filePath?: string;
   lineRange?: string;
   aiSuggestion: string;
-  options: { label: string; value: string; recommended?: boolean }[];
+  options: { label: string; value: string; recommended?: boolean; allowCustom?: boolean }[];
 }
 
 export interface DevCompleteResult {

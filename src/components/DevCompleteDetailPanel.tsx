@@ -129,6 +129,7 @@ export const buildAcceptanceIssues = (
           { label: "同意 AI 自动修复", value: "ai_fix", recommended: true },
           { label: "暂不处理，后续迭代", value: "skip" },
           { label: "我来手动处理", value: "manual" },
+          { label: "其他", value: "other", allowCustom: true },
         ],
       });
     });
@@ -144,6 +145,7 @@ export const buildAcceptanceIssues = (
         { label: "让 AI 修复代码", value: "ai_fix", recommended: true },
         { label: "跳过此测试（标记为已知）", value: "skip" },
         { label: "我来手动修复", value: "manual" },
+        { label: "其他", value: "other", allowCustom: true },
       ],
     });
   });
@@ -162,11 +164,17 @@ export const AcceptanceQA = ({
   onDeployAnyway?: () => void;
 }) => {
   const [decisions, setDecisions] = useState<Record<string, string>>({});
+  const [customTexts, setCustomTexts] = useState<Record<string, string>>({});
   const [currentIdx, setCurrentIdx] = useState(0);
   const total = issues.length;
   const current = issues[currentIdx];
   const isLast = currentIdx === total - 1;
-  const allAnswered = Object.keys(decisions).length === total;
+  const allAnswered = issues.every((issue) => {
+    const d = decisions[issue.id];
+    if (!d) return false;
+    if (d === "other" && !customTexts[issue.id]?.trim()) return false;
+    return true;
+  });
   const aiFixCount = Object.values(decisions).filter((v) => v === "ai_fix").length;
   const skipCount = Object.values(decisions).filter((v) => v === "skip").length;
 
@@ -267,6 +275,19 @@ export const AcceptanceQA = ({
                     </button>
                   ))}
                 </div>
+
+                {/* Custom text input when "其他" is selected */}
+                {selected === "other" && (
+                  <div className="px-3 pb-2.5">
+                    <textarea
+                      value={customTexts[issue.id] || ""}
+                      onChange={(e) => setCustomTexts((prev) => ({ ...prev, [issue.id]: e.target.value }))}
+                      placeholder="请描述你的处理方案…"
+                      maxLength={500}
+                      className="w-full text-[11px] text-foreground bg-muted/30 border border-border rounded-lg px-3 py-2 resize-none h-16 placeholder:text-muted-foreground/50 focus:outline-none focus:border-foreground/30 transition-colors"
+                    />
+                  </div>
+                )}
               </div>
             );
           })}
@@ -296,7 +317,15 @@ export const AcceptanceQA = ({
             <Button
               size="sm"
               disabled={!allAnswered}
-              onClick={() => onConfirm(decisions)}
+              onClick={() => {
+                const merged = { ...decisions };
+                Object.entries(customTexts).forEach(([id, text]) => {
+                  if (merged[id] === "other" && text.trim()) {
+                    merged[id] = `other:${text.trim()}`;
+                  }
+                });
+                onConfirm(merged);
+              }}
               className="gap-1.5 text-xs h-8"
             >
               <Rocket size={14} />
