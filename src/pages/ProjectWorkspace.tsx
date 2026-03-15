@@ -363,6 +363,7 @@ const ProjectWorkspace = () => {
     <DeepFlowPanel onSubmit={handleSubmit} />
   ) : (
     <ChatArea
+      projectId={id || ""}
       planFlow={planFlow}
       onSubmit={handleSubmit}
       onCancel={() => setPlanFlow({ active: false, requirement: "" })}
