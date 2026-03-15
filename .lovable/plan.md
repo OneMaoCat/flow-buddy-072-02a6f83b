@@ -1,57 +1,52 @@
-# 需求平台 + 异步开发 + 消息卡片验收
 
-## 已完成
 
-### 1. DevCompleteCard — 聊天区验收卡片 ✅
-- 代码变更 Tab（文件列表 + diff 视图）
-- 产品预览 Tab（复用 RequirementPreview）
-- 自测报告 Tab（测试用例列表 + 通过率）
-- 操作栏（发起 Code Review / 打回修改）
+# 消息中心交互优化
 
-### 2. PlanFlow 改造 ✅
-- 确认需求后不再跳转 /dev 页面
-- 触发 onDevSubmitted 回调启动异步模拟
+## 当前问题
 
-### 3. ProjectWorkspace 状态管理 ✅
-- devCards 数组管理已完成的开发结果
-- 异步模拟 3-7s 后推送 DevCompleteCard 到聊天区
-- 发布/打回操作 + toast 反馈
+消息中心缺乏动效和交互反馈，整体体验生硬：
+- 切换筛选 tab 时列表无过渡，内容直接跳变
+- 通知卡片没有点击态和悬停深度变化
+- 展开/收起历史通知无动画
+- 整个通知项不可点击，只有右侧按钮可操作
+- 筛选 tab 切换无滑动指示器
+- 无标记已读的快捷交互（如左滑标记）
 
-### 4. DevNotification 浏览器通知 ✅
-- Notification API 权限请求
-- 后台标签页系统通知 + sonner toast
+## 优化方案
 
-### 5. 侧边栏任务追踪列表 ✅
-- SidebarTaskList 组件：按状态分组（开发中/待审查/审查中/已发布）
-- ProjectSidebarLayout 增加 taskList/taskCount props，Collapsible 区域
-- ProjectWorkspace 连接数据，点击任务项定位卡片+打开详情面板
-- 聊天区卡片增加 data-card-id，支持 scrollIntoView 定位
+### 1. 通知列表入场与切换动画
+- 切换筛选 tab 时，列表项带 stagger 渐入动画（opacity + translateY）
+- 空状态带缩放渐入效果
 
-### 6. 两层结合 — 开发过程展示增强 ✅
-- DevInProgressCard 6 步里程碑（拉取分支→分析需求→制定方案→编写代码→修改代码→运行测试）
-- 每步带具体 detail 信息（分支名、文件名等）
-- 进行中/完成后均可点击「查看详情」打开右侧面板
+### 2. 通知卡片交互增强
+- 整个卡片可点击（触发 onClickNotification），不再只依赖右侧按钮
+- 悬停时卡片有轻微抬起效果（shadow + scale）
+- 点击时有 active 按下反馈
+- 未读通知左侧蓝色竖条指示（与 action 的橙色条区分）
 
-### 7. Code Review 审查流程 ✅
-- 开发完成后主按钮改为「发起 Code Review」
-- 审查 Tab：审查人列表（通过/待审状态）、邀请审查人、评论区
-- 状态流转：开发完成 → 审查中 → 审查通过 → 发布到测试环境
-- 操作栏按状态切换（未审查/审查中/审查通过/已发布）
-- SidebarTaskList 增加「审查中」分组
+### 3. 展开/收起历史动画
+- 用 CSS transition 实现 max-height + opacity 的平滑展开收起
+- 展开箭头图标带旋转动画
 
-### 8. 开发执行中心改版 — AI 研发执行中枢 ✅
-- **改版一**：需求包 + 子任务两层结构（RequirementGroup 按模块分组，表格视图可折叠展开）
-- **改版二**：「需你处理」专区（ActionRequiredBar 顶部横条，聚合阻塞 + 待验收，红点提示）
-- **改版三**：决策卡片增强（二级状态标签、风险等级、测试摘要、类型图标、变更摘要、快捷操作按钮）
-- **改版四**：AI 执行透明度（subStatus 实时显示当前阶段如「编码中 · LoginForm.tsx」）
-- **改版五**：详情面板「需求上下文」Tab（用户原话、AI 理解摘要、AI 拆解依据、所属需求包）
-- 新增 blocked 状态 + blockReason 阻塞管理
-- 看板新增阻塞列，卡片内嵌快捷通过/解除阻塞按钮
+### 4. 筛选 tab 优化
+- 活跃 tab 带底部滑动指示条（animated underline）
+- tab 切换时指示条平滑滑动
 
-### 9. 消息中心升级 — 可操作的研发消息中枢 ✅
-- 「需要处理」筛选 Tab + 动作型消息置顶
-- 每条消息增加动作按钮（去审查/查看预览/查看详情等）
-- 消息优先级视觉分层（动作型橙色竖条、发布型绿色图标背景）
-- 上下文摘要（contextSummary 一句话描述）
-- 时间分组（今天/昨天/更早）
-- 需求包聚合折叠（同 taskId 消息折叠，展开查看历史）
+### 5. 标记已读交互
+- 点击通知后自动标记该通知为已读
+- 未读圆点消失时带缩小动画
+
+### 6. 时间分组折叠
+- 时间分组 header 可点击折叠/展开该组
+- 带旋转箭头和 slide 动画
+
+## 技术方案
+
+| 文件 | 改动 |
+|------|------|
+| `src/components/NotificationCenter.tsx` | 重构：卡片整体可点击、hover/active 态、stagger 入场动画、历史展开动画、时间组折叠、自动标记已读 |
+| `src/index.css` | 添加 keyframes（fadeSlideIn、collapse/expand） |
+| `src/pages/ProjectWorkspace.tsx` | `handleNotificationClick` 中增加自动标记已读逻辑 |
+
+所有动画使用 CSS transition + Tailwind animate 实现，不引入额外依赖。
+
