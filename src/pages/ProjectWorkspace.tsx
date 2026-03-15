@@ -127,6 +127,7 @@ const ProjectWorkspace = () => {
       setConversations((prev) =>
         setConversationDevInProgress(prev, convId!, true)
       );
+      setRightPanelOpen(true);
       const capturedConvId = convId;
       const delay = 3000 + Math.random() * 4000;
       setTimeout(() => {
