@@ -979,7 +979,12 @@ const DetailPanel = ({
           )}
         </TabsContent>
 
-        {/* Tests */}
+        {/* Code Diff */}
+        {["review", "accepted", "done", "testing"].includes(req.status) && (
+          <TabsContent value="diff" className="flex-1 min-h-0 m-0">
+            <GitDiffViewer files={generateDiffForRequirement(req)} />
+          </TabsContent>
+        )}
         <TabsContent value="tests" className="flex-1 min-h-0 m-0 overflow-y-auto">
           <div className="p-4">
             {req.testResult ? (
