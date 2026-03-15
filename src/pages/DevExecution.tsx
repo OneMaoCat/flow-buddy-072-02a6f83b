@@ -34,6 +34,9 @@ import GitDiffViewer from "@/components/GitDiffViewer";
 import BlockResolver, { blockTypeMeta } from "@/components/BlockResolver";
 import CodeReviewTab from "@/components/CodeReviewTab";
 import { createDefaultReview } from "@/data/reviewTypes";
+import DevCompleteDetailPanel from "@/components/DevCompleteDetailPanel";
+import type { DevCompleteResult } from "@/components/DevCompleteCard";
+import { generateDiffForRequirement as genDiff } from "@/data/diffMock";
 
 // ---------- Icon map ----------
 const agentIcons: Record<string, React.ReactNode> = {
@@ -94,6 +97,36 @@ const formatRelativeTime = (date: Date) => {
   const hrs = Math.floor(mins / 60);
   if (hrs < 24) return `${hrs}小时前`;
   return `${Math.floor(hrs / 24)}天前`;
+};
+
+/** Convert a Requirement into a DevCompleteResult so we can reuse DevCompleteDetailPanel */
+const reqToDevResult = (req: Requirement, projectId: string): DevCompleteResult => {
+  const diffFiles = genDiff(req);
+  return {
+    id: req.id,
+    requirementTitle: req.title,
+    previewPath: req.previewPath || "/login",
+    projectId,
+    elapsed: Math.floor(Math.random() * 20) + 5,
+    sourceContext: {
+      userPrompt: req.sourceContext.userPrompt,
+      aiSummary: req.sourceContext.aiSummary,
+    },
+    aiChangeSummary: `本次变更涉及 ${req.changedFiles ?? diffFiles.length} 个文件，新增 ${req.linesAdded ?? diffFiles.reduce((s, f) => s + f.additions, 0)} 行，删除 ${req.linesRemoved ?? diffFiles.reduce((s, f) => s + f.deletions, 0)} 行。`,
+    files: diffFiles.map(f => ({
+      path: f.path,
+      additions: f.additions,
+      deletions: f.deletions,
+      lines: f.lines.map(l => ({ type: l.type, content: l.content })),
+    })),
+    tests: req.testResult
+      ? req.testResult.tests.map(t => ({
+          name: t.name,
+          passed: t.status === "passed",
+          duration: t.duration ?? 0,
+        }))
+      : [],
+  };
 };
 
 // ---------- Component ----------
@@ -488,25 +521,42 @@ const DevExecution = () => {
               <ResizableHandle withHandle />
               <ResizablePanel defaultSize={40} minSize={25} maxSize={65}>
                 <div className="flex flex-col h-full bg-background">
-                  <DetailPanel
-                    req={selectedReq}
-                    group={groups.find(g => g.id === selectedReq.groupId)}
-                    progress={getReqProgress(selectedReq)}
-                    logs={logs.filter(l => l.reqId === selectedReq.id)}
-                    onClose={() => setSelectedReqId(null)}
-                    onAccept={handleAccept}
-                    onReject={handleReject}
-                    onUnblock={handleUnblock}
-                    rejectingReq={rejectingReq}
-                    setRejectingReq={setRejectingReq}
-                    rejectReason={rejectReason}
-                    setRejectReason={setRejectReason}
-                    projectId={id || ""}
-                    onNavigateToConversation={(convId) => {
-                      setActiveConversationId(convId);
-                      navigate(`/project/${id || ""}`);
-                    }}
-                  />
+                  {["review", "accepted", "done"].includes(selectedReq.status) ? (
+                    <DevCompleteDetailPanel
+                      result={reqToDevResult(selectedReq, id || "")}
+                      onDeploy={(reqId) => handleAccept(reqId)}
+                      onReject={(reqId) => {
+                        setRejectingReq(reqId);
+                        setRejectReason("");
+                      }}
+                      onRequestReview={() => {}}
+                      onClose={() => setSelectedReqId(null)}
+                      deployed={selectedReq.status === "accepted"}
+                      reviewing={false}
+                      reviewInfo={selectedReq.reviewInfo || createDefaultReview()}
+                      onUpdateReview={() => {}}
+                    />
+                  ) : (
+                    <DetailPanel
+                      req={selectedReq}
+                      group={groups.find(g => g.id === selectedReq.groupId)}
+                      progress={getReqProgress(selectedReq)}
+                      logs={logs.filter(l => l.reqId === selectedReq.id)}
+                      onClose={() => setSelectedReqId(null)}
+                      onAccept={handleAccept}
+                      onReject={handleReject}
+                      onUnblock={handleUnblock}
+                      rejectingReq={rejectingReq}
+                      setRejectingReq={setRejectingReq}
+                      rejectReason={rejectReason}
+                      setRejectReason={setRejectReason}
+                      projectId={id || ""}
+                      onNavigateToConversation={(convId) => {
+                        setActiveConversationId(convId);
+                        navigate(`/project/${id || ""}`);
+                      }}
+                    />
+                  )}
                 </div>
               </ResizablePanel>
             </>
