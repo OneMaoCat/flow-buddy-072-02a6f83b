@@ -1,6 +1,6 @@
-import { X, GitBranch, Search, Sparkles, Code2, Pencil, TestTube2, Shield, CheckCircle2, FileCode2, MonitorPlay } from "lucide-react";
+import { X, GitBranch, Search, Sparkles, Code2, Pencil, TestTube2, Shield, CheckCircle2, FileCode2, MonitorPlay, MousePointerClick, Type, Eye, ArrowRight, Loader2 } from "lucide-react";
 import type { DevCompleteResult } from "@/components/DevCompleteCard";
-import UITestReplay, { buildMockUITestSteps } from "@/components/UITestReplay";
+import { buildMockUITestSteps, type UITestStep } from "@/components/UITestReplay";
 
 interface DevProcessDetailPanelProps {
   result: DevCompleteResult;
@@ -131,11 +131,45 @@ const DevProcessDetailPanel = ({ result, onClose }: DevProcessDetailPanelProps) 
     {
       icon: <MonitorPlay size={14} />,
       title: "UI 测试",
-      content: (
-        <div className="text-xs text-muted-foreground">
-          <UITestReplay steps={buildMockUITestSteps()} />
-        </div>
-      ),
+      content: (() => {
+        const uiSteps = buildMockUITestSteps();
+        const uiPassed = uiSteps.filter(s => s.passed).length;
+        const actionIcons: Record<UITestStep["action"], React.ReactNode> = {
+          click: <MousePointerClick size={11} />,
+          type: <Type size={11} />,
+          verify: <Eye size={11} />,
+          navigate: <ArrowRight size={11} />,
+          wait: <Loader2 size={11} />,
+        };
+        const actionLabels: Record<UITestStep["action"], string> = {
+          click: "点击", type: "输入", verify: "验证", navigate: "导航", wait: "等待",
+        };
+        return (
+          <div className="text-xs text-muted-foreground space-y-2">
+            <p className="text-foreground font-medium">{uiPassed}/{uiSteps.length} 步骤通过 · {uiSteps.reduce((s, t) => s + t.duration, 0)}ms</p>
+            <div className="space-y-1">
+              {uiSteps.map((s, i) => (
+                <div key={s.id} className="flex items-start gap-2">
+                  <div className="mt-0.5 w-4 h-4 rounded-full bg-muted flex items-center justify-center shrink-0 text-[8px] font-bold text-muted-foreground">
+                    {i + 1}
+                  </div>
+                  <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                    <span className="inline-flex items-center gap-0.5 text-muted-foreground/70 shrink-0">
+                      {actionIcons[s.action]}
+                      <span className="text-[10px]">{actionLabels[s.action]}</span>
+                    </span>
+                    <span className="truncate">{s.description}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <span className="text-[10px] text-muted-foreground/40 tabular-nums">{s.duration}ms</span>
+                    <CheckCircle2 size={11} className={s.passed ? "text-green-500" : "text-destructive"} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })(),
     },
     {
       icon: <Shield size={14} />,
