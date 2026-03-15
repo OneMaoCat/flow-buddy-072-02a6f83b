@@ -1012,6 +1012,18 @@ const DetailPanel = ({
             <GitDiffViewer files={generateDiffForRequirement(req)} />
           </TabsContent>
         )}
+
+        {/* Code Review */}
+        {["review", "accepted", "done", "testing"].includes(req.status) && (
+          <TabsContent value="codereview" className="flex-1 min-h-0 m-0">
+            <CodeReviewTab
+              review={req.reviewInfo || createDefaultReview()}
+              onUpdateReview={(updated) => {
+                setRequirements(prev => prev.map(r => r.id === req.id ? { ...r, reviewInfo: updated } : r));
+              }}
+            />
+          </TabsContent>
+        )}
         <TabsContent value="tests" className="flex-1 min-h-0 m-0 overflow-y-auto">
           <div className="p-4">
             {req.testResult ? (
