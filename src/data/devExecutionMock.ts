@@ -386,11 +386,13 @@ export const createInitialRequirements = (): { requirements: Requirement[]; grou
     reqs[i].testResult = { tests, retryCount: 0, isRetrying: false };
   }
 
-  // Add some blocked tasks for demo
-  const blockCandidates = reqs.filter(r => r.status === "waiting").slice(0, 2);
+  // Add some blocked tasks for demo — use different block types
+  const blockCandidates = reqs.filter(r => r.status === "waiting").slice(0, 4);
   blockCandidates.forEach((r, i) => {
     r.status = "blocked";
-    r.blockReason = blockReasons[i % blockReasons.length];
+    const info = mockBlockInfos[i % mockBlockInfos.length];
+    r.blockInfo = info;
+    r.blockReason = info.reason;
     r.subStatus = "等待确认";
   });
 
