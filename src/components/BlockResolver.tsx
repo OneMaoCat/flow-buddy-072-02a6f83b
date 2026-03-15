@@ -1,10 +1,11 @@
 import { useState } from "react";
 import {
   MessageSquare, Palette, Package, GitMerge, Shield, XCircle,
-  CheckCircle2, ChevronRight, AlertTriangle, Zap,
+  CheckCircle2, ChevronRight, AlertTriangle, Zap, Plus, ExternalLink,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import type { BlockInfo, BlockType } from "@/data/devExecutionMock";
 
@@ -20,17 +21,25 @@ const blockTypeMeta: Record<BlockType, { label: string; icon: React.ReactNode; c
 interface BlockResolverProps {
   blockInfo: BlockInfo;
   onResolve: (resolution: string) => void;
+  conversationId?: string;
+  onNavigateToConversation?: (conversationId: string) => void;
 }
 
-const BlockResolver = ({ blockInfo, onResolve }: BlockResolverProps) => {
+const BlockResolver = ({ blockInfo, onResolve, conversationId, onNavigateToConversation }: BlockResolverProps) => {
   const meta = blockTypeMeta[blockInfo.type];
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [checkedItems, setCheckedItems] = useState<Set<number>>(new Set());
   const [conflictChoices, setConflictChoices] = useState<Record<number, "mine" | "ai">>({});
   const [testChoices, setTestChoices] = useState<Record<number, "ignore" | "manual" | "retry">>({});
   const [permissionChoice, setPermissionChoice] = useState<"approve" | "reject" | null>(null);
+  const [customReply, setCustomReply] = useState("");
+  const [showCustomReply, setShowCustomReply] = useState(false);
+
+  const hasCustomReply = customReply.trim().length > 0;
 
   const canResolve = (): boolean => {
+    // Custom reply alone can resolve any block
+    if (hasCustomReply) return true;
     switch (blockInfo.type) {
       case "clarify":
       case "design":
@@ -49,21 +58,31 @@ const BlockResolver = ({ blockInfo, onResolve }: BlockResolverProps) => {
   };
 
   const buildResolution = (): string => {
+    let base = "";
     switch (blockInfo.type) {
       case "clarify":
       case "design":
-        return `选择了: ${blockInfo.options?.[selectedOption!]?.label}`;
+        base = selectedOption !== null ? `选择了: ${blockInfo.options?.[selectedOption]?.label}` : "";
+        break;
       case "dependency":
-        return `已确认所有外部依赖就绪`;
+        base = `已确认所有外部依赖就绪`;
+        break;
       case "conflict":
-        return `冲突解决: ${Object.entries(conflictChoices).map(([i, c]) => `${blockInfo.conflictFiles?.[+i]} → ${c === "mine" ? "保留我的" : "采用AI的"}`).join("; ")}`;
+        base = `冲突解决: ${Object.entries(conflictChoices).map(([i, c]) => `${blockInfo.conflictFiles?.[+i]} → ${c === "mine" ? "保留我的" : "采用AI的"}`).join("; ")}`;
+        break;
       case "permission":
-        return permissionChoice === "approve" ? "已授权操作" : "已拒绝操作";
+        base = permissionChoice === "approve" ? "已授权操作" : "已拒绝操作";
+        break;
       case "test_failure":
-        return `测试处理: ${Object.entries(testChoices).map(([i, c]) => `#${+i + 1} → ${c}`).join("; ")}`;
+        base = `测试处理: ${Object.entries(testChoices).map(([i, c]) => `#${+i + 1} → ${c}`).join("; ")}`;
+        break;
       default:
-        return "已解除";
+        base = "已解除";
     }
+    if (hasCustomReply) {
+      return base ? `${base}\n补充说明：${customReply.trim()}` : `自定义回复：${customReply.trim()}`;
+    }
+    return base || "已解除";
   };
 
   const toggleCheck = (idx: number) => {
@@ -256,6 +275,40 @@ const BlockResolver = ({ blockInfo, onResolve }: BlockResolverProps) => {
           </div>
         )}
       </div>
+
+      {/* Custom reply area */}
+      <div className="px-4 pb-2">
+        {!showCustomReply ? (
+          <button
+            onClick={() => setShowCustomReply(true)}
+            className="flex items-center gap-1.5 text-[11px] text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <Plus size={11} /> 添加补充说明或自定义回复
+          </button>
+        ) : (
+          <div className="space-y-1.5">
+            <Textarea
+              placeholder="输入补充说明，或跳过上方选项直接自定义回复..."
+              value={customReply}
+              onChange={e => setCustomReply(e.target.value)}
+              className="min-h-[60px] text-xs bg-card"
+              autoFocus
+            />
+          </div>
+        )}
+      </div>
+
+      {/* Conversation link */}
+      {conversationId && onNavigateToConversation && (
+        <div className="px-4 pb-2">
+          <button
+            onClick={() => onNavigateToConversation(conversationId)}
+            className="flex items-center gap-1.5 text-[11px] text-primary hover:text-primary/80 transition-colors"
+          >
+            <ExternalLink size={11} /> 查看原始对话上下文
+          </button>
+        </div>
+      )}
 
       {/* Confirm button */}
       <div className="px-4 pb-3 pt-1">

@@ -88,6 +88,7 @@ export interface Requirement {
   linesAdded?: number;
   linesRemoved?: number;
   reviewInfo?: import("@/data/reviewTypes").ReviewInfo;
+  conversationId?: string;
 }
 
 export interface RequirementGroup {
@@ -359,6 +360,7 @@ export const createInitialRequirements = (): { requirements: Requirement[]; grou
         changedFiles: Math.floor(Math.random() * 8) + 2,
         linesAdded: Math.floor(Math.random() * 300) + 50,
         linesRemoved: Math.floor(Math.random() * 80) + 5,
+        conversationId: `conv-${(groups.length % 3) + 1}`,
       });
     }
 
