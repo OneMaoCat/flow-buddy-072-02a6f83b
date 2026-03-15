@@ -260,7 +260,7 @@ export const DevInProgressCard = ({
           );
         })}
         {steps.slice(visibleSteps).map((step, i) => (
-          <div key={`upcoming-${i}`} className="flex items-start gap-2.5 py-1 opacity-30">
+          <div key={`upcoming-${i}`} className="flex items-start gap-2.5 py-1 opacity-40">
             <div className="mt-0.5 w-5 h-5 rounded-full bg-muted flex items-center justify-center shrink-0 text-muted-foreground">
               {step.icon}
             </div>
@@ -268,6 +268,7 @@ export const DevInProgressCard = ({
               <span className="text-xs font-medium text-muted-foreground">{step.label}</span>
               <span className="text-xs text-muted-foreground/60 ml-1.5">{step.detail}</span>
             </div>
+            <div className="w-3 h-3 rounded-full border-2 border-muted-foreground/20 shrink-0 mt-0.5" />
           </div>
         ))}
       </div>
