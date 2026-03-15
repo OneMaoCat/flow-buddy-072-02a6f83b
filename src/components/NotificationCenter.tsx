@@ -96,7 +96,7 @@ const NotificationCenter = ({
             <span className="inline-flex items-center justify-center h-4 min-w-4 px-1 rounded-full bg-foreground text-background text-[10px] font-semibold shrink-0 mr-1">
               {unreadCount}
             </span>
-          )}
+          {typeFilters.map((f) => {
             const count = getFilterCount(f.value);
             const isActive = filter === f.value;
             return (
@@ -115,6 +115,18 @@ const NotificationCenter = ({
               </button>
             );
           })}
+          {unreadCount > 0 && (
+            <>
+              <div className="flex-1" />
+              <button
+                onClick={onMarkAllRead}
+                className="flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors whitespace-nowrap shrink-0"
+              >
+                <CheckCheck size={12} />
+                全部已读
+              </button>
+            </>
+          )}
         </div>
       </div>
 
