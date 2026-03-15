@@ -88,6 +88,7 @@ export interface Requirement {
   linesAdded?: number;
   linesRemoved?: number;
   reviewInfo?: import("@/data/reviewTypes").ReviewInfo;
+  conversationId?: string;
 }
 
 export interface RequirementGroup {
