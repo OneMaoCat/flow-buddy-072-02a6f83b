@@ -880,6 +880,11 @@ const DetailPanel = ({
           <TabsTrigger value="preview" className="text-xs gap-1.5">
             <Eye size={12} /> 产品预览
           </TabsTrigger>
+          {["review", "accepted", "done", "testing"].includes(req.status) && (
+            <TabsTrigger value="diff" className="text-xs gap-1.5">
+              <GitBranch size={12} /> 代码变更
+            </TabsTrigger>
+          )}
           <TabsTrigger value="tests" className="text-xs gap-1.5">
             <TestTube2 size={12} /> 测试报告
           </TabsTrigger>
