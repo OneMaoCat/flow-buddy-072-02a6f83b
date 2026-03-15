@@ -165,10 +165,10 @@ const buildProcessSteps = (result: DevCompleteResult): ProcessStep[] => {
 
 /* ── DevProcessLog: completed steps ── */
 
-const DevProcessLog = ({ result }: { result: DevCompleteResult }) => {
+const DevProcessLog = ({ result, acceptanceConfirmed, mergeApproved }: { result: DevCompleteResult; acceptanceConfirmed?: boolean; mergeApproved?: boolean }) => {
   const steps = buildProcessSteps(result);
-  // First 7 steps are completed (up to Code Review), last 3 are pending
-  const completedCount = 7;
+  // First 7 steps always completed; step 7 (人工验收) if accepted; step 8 (合并主分支) if merged
+  const completedCount = mergeApproved ? 9 : acceptanceConfirmed ? 8 : 7;
 
   return (
     <div className="flex flex-col gap-0">
