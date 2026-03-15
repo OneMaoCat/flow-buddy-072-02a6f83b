@@ -317,7 +317,15 @@ export const AcceptanceQA = ({
             <Button
               size="sm"
               disabled={!allAnswered}
-              onClick={() => onConfirm(decisions)}
+              onClick={() => {
+                const merged = { ...decisions };
+                Object.entries(customTexts).forEach(([id, text]) => {
+                  if (merged[id] === "other" && text.trim()) {
+                    merged[id] = `other:${text.trim()}`;
+                  }
+                });
+                onConfirm(merged);
+              }}
               className="gap-1.5 text-xs h-8"
             >
               <Rocket size={14} />
