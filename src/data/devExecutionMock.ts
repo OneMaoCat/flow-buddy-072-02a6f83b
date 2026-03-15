@@ -85,6 +85,7 @@ export interface Requirement {
   changedFiles?: number;
   linesAdded?: number;
   linesRemoved?: number;
+  reviewInfo?: import("@/data/reviewTypes").ReviewInfo;
 }
 
 export interface RequirementGroup {
