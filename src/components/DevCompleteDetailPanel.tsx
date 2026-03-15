@@ -905,7 +905,7 @@ const DevCompleteDetailPanel = ({
               <ReportSection
                 title="产品预览"
                 icon={<Eye size={15} />}
-                defaultOpen={false}
+                defaultOpen={true}
                 inlineSummary="点击查看"
               >
                 <RequirementPreview
