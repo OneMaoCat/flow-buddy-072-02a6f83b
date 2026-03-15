@@ -1,3 +1,5 @@
+import { buildMockAIReview } from "@/data/reviewTypes";
+
 // ---------- Types ----------
 export type AgentStatus = "waiting" | "running" | "done" | "error";
 export type RequirementStatus = "waiting" | "running" | "done" | "testing" | "review" | "accepted" | "rejected" | "blocked";
