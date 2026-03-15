@@ -512,43 +512,37 @@ const ActionRequiredBar = ({
   const reviewCount = items.filter(r => r.status === "review").length;
 
   return (
-    <div className="shrink-0 border-b border-red-500/20 bg-red-500/5 px-4 py-2.5">
-      <div className="flex items-center gap-2 mb-2">
-        <AlertTriangle size={14} className="text-red-500" />
-        <span className="text-xs font-semibold text-red-600">需你处理</span>
-        <Badge variant="destructive" className="text-[10px] h-4 px-1.5">{items.length}</Badge>
-        {blockedCount > 0 && <span className="text-[10px] text-red-500">{blockedCount} 阻塞</span>}
-        {reviewCount > 0 && <span className="text-[10px] text-orange-500">{reviewCount} 待验收</span>}
-        <div className="flex-1" />
-        <button onClick={onViewAll} className="text-[10px] text-primary hover:underline">查看全部 →</button>
-      </div>
-      <div className="flex gap-2 overflow-x-auto pb-0.5">
+    <div className="shrink-0 border-b border-red-500/20 bg-red-500/5 px-4 py-1.5">
+      <div className="flex items-center gap-2 overflow-x-auto">
+        <div className="flex items-center gap-1.5 shrink-0">
+          <AlertTriangle size={13} className="text-red-500" />
+          <span className="text-[11px] font-semibold text-red-600">需你处理</span>
+          <Badge variant="destructive" className="text-[10px] h-4 px-1.5">{items.length}</Badge>
+        </div>
+        <div className="w-px h-4 bg-red-500/20 shrink-0" />
         {items.slice(0, 5).map(item => (
           <button
             key={item.id}
             onClick={() => onSelect(item.id)}
-            className="flex items-center gap-2 px-2.5 py-1.5 rounded-md border bg-card text-left shrink-0 hover:shadow-sm transition-all text-xs min-w-0"
+            className="flex items-center gap-1.5 px-2 py-1 rounded-md border border-border/60 bg-card text-left shrink-0 hover:shadow-sm transition-all text-[11px] min-w-0"
           >
             {item.status === "blocked" ? (
-              <AlertTriangle size={12} className="text-red-500 shrink-0" />
+              <AlertTriangle size={11} className="text-red-500 shrink-0" />
             ) : (
-              <ShieldCheck size={12} className="text-orange-500 shrink-0" />
+              <ShieldCheck size={11} className="text-orange-500 shrink-0" />
             )}
-            <span className="truncate max-w-[120px] font-medium">{item.title}</span>
-            {item.blockReason && <span className="text-[10px] text-red-400 truncate max-w-[100px]">{item.blockReason}</span>}
+            <span className="truncate max-w-[100px] font-medium">{item.title}</span>
             {item.status === "blocked" ? (
-              <Button size="sm" variant="outline" className="h-5 text-[10px] px-1.5 ml-auto shrink-0 border-green-500/40 text-green-600 hover:bg-green-500/10"
-                onClick={e => { e.stopPropagation(); onUnblock(item.id); }}>
-                解除
-              </Button>
+              <span onClick={e => { e.stopPropagation(); onUnblock(item.id); }}
+                className="text-[10px] text-green-600 hover:underline shrink-0 cursor-pointer">解除</span>
             ) : (
-              <Button size="sm" variant="outline" className="h-5 text-[10px] px-1.5 ml-auto shrink-0 border-green-500/40 text-green-600 hover:bg-green-500/10"
-                onClick={e => { e.stopPropagation(); onAccept(item.id); }}>
-                通过
-              </Button>
+              <span onClick={e => { e.stopPropagation(); onAccept(item.id); }}
+                className="text-[10px] text-green-600 hover:underline shrink-0 cursor-pointer">通过</span>
             )}
           </button>
         ))}
+        <div className="flex-1" />
+        <button onClick={onViewAll} className="text-[10px] text-primary hover:underline shrink-0">查看全部 →</button>
       </div>
     </div>
   );
