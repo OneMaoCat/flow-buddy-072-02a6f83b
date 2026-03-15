@@ -277,7 +277,7 @@ const ProjectWorkspace = () => {
     toast.success("已发布到测试环境 🚀");
   };
 
-  const handleReject = (cardId: string) => {
+  const handleReject = (cardId: string, decisions?: Record<string, string>) => {
     if (!activeConversationId) return;
     // Clean up review state
     setReviewingIds((prev) => {
@@ -290,7 +290,19 @@ const ProjectWorkspace = () => {
       next.delete(cardId);
       return next;
     });
-    toast("已打回修改，AI 将重新处理", { icon: "🔄" });
+
+    const aiFixCount = decisions ? Object.values(decisions).filter((v) => v === "ai_fix").length : 0;
+    const skipCount = decisions ? Object.values(decisions).filter((v) => v === "skip").length : 0;
+    const manualCount = decisions ? Object.values(decisions).filter((v) => v === "manual").length : 0;
+
+    if (decisions && aiFixCount > 0) {
+      toast(`AI 将自动修复 ${aiFixCount} 项问题${skipCount > 0 ? `，跳过 ${skipCount} 项` : ""}`, { icon: "🤖" });
+    } else if (decisions && skipCount > 0 && aiFixCount === 0) {
+      toast("已跳过所有问题", { icon: "✅" });
+    } else {
+      toast("已打回修改，AI 将重新处理", { icon: "🔄" });
+    }
+
     const convId = activeConversationId;
     setConversations((prev) => {
       const updated = removeTaskFromConversation(prev, convId, cardId);
