@@ -641,61 +641,12 @@ const DevCompleteDetailPanel = ({
               </ReportSection>
 
               {/* Test Report */}
-              <ReportSection
-                title="测试报告"
-                icon={<TestTube2 size={15} />}
-                defaultOpen={!allTestsPassed}
-                inlineSummary={<span>{passedTests}/{result.tests.length} 通过</span>}
-                status={allTestsPassed ? "ok" : "error"}
-              >
-                <Tabs defaultValue="code-test" className="w-full">
-                  <TabsList className="h-7 mb-3">
-                    <TabsTrigger value="code-test" className="text-[11px] h-6 px-2.5 gap-1">
-                      <TestTube2 size={11} /> 代码测试
-                    </TabsTrigger>
-                    <TabsTrigger value="ui-test" className="text-[11px] h-6 px-2.5 gap-1">
-                      <Eye size={11} /> UI 测试
-                    </TabsTrigger>
-                  </TabsList>
-                  <TabsContent value="code-test" className="mt-0">
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-3">
-                        <div className="flex-1">
-                          <Progress
-                            value={testPassRate}
-                            className={cn("h-2", allTestsPassed ? "[&>div]:bg-emerald-500" : "[&>div]:bg-destructive")}
-                          />
-                        </div>
-                        <span className={cn(
-                          "text-sm font-bold shrink-0",
-                          allTestsPassed ? "text-emerald-500" : "text-destructive"
-                        )}>
-                          {testPassRate}% ({passedTests}/{result.tests.length})
-                        </span>
-                      </div>
-                      <div className="rounded-md border border-border overflow-hidden">
-                        {result.tests.map((t, i) => (
-                          <div key={i} className="flex items-center gap-2 px-3 py-2 text-xs border-b border-border last:border-0">
-                            {t.passed ? (
-                              <CheckCircle2 size={13} className="text-emerald-500 shrink-0" />
-                            ) : (
-                              <XCircle size={13} className="text-destructive shrink-0" />
-                            )}
-                            <span className={cn("flex-1 text-foreground", !t.passed && "text-destructive font-medium")}>{t.name}</span>
-                            <span className="text-[10px] text-muted-foreground">{t.duration}ms</span>
-                          </div>
-                        ))}
-                      </div>
-                      <div className="text-[11px] text-muted-foreground">
-                        总耗时 {result.tests.reduce((s, t) => s + t.duration, 0)}ms
-                      </div>
-                    </div>
-                  </TabsContent>
-                  <TabsContent value="ui-test" className="mt-0">
-                    <UITestReplay />
-                  </TabsContent>
-                </Tabs>
-              </ReportSection>
+              <TestReportSection
+                result={result}
+                passedTests={passedTests}
+                allTestsPassed={allTestsPassed}
+                testPassRate={testPassRate}
+              />
 
               {/* Product Preview */}
               <ReportSection
