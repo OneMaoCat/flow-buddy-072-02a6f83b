@@ -841,7 +841,7 @@ const DevCompleteDetailPanel = ({
               <ReportSection
                 title="代码变更"
                 icon={<Code2 size={15} />}
-                defaultOpen={false}
+                defaultOpen={true}
                 inlineSummary={<span>{result.files.length} 个文件 · <span className="text-foreground/50">+{totalAdds}</span> <span className="text-foreground/40">-{totalDels}</span></span>}
                 status="ok"
               >
