@@ -1,57 +1,34 @@
-# 需求平台 + 异步开发 + 消息卡片验收
 
-## 已完成
 
-### 1. DevCompleteCard — 聊天区验收卡片 ✅
-- 代码变更 Tab（文件列表 + diff 视图）
-- 产品预览 Tab（复用 RequirementPreview）
-- 自测报告 Tab（测试用例列表 + 通过率）
-- 操作栏（发起 Code Review / 打回修改）
+# 待验收任务增加 AI Code Review 结果页签
 
-### 2. PlanFlow 改造 ✅
-- 确认需求后不再跳转 /dev 页面
-- 触发 onDevSubmitted 回调启动异步模拟
+## 现状
 
-### 3. ProjectWorkspace 状态管理 ✅
-- devCards 数组管理已完成的开发结果
-- 异步模拟 3-7s 后推送 DevCompleteCard 到聊天区
-- 发布/打回操作 + toast 反馈
+已有完整的 `CodeReviewTab` 组件和 `reviewTypes.ts` 数据模型（支持多模型并行审查、评分环、严重程度分类），但未集成到开发执行中心的 DetailPanel 中。
 
-### 4. DevNotification 浏览器通知 ✅
-- Notification API 权限请求
-- 后台标签页系统通知 + sonner toast
+## 改动方案
 
-### 5. 侧边栏任务追踪列表 ✅
-- SidebarTaskList 组件：按状态分组（开发中/待审查/审查中/已发布）
-- ProjectSidebarLayout 增加 taskList/taskCount props，Collapsible 区域
-- ProjectWorkspace 连接数据，点击任务项定位卡片+打开详情面板
-- 聊天区卡片增加 data-card-id，支持 scrollIntoView 定位
+### 1. 扩展 Requirement 类型（`devExecutionMock.ts`）
 
-### 6. 两层结合 — 开发过程展示增强 ✅
-- DevInProgressCard 6 步里程碑（拉取分支→分析需求→制定方案→编写代码→修改代码→运行测试）
-- 每步带具体 detail 信息（分支名、文件名等）
-- 进行中/完成后均可点击「查看详情」打开右侧面板
+- `Requirement` 增加 `reviewInfo?: ReviewInfo` 字段
+- 为 `review`、`accepted`、`done` 状态的任务自动生成 mock review 数据（调用已有的 `buildMockAIReview()`）
+- `running`/`testing` 状态可生成 `aiReviewStatus: "running"` 的进行中状态
 
-### 7. Code Review 审查流程 ✅
-- 开发完成后主按钮改为「发起 Code Review」
-- 审查 Tab：审查人列表（通过/待审状态）、邀请审查人、评论区
-- 状态流转：开发完成 → 审查中 → 审查通过 → 发布到测试环境
-- 操作栏按状态切换（未审查/审查中/审查通过/已发布）
-- SidebarTaskList 增加「审查中」分组
+### 2. DetailPanel 增加「代码审查」Tab（`DevExecution.tsx`）
 
-### 8. 开发执行中心改版 — AI 研发执行中枢 ✅
-- **改版一**：需求包 + 子任务两层结构（RequirementGroup 按模块分组，表格视图可折叠展开）
-- **改版二**：「需你处理」专区（ActionRequiredBar 顶部横条，聚合阻塞 + 待验收，红点提示）
-- **改版三**：决策卡片增强（二级状态标签、风险等级、测试摘要、类型图标、变更摘要、快捷操作按钮）
-- **改版四**：AI 执行透明度（subStatus 实时显示当前阶段如「编码中 · LoginForm.tsx」）
-- **改版五**：详情面板「需求上下文」Tab（用户原话、AI 理解摘要、AI 拆解依据、所属需求包）
-- 新增 blocked 状态 + blockReason 阻塞管理
-- 看板新增阻塞列，卡片内嵌快捷通过/解除阻塞按钮
+在现有 Tab 栏中增加第 6 个页签：
 
-### 9. 消息中心升级 — 可操作的研发消息中枢 ✅
-- 「需要处理」筛选 Tab + 动作型消息置顶
-- 每条消息增加动作按钮（去审查/查看预览/查看详情等）
-- 消息优先级视觉分层（动作型橙色竖条、发布型绿色图标背景）
-- 上下文摘要（contextSummary 一句话描述）
-- 时间分组（今天/昨天/更早）
-- 需求包聚合折叠（同 taskId 消息折叠，展开查看历史）
+```
+开发过程 | 产品预览 | 代码变更 | 代码审查 | 测试报告 | 需求上下文
+```
+
+- 仅在 `review`、`accepted`、`done`、`testing` 状态显示
+- 渲染已有的 `CodeReviewTab` 组件，传入 `req.reviewInfo`
+
+### 3. 涉及文件
+
+| 文件 | 改动 |
+|------|------|
+| `src/data/devExecutionMock.ts` | Requirement 增加 `reviewInfo`，mock 数据生成 |
+| `src/pages/DevExecution.tsx` | DetailPanel 增加代码审查 Tab，引入 CodeReviewTab |
+
