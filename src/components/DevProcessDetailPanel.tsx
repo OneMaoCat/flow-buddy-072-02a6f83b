@@ -600,8 +600,8 @@ const DevProcessDetailPanel = ({
     // ── 合并主分支 ──
     {
       icon: <GitMerge size={14} />, title: "合并主分支",
-      status: mergeApproved ? "done" : "pending",
-      visible: mergeApproved,
+      status: mergeApproved ? "done" : acceptanceConfirmed ? "active" : "pending",
+      visible: acceptanceConfirmed,
       content: (
         <div className="text-xs text-muted-foreground space-y-2">
           <div className="flex items-center gap-2">
