@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Bell, ChevronRight } from "lucide-react";
+import { Bell, ChevronRight, CheckCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { AppNotification, NotificationType, TimeGroup } from "@/data/notifications";
 import {
@@ -88,9 +88,15 @@ const NotificationCenter = ({
 
   return (
     <div className="flex flex-col h-full bg-background">
-      {/* Filter bar */}
+      {/* Single header row: filters */}
       <div className="border-b border-border/60">
         <div className="flex items-center gap-1 px-4 py-2 overflow-x-auto scrollbar-hide">
+          <Bell size={14} className="text-foreground shrink-0 mr-1" />
+          {unreadCount > 0 && (
+            <span className="inline-flex items-center justify-center h-4 min-w-4 px-1 rounded-full bg-foreground text-background text-[10px] font-semibold shrink-0 mr-1">
+              {unreadCount}
+            </span>
+          )}
           {typeFilters.map((f) => {
             const count = getFilterCount(f.value);
             const isActive = filter === f.value;
@@ -110,6 +116,18 @@ const NotificationCenter = ({
               </button>
             );
           })}
+          {unreadCount > 0 && (
+            <>
+              <div className="flex-1" />
+              <button
+                onClick={onMarkAllRead}
+                className="flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors whitespace-nowrap shrink-0"
+              >
+                <CheckCheck size={12} />
+                全部已读
+              </button>
+            </>
+          )}
         </div>
       </div>
 
