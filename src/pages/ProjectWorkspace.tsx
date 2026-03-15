@@ -363,6 +363,7 @@ const ProjectWorkspace = () => {
     <DeepFlowPanel onSubmit={handleSubmit} />
   ) : (
     <ChatArea
+      projectId={id || ""}
       planFlow={planFlow}
       onSubmit={handleSubmit}
       onCancel={() => setPlanFlow({ active: false, requirement: "" })}
@@ -468,6 +469,7 @@ const ProjectWorkspace = () => {
 
 /* Chat area sub-component */
 const ChatArea = ({
+  projectId,
   planFlow,
   onSubmit,
   onCancel,
@@ -488,6 +490,7 @@ const ChatArea = ({
   rightPanelOpen,
   onToggleRightPanel,
 }: {
+  projectId: string;
   planFlow: { active: boolean; requirement: string };
   onSubmit: (data: { text: string; isPlanMode: boolean }) => void;
   onCancel: () => void;
@@ -561,7 +564,7 @@ const ChatArea = ({
           <DevInProgressCard
             requirement={planFlow.requirement || "新需求"}
             onViewDetail={onViewInProgressDetail}
-            onPreview={() => window.open(`/project/${id}/preview`, "_blank")}
+            onPreview={() => window.open(`/project/${projectId}/preview`, "_blank")}
           />
         </div>
       </div>
