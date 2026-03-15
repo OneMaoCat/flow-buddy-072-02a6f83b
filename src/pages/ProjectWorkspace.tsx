@@ -15,6 +15,7 @@ import { requestNotificationPermission, notifyDevComplete } from "@/components/D
 import NotificationCenter from "@/components/NotificationCenter";
 import { type AppNotification, buildMockNotifications } from "@/data/notifications";
 import PreviewPanel from "@/components/PreviewPanel";
+import DevProcessDetailPanel from "@/components/DevProcessDetailPanel";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
