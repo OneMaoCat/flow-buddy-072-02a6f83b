@@ -616,7 +616,7 @@ const ChatArea = ({
         data-card-id={card.id}
         className="flex justify-start animate-in fade-in slide-in-from-bottom-2 duration-300"
       >
-        <div className="flex items-start gap-3 max-w-[90%]">
+        <div className="flex items-start gap-3 w-full">
           <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center shrink-0">
             <span className="text-foreground text-xs font-bold">DF</span>
           </div>
