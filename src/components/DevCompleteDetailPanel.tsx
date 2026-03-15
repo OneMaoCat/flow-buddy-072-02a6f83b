@@ -103,7 +103,7 @@ const severityConfig: Record<FindingSeverity, { bg: string; text: string; label:
 };
 
 /* ── Build acceptance issues from findings + failed tests ── */
-const buildAcceptanceIssues = (
+export const buildAcceptanceIssues = (
   allFindings: Array<{ id: string; severity: string; title: string; description: string; filePath?: string; lineRange?: string; reviewer: string }>,
   failedTests: Array<{ name: string; duration: number }>
 ): AcceptanceIssue[] => {
