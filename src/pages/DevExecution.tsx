@@ -32,6 +32,8 @@ import {
 import { generateDiffForRequirement, type DiffFile } from "@/data/diffMock";
 import GitDiffViewer from "@/components/GitDiffViewer";
 import BlockResolver, { blockTypeMeta } from "@/components/BlockResolver";
+import CodeReviewTab from "@/components/CodeReviewTab";
+import { createDefaultReview } from "@/data/reviewTypes";
 
 // ---------- Icon map ----------
 const agentIcons: Record<string, React.ReactNode> = {
@@ -905,6 +907,11 @@ const DetailPanel = ({
               <GitBranch size={12} /> 代码变更
             </TabsTrigger>
           )}
+          {["review", "accepted", "done", "testing"].includes(req.status) && (
+            <TabsTrigger value="codereview" className="text-xs gap-1.5">
+              <ShieldCheck size={12} /> 代码审查
+            </TabsTrigger>
+          )}
           <TabsTrigger value="tests" className="text-xs gap-1.5">
             <TestTube2 size={12} /> 测试报告
           </TabsTrigger>
@@ -1003,6 +1010,16 @@ const DetailPanel = ({
         {["review", "accepted", "done", "testing"].includes(req.status) && (
           <TabsContent value="diff" className="flex-1 min-h-0 m-0">
             <GitDiffViewer files={generateDiffForRequirement(req)} />
+          </TabsContent>
+        )}
+
+        {/* Code Review */}
+        {["review", "accepted", "done", "testing"].includes(req.status) && (
+          <TabsContent value="codereview" className="flex-1 min-h-0 m-0">
+            <CodeReviewTab
+              review={req.reviewInfo || createDefaultReview()}
+              onUpdateReview={() => {}}
+            />
           </TabsContent>
         )}
         <TabsContent value="tests" className="flex-1 min-h-0 m-0 overflow-y-auto">
