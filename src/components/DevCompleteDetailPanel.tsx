@@ -423,87 +423,89 @@ const DevCompleteDetailPanel = ({
         <TabsContent value="overview" className="flex-1 min-h-0 m-0 overflow-y-auto scrollbar-hide">
           <div className="px-5 py-5 space-y-6">
 
-            {/* ── AI Verdict Banner (compact) ── */}
+            {/* ── AI Verdict + Metrics — Merged Dashboard ── */}
             <div className={cn(
-              "rounded-xl px-4 py-3.5 flex items-center gap-3",
-              verdict.type === "error" && "bg-destructive/8 border border-destructive/15",
-              verdict.type === "warning" && "bg-amber-500/8 border border-amber-500/15",
-              verdict.type === "ok" && "bg-emerald-500/8 border border-emerald-500/15",
-              verdict.type === "pending" && "bg-muted/50 border border-border",
+              "rounded-xl border overflow-hidden",
+              verdict.type === "error" && "bg-destructive/5 border-destructive/20",
+              verdict.type === "warning" && "bg-amber-500/5 border-amber-500/20",
+              verdict.type === "ok" && "bg-emerald-500/5 border-emerald-500/20",
+              verdict.type === "pending" && "bg-muted/30 border-border",
             )}>
-              <span className="text-2xl shrink-0">{verdict.emoji}</span>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-foreground leading-tight">AI 验收结论</p>
-                <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{verdict.text}</p>
+              {/* Top: verdict headline */}
+              <div className="px-4 py-3 flex items-center gap-3">
+                <span className="text-xl shrink-0">{verdict.emoji}</span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-foreground leading-snug">{verdict.text}</p>
+                </div>
+                {!deployed && !readOnly && aiReviewDone && !hasIssues && (
+                  <Button size="sm" className="h-7 text-xs gap-1 shrink-0" onClick={() => onDeploy(result.id)}>
+                    <Rocket size={12} /> 发布
+                  </Button>
+                )}
+                {!deployed && !readOnly && aiReviewDone && hasIssues && (
+                  <Badge variant="outline" className="text-[10px] h-5 px-2 border-amber-500/30 text-amber-600 dark:text-amber-400 shrink-0 gap-1">
+                    <AlertTriangle size={10} />
+                    {acceptanceIssues.length} 个待决策
+                  </Badge>
+                )}
               </div>
-              {!deployed && !readOnly && aiReviewDone && !hasIssues && (
-                <Button size="sm" className="h-7 text-xs gap-1 shrink-0" onClick={() => onDeploy(result.id)}>
-                  <Rocket size={12} /> 发布
-                </Button>
-              )}
-              {!deployed && !readOnly && aiReviewDone && hasIssues && (
-                <Badge variant="outline" className="text-[10px] h-5 px-2 border-amber-500/30 text-amber-600 dark:text-amber-400 shrink-0 gap-1">
-                  <AlertTriangle size={10} />
-                  {acceptanceIssues.length} 个待决策
-                </Badge>
-              )}
-            </div>
 
-            {/* ── Metric Cards — 2x2 Grid ── */}
-            <div className="grid grid-cols-2 gap-3">
-              {/* Score */}
-              <div className="rounded-xl border border-border bg-muted/20 p-4 flex flex-col items-center justify-center gap-1.5">
-                <div className="relative w-14 h-14">
-                  <svg viewBox="0 0 36 36" className="w-full h-full -rotate-90">
-                    <circle cx="18" cy="18" r="15.5" fill="none" strokeWidth="2.5" className="stroke-border" />
-                    <circle
-                      cx="18" cy="18" r="15.5" fill="none" strokeWidth="2.5"
-                      strokeDasharray={`${((reviewInfo?.overallScore ?? 0) / 100) * 97.4} 97.4`}
-                      strokeLinecap="round"
-                      className={cn(
-                        "transition-all duration-700",
-                        (reviewInfo?.overallScore ?? 0) >= 80 ? "stroke-emerald-500" : (reviewInfo?.overallScore ?? 0) >= 60 ? "stroke-amber-500" : "stroke-destructive"
-                      )}
-                    />
-                  </svg>
-                  <span className={cn(
-                    "absolute inset-0 flex items-center justify-center text-base font-bold",
-                    (reviewInfo?.overallScore ?? 0) >= 80 ? "text-emerald-500" : (reviewInfo?.overallScore ?? 0) >= 60 ? "text-amber-500" : "text-destructive"
-                  )}>
-                    {aiReviewDone ? reviewInfo?.overallScore : "–"}
+              {/* Bottom: inline metric strip */}
+              <div className="px-4 py-2.5 border-t border-border/50 flex items-center gap-0 text-xs">
+                {/* Score ring */}
+                <div className="flex items-center gap-2 pr-4">
+                  <div className="relative w-[34px] h-[34px] shrink-0">
+                    <svg viewBox="0 0 36 36" className="w-full h-full -rotate-90">
+                      <circle cx="18" cy="18" r="15.5" fill="none" strokeWidth="2.5" className="stroke-border" />
+                      <circle
+                        cx="18" cy="18" r="15.5" fill="none" strokeWidth="2.5"
+                        strokeDasharray={`${((reviewInfo?.overallScore ?? 0) / 100) * 97.4} 97.4`}
+                        strokeLinecap="round"
+                        className={cn(
+                          "transition-all duration-700",
+                          (reviewInfo?.overallScore ?? 0) >= 80 ? "stroke-emerald-500" : (reviewInfo?.overallScore ?? 0) >= 60 ? "stroke-amber-500" : "stroke-destructive"
+                        )}
+                      />
+                    </svg>
+                    <span className={cn(
+                      "absolute inset-0 flex items-center justify-center text-[11px] font-bold",
+                      (reviewInfo?.overallScore ?? 0) >= 80 ? "text-emerald-500" : (reviewInfo?.overallScore ?? 0) >= 60 ? "text-amber-500" : "text-destructive"
+                    )}>
+                      {aiReviewDone ? reviewInfo?.overallScore : "–"}
+                    </span>
+                  </div>
+                  <span className="text-muted-foreground">评分</span>
+                </div>
+
+                <div className="w-px h-5 bg-border shrink-0" />
+
+                {/* Tests */}
+                <div className="flex items-center gap-1.5 px-4">
+                  <TestTube2 size={13} className={cn(allTestsPassed ? "text-emerald-500" : "text-destructive")} />
+                  <span className={cn("font-semibold", allTestsPassed ? "text-emerald-500" : "text-destructive")}>
+                    {passedTests}/{result.tests.length}
                   </span>
+                  <span className="text-muted-foreground">通过</span>
                 </div>
-                <span className="text-[11px] text-muted-foreground font-medium">综合评分</span>
-              </div>
 
-              {/* Test pass rate */}
-              <div className="rounded-xl border border-border bg-muted/20 p-4 flex flex-col items-center justify-center gap-1.5">
-                <span className={cn(
-                  "text-2xl font-bold leading-none",
-                  allTestsPassed ? "text-emerald-500" : "text-destructive"
-                )}>
-                  {passedTests}/{result.tests.length}
-                </span>
-                <Progress
-                  value={testPassRate}
-                  className={cn("h-1.5 w-full max-w-[80px]", allTestsPassed ? "[&>div]:bg-emerald-500" : "[&>div]:bg-destructive")}
-                />
-                <span className="text-[11px] text-muted-foreground font-medium">测试通过</span>
-              </div>
+                <div className="w-px h-5 bg-border shrink-0" />
 
-              {/* Code changes */}
-              <div className="rounded-xl border border-border bg-muted/20 p-4 flex flex-col items-center justify-center gap-1.5">
-                <div className="flex items-baseline gap-1.5">
-                  <span className="text-lg font-bold text-emerald-500 leading-none">+{totalAdds}</span>
-                  <span className="text-lg font-bold text-destructive leading-none">-{totalDels}</span>
+                {/* Changes */}
+                <div className="flex items-center gap-1.5 px-4">
+                  <Code2 size={13} className="text-muted-foreground" />
+                  <span className="font-semibold text-foreground">{result.files.length}</span>
+                  <span className="text-muted-foreground">文件</span>
+                  <span className="text-emerald-500 font-mono text-[11px]">+{totalAdds}</span>
+                  <span className="text-destructive font-mono text-[11px]">-{totalDels}</span>
                 </div>
-                <span className="text-[11px] text-muted-foreground font-medium">{result.files.length} 个文件变更</span>
-              </div>
 
-              {/* Duration */}
-              <div className="rounded-xl border border-border bg-muted/20 p-4 flex flex-col items-center justify-center gap-1.5">
-                <span className="text-2xl font-bold text-foreground leading-none">{result.elapsed}s</span>
-                <span className="text-[11px] text-muted-foreground font-medium">执行耗时</span>
+                <div className="w-px h-5 bg-border shrink-0" />
+
+                {/* Duration */}
+                <div className="flex items-center gap-1.5 px-4">
+                  <Clock size={13} className="text-muted-foreground" />
+                  <span className="font-semibold text-foreground">{result.elapsed}s</span>
+                </div>
               </div>
             </div>
 
