@@ -129,6 +129,7 @@ export const buildAcceptanceIssues = (
           { label: "同意 AI 自动修复", value: "ai_fix", recommended: true },
           { label: "暂不处理，后续迭代", value: "skip" },
           { label: "我来手动处理", value: "manual" },
+          { label: "其他", value: "other", allowCustom: true },
         ],
       });
     });
