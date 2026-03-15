@@ -24,9 +24,8 @@ export interface Project {
 
 export const mockMembers: ProjectMember[] = [
   { id: "m1", name: "李娟娟", avatar: "李", role: "owner" },
-  { id: "m2", name: "张伟", avatar: "张", role: "editor" },
-  { id: "m3", name: "王芳", avatar: "王", role: "viewer" },
-  { id: "m4", name: "陈明", avatar: "陈", role: "editor" },
+  { id: "m2", name: "李泽龙", avatar: "李", role: "editor" },
+  { id: "m3", name: "沈楚城", avatar: "沈", role: "viewer" },
 ];
 
 export const mockProjects: Project[] = [
