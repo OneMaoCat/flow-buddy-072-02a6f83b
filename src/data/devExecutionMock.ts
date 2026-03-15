@@ -9,6 +9,23 @@ export type SubStatus =
 
 export type RiskLevel = "low" | "medium" | "high";
 export type TaskType = "frontend" | "backend" | "database" | "api" | "deploy" | "docs";
+export type BlockType = "clarify" | "design" | "dependency" | "conflict" | "permission" | "test_failure";
+
+export interface BlockOption {
+  label: string;
+  description?: string;
+}
+
+export interface BlockInfo {
+  type: BlockType;
+  reason: string;
+  question?: string;
+  options?: BlockOption[];
+  conflictFiles?: string[];
+  missingItems?: string[];
+  failedTests?: string[];
+  permissionAction?: string;
+}
 
 export interface Agent {
   id: string;
