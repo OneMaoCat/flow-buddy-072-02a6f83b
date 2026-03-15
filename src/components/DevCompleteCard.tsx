@@ -252,8 +252,8 @@ export const DevInProgressCard = ({
                 {isLast ? <Loader2 size={12} className="animate-spin" /> : step.icon}
               </div>
               <div className="flex-1 min-w-0">
-                <span className="text-xs font-medium text-foreground">{step.label}</span>
-                <span className="text-xs text-muted-foreground ml-1.5">{step.detail}</span>
+                <span className={cn("text-xs font-medium", isCompleted ? "text-foreground line-through decoration-foreground/30" : "text-foreground")}>{step.label}</span>
+                <span className={cn("text-xs ml-1.5", isCompleted ? "text-muted-foreground line-through decoration-muted-foreground/30" : "text-muted-foreground")}>{step.detail}</span>
               </div>
               {isCompleted && <CheckCircle2 size={12} className="text-primary/60 shrink-0 mt-0.5" />}
             </div>
