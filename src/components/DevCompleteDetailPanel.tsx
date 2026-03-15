@@ -585,17 +585,22 @@ const DevCompleteDetailPanel = ({
                 ) : (
                   <div className="space-y-4">
                     {/* Reviewer scores */}
-                    <div className="flex gap-3">
+                    <div className="flex gap-2.5">
                       {(reviewInfo?.aiReviewers || []).map((r) => (
-                        <div key={r.id} className="flex-1 rounded-lg border border-border bg-muted/15 p-3 text-center">
-                          <span className="text-base">{r.icon}</span>
-                          <div className={cn(
-                            "text-lg font-bold mt-1",
-                            (r.score ?? 0) >= 80 ? "text-emerald-500" : (r.score ?? 0) >= 60 ? "text-amber-500" : "text-destructive"
-                          )}>
-                            {r.score}
+                        <div key={r.id} className="flex-1 rounded-lg border border-border bg-muted/15 px-3 py-2.5">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm">{r.icon}</span>
+                            <span className="text-[10px] text-muted-foreground font-medium">{r.displayName}</span>
+                            <span className={cn(
+                              "ml-auto text-base font-bold",
+                              (r.score ?? 0) >= 80 ? "text-emerald-500" : (r.score ?? 0) >= 60 ? "text-amber-500" : "text-destructive"
+                            )}>
+                              {r.score}
+                            </span>
                           </div>
-                          <div className="text-[10px] text-muted-foreground mt-0.5">{r.displayName}</div>
+                          {r.summary && (
+                            <p className="text-[10px] text-muted-foreground mt-1.5 leading-relaxed line-clamp-2">{r.summary}</p>
+                          )}
                         </div>
                       ))}
                     </div>
