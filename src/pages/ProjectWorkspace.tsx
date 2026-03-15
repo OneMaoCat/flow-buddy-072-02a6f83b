@@ -163,42 +163,71 @@ const ProjectWorkspace = () => {
     });
     toast.success("AI Code Review 已启动，多个模型正在审查代码…");
 
+    // Parallel progress simulation — each model starts at slightly different times
+    // but runs concurrently with independent progress
     AI_REVIEW_MODELS.forEach((model, i) => {
+      const startDelay = 300 + i * 400; // staggered start, but close together
+      const reviewDuration = 2000 + Math.random() * 2000; // each model takes different time
+
+      // Start reviewing
       setTimeout(() => {
         setReviewStatus((prev) => {
           const current = prev.get(cardId);
           if (!current) return prev;
           const next = new Map(prev);
           const updatedReviewers = (current.aiReviewers || []).map((r) =>
-            r.id === model.id ? { ...r, status: "reviewing" as const } : r
+            r.id === model.id ? { ...r, status: "reviewing" as const, progress: 0 } : r
           );
           next.set(cardId, { ...current, aiReviewers: updatedReviewers });
           return next;
         });
-      }, 1000 + i * 1500);
 
-      setTimeout(() => {
-        setReviewStatus((prev) => {
-          const current = prev.get(cardId);
-          if (!current) return prev;
-          const finalReview = buildMockAIReview();
-          const next = new Map(prev);
-          const updatedReviewers = (finalReview.aiReviewers || []).map((r, ri) => ({
-            ...r,
-            status: (ri <= i ? "done" : ri === i + 1 ? "reviewing" : "pending") as "done" | "reviewing" | "pending",
-          }));
-          const allDone = i === AI_REVIEW_MODELS.length - 1;
-          next.set(cardId, {
-            ...finalReview,
-            aiReviewers: allDone ? finalReview.aiReviewers : updatedReviewers,
-            aiReviewStatus: allDone ? "done" : "running",
+        // Progress ticks
+        const tickCount = 5;
+        const tickInterval = reviewDuration / tickCount;
+        for (let t = 1; t <= tickCount; t++) {
+          setTimeout(() => {
+            setReviewStatus((prev) => {
+              const current = prev.get(cardId);
+              if (!current) return prev;
+              const next = new Map(prev);
+              const updatedReviewers = (current.aiReviewers || []).map((r) =>
+                r.id === model.id ? { ...r, progress: Math.min(Math.round((t / tickCount) * 90), 90) } : r
+              );
+              next.set(cardId, { ...current, aiReviewers: updatedReviewers });
+              return next;
+            });
+          }, tickInterval * t);
+        }
+
+        // Complete this model
+        setTimeout(() => {
+          setReviewStatus((prev) => {
+            const current = prev.get(cardId);
+            if (!current) return prev;
+            const finalReview = buildMockAIReview();
+            const next = new Map(prev);
+            const thisModelFinal = finalReview.aiReviewers?.find((r) => r.id === model.id);
+            const updatedReviewers = (current.aiReviewers || []).map((r) =>
+              r.id === model.id && thisModelFinal
+                ? { ...thisModelFinal, status: "done" as const, progress: 100 }
+                : r
+            );
+            const allDone = updatedReviewers.every((r) => r.status === "done");
+            const result = {
+              ...current,
+              aiReviewers: updatedReviewers,
+              aiReviewStatus: allDone ? ("done" as const) : ("running" as const),
+              ...(allDone ? { overallScore: finalReview.overallScore } : {}),
+            };
+            next.set(cardId, result);
+            if (allDone) {
+              toast.success(`AI Code Review 完成，综合评分 ${finalReview.overallScore} 分`);
+            }
+            return next;
           });
-          if (allDone) {
-            toast.success(`AI Code Review 完成，综合评分 ${finalReview.overallScore} 分`);
-          }
-          return next;
-        });
-      }, 2500 + i * 1500);
+        }, reviewDuration);
+      }, startDelay);
     });
   }, []);
 
