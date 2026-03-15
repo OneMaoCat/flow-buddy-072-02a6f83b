@@ -157,6 +157,9 @@ const buildProcessSteps = (result: DevCompleteResult): ProcessStep[] => {
     { icon: <Pencil size={12} />, label: "修改代码", detail: `${result.files.length} 个文件 · +${totalAdds} -${totalDels}` },
     { icon: <TestTube2 size={12} />, label: "运行测试", detail: `${passedTests}/${result.tests.length} 用例通过` },
     { icon: <Shield size={12} />, label: "Code Review", detail: "AI 多模型审查" },
+    { icon: <UserCheck size={12} />, label: "人工验收", detail: "确认功能符合需求" },
+    { icon: <GitMerge size={12} />, label: "合并主分支", detail: "合并到 main 分支" },
+    { icon: <ShieldCheck size={12} />, label: "全流程回归测试", detail: "单元/集成/E2E 测试" },
   ];
 };
 
