@@ -686,7 +686,6 @@ const ChatArea = ({
           </div>
         </div>
       </div>
-      </div>
     </div>
   );
 };
