@@ -21,6 +21,8 @@ const blockTypeMeta: Record<BlockType, { label: string; icon: React.ReactNode; c
 interface BlockResolverProps {
   blockInfo: BlockInfo;
   onResolve: (resolution: string) => void;
+  conversationId?: string;
+  onNavigateToConversation?: (conversationId: string) => void;
 }
 
 const BlockResolver = ({ blockInfo, onResolve }: BlockResolverProps) => {
