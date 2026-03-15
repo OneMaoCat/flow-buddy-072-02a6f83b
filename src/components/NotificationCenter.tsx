@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect, useCallback } from "react";
-import { Bell, ChevronDown, ChevronRight } from "lucide-react";
+import { useState } from "react";
+import { Bell, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { AppNotification, NotificationType, TimeGroup } from "@/data/notifications";
 import {
@@ -30,7 +30,6 @@ interface NotificationCenterProps {
   onClose: () => void;
 }
 
-/** Group key for aggregation: prefer taskId, fallback conversationId */
 const getAggKey = (n: AppNotification) => n.taskId || n.conversationId || n.id;
 
 interface AggGroup {
@@ -54,12 +53,6 @@ const aggregate = (list: AppNotification[]): AggGroup[] => {
   return groups.sort((a, b) => b.latest.timestamp - a.latest.timestamp);
 };
 
-const priorityColors: Record<string, { bar: string; iconBg: string }> = {
-  action: { bar: "bg-orange-500", iconBg: "bg-orange-100 dark:bg-orange-900/30" },
-  result: { bar: "bg-transparent", iconBg: "bg-secondary" },
-  publish: { bar: "bg-transparent", iconBg: "bg-green-100 dark:bg-green-900/30" },
-};
-
 const NotificationCenter = ({
   notifications,
   onClickNotification,
@@ -71,30 +64,9 @@ const NotificationCenter = ({
   const [collapsedTimeGroups, setCollapsedTimeGroups] = useState<Set<TimeGroup>>(new Set());
   const [animKey, setAnimKey] = useState(0);
 
-  // Tab indicator
-  const filterBarRef = useRef<HTMLDivElement>(null);
-  const activeTabRef = useRef<HTMLButtonElement>(null);
-  const [indicatorStyle, setIndicatorStyle] = useState<{ left: number; width: number }>({ left: 0, width: 0 });
-
-  const updateIndicator = useCallback(() => {
-    if (activeTabRef.current && filterBarRef.current) {
-      const bar = filterBarRef.current.getBoundingClientRect();
-      const tab = activeTabRef.current.getBoundingClientRect();
-      setIndicatorStyle({
-        left: tab.left - bar.left + filterBarRef.current.scrollLeft,
-        width: tab.width,
-      });
-    }
-  }, []);
-
-  useEffect(() => {
-    updateIndicator();
-  }, [filter, updateIndicator]);
-
   const unreadCount = notifications.filter((n) => !n.read).length;
   const actionCount = notifications.filter((n) => n.actionRequired).length;
 
-  // Filter
   const filtered = notifications.filter((n) => {
     if (filter === "all") return true;
     if (filter === "unread") return !n.read;
@@ -102,7 +74,6 @@ const NotificationCenter = ({
     return n.type === filter;
   });
 
-  // Sort
   const sorted =
     filter === "all"
       ? [...filtered].sort((a, b) => {
@@ -111,10 +82,8 @@ const NotificationCenter = ({
         })
       : [...filtered].sort((a, b) => b.timestamp - a.timestamp);
 
-  // Aggregate
   const aggGroups = aggregate(sorted);
 
-  // Time grouping
   const timeGrouped = new Map<TimeGroup, AggGroup[]>();
   for (const g of aggGroups) {
     const tg = getTimeGroup(g.latest.timestamp);
@@ -155,43 +124,29 @@ const NotificationCenter = ({
 
   return (
     <div className="flex flex-col h-full bg-background">
-      {/* Filter bar with sliding indicator */}
-      <div className="relative border-b border-border">
-        <div
-          ref={filterBarRef}
-          className="flex items-center gap-1 px-4 py-2 overflow-x-auto scrollbar-hide"
-        >
+      {/* Filter bar */}
+      <div className="border-b border-border/60">
+        <div className="flex items-center gap-1 px-4 py-2 overflow-x-auto scrollbar-hide">
           {typeFilters.map((f) => {
             const count = getFilterCount(f.value);
             const isActive = filter === f.value;
-            const isActionTab = f.value === "action_required";
             return (
               <button
                 key={f.value}
-                ref={isActive ? activeTabRef : undefined}
                 onClick={() => handleFilterChange(f.value)}
                 className={cn(
                   "px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all duration-200",
                   isActive
-                    ? isActionTab
-                      ? "bg-orange-500 text-white shadow-sm shadow-orange-500/25"
-                      : "bg-primary text-primary-foreground shadow-sm"
-                    : isActionTab && count > 0
-                    ? "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300 hover:bg-orange-200 dark:hover:bg-orange-900/50"
+                    ? "bg-foreground text-background shadow-sm"
                     : "bg-secondary text-muted-foreground hover:text-foreground hover:bg-accent"
                 )}
               >
                 {f.label}
-                {count > 0 && <span className="ml-1 opacity-70">({count})</span>}
+                {count > 0 && <span className="ml-1 opacity-60">({count})</span>}
               </button>
             );
           })}
         </div>
-        {/* Sliding underline indicator */}
-        <div
-          className="absolute bottom-0 h-0.5 bg-primary rounded-full transition-all duration-300 ease-out"
-          style={{ left: indicatorStyle.left, width: indicatorStyle.width }}
-        />
       </div>
 
       {/* Notification list */}
@@ -215,31 +170,29 @@ const NotificationCenter = ({
               const isCollapsed = collapsedTimeGroups.has(tg);
               return (
                 <div key={tg}>
-                  {/* Time group header — clickable to fold */}
                   <button
                     onClick={() => toggleTimeGroup(tg)}
-                    className="w-full flex items-center gap-1.5 px-6 py-2 bg-muted/50 border-b border-border hover:bg-muted/80 transition-colors cursor-pointer"
+                    className="w-full flex items-center gap-1.5 px-5 py-1.5 bg-muted/40 border-b border-border/40 hover:bg-muted/60 transition-colors cursor-pointer"
                   >
                     <ChevronRight
-                      size={12}
+                      size={11}
                       className={cn(
-                        "text-muted-foreground transition-transform duration-200",
+                        "text-muted-foreground/60 transition-transform duration-200",
                         !isCollapsed && "rotate-90"
                       )}
                     />
-                    <span className="text-xs font-medium text-muted-foreground">
+                    <span className="text-[11px] font-medium text-muted-foreground/70">
                       {timeGroupLabels[tg]}
                     </span>
-                    <span className="text-xs text-muted-foreground/50">({groups.length})</span>
+                    <span className="text-[11px] text-muted-foreground/40">({groups.length})</span>
                   </button>
-                  {/* Collapsible group content */}
                   <div
                     className={cn(
                       "overflow-hidden transition-all duration-300 ease-out",
                       isCollapsed ? "max-h-0 opacity-0" : "max-h-[2000px] opacity-100"
                     )}
                   >
-                    <div className="divide-y divide-border">
+                    <div className="divide-y divide-border/40">
                       {groups.map((group, idx) => (
                         <div
                           key={group.key}
@@ -278,7 +231,6 @@ const NotifCard = ({
   compact?: boolean;
 }) => {
   const priority = getNotificationPriority(notif.type);
-  const colors = priorityColors[priority];
 
   return (
     <div
@@ -288,26 +240,20 @@ const NotifCard = ({
         "transition-all duration-200 ease-out",
         "hover:bg-accent/60 hover:shadow-sm",
         "active:scale-[0.995] active:bg-accent",
-        compact ? "px-6 pl-12 py-2.5" : "px-6 py-4",
-        !notif.read && "bg-primary/[0.03]"
+        compact ? "px-5 pl-11 py-2" : "px-5 py-3",
+        !notif.read && "bg-foreground/[0.02]"
       )}
     >
       {/* Priority / unread bar */}
       {priority === "action" ? (
-        <div className="absolute left-0 top-0 bottom-0 w-1 rounded-r bg-orange-500" />
+        <div className="absolute left-0 top-0 bottom-0 w-1 rounded-r bg-foreground" />
       ) : !notif.read ? (
-        <div className="absolute left-0 top-0 bottom-0 w-1 rounded-r bg-primary/40" />
+        <div className="absolute left-0 top-0 bottom-0 w-1 rounded-r bg-foreground/30" />
       ) : null}
 
       {/* Icon */}
       {!compact && (
-        <div
-          className={cn(
-            "w-10 h-10 rounded-full flex items-center justify-center shrink-0 text-lg",
-            "transition-transform duration-200 group-hover:scale-110",
-            colors.iconBg
-          )}
-        >
+        <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 text-base bg-secondary transition-transform duration-200 group-hover:scale-110">
           {getNotificationIcon(notif.type)}
         </div>
       )}
@@ -324,21 +270,21 @@ const NotifCard = ({
             {notif.title}
           </span>
           {!notif.read && (
-            <span className="w-2 h-2 rounded-full bg-primary shrink-0 transition-transform duration-300" />
+            <span className="w-1.5 h-1.5 rounded-full bg-foreground shrink-0" />
           )}
         </div>
         <p className={cn("text-muted-foreground mt-0.5 truncate", compact ? "text-xs" : "text-sm")}>
           {notif.description}
         </p>
         {notif.contextSummary && !compact && (
-          <p className="text-xs text-muted-foreground/70 mt-1 line-clamp-2">
+          <p className="text-xs text-muted-foreground/60 mt-0.5 line-clamp-2">
             {notif.contextSummary}
           </p>
         )}
-        <div className="flex items-center gap-2 mt-1.5">
+        <div className="flex items-center gap-2 mt-1">
           <span className="text-xs text-muted-foreground">{notif.actor}</span>
-          <span className="text-xs text-muted-foreground/50">·</span>
-          <span className="text-xs text-muted-foreground/70">
+          <span className="text-xs text-muted-foreground/40">·</span>
+          <span className="text-xs text-muted-foreground/60">
             {formatTimeAgo(notif.timestamp)}
           </span>
         </div>
@@ -353,11 +299,9 @@ const NotifCard = ({
         className={cn(
           "shrink-0 self-center px-3 py-1.5 rounded-md text-xs font-medium whitespace-nowrap",
           "transition-all duration-200",
-          "opacity-80 group-hover:opacity-100",
+          "opacity-70 group-hover:opacity-100",
           priority === "action"
-            ? "bg-orange-500 text-white hover:bg-orange-600 shadow-sm shadow-orange-500/20"
-            : priority === "publish"
-            ? "bg-green-600 text-white hover:bg-green-700 shadow-sm shadow-green-600/20"
+            ? "bg-foreground text-background hover:bg-foreground/90"
             : "bg-secondary text-foreground hover:bg-accent"
         )}
       >
@@ -388,7 +332,7 @@ const NotifGroup = ({
       {hasHistory && (
         <button
           onClick={onToggle}
-          className="w-full flex items-center gap-1.5 px-6 pb-2 -mt-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+          className="w-full flex items-center gap-1.5 px-5 pb-2 -mt-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
         >
           <ChevronRight
             size={12}
@@ -407,7 +351,7 @@ const NotifGroup = ({
             expanded ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"
           )}
         >
-          <div className="border-t border-border/50">
+          <div className="border-t border-border/30">
             {group.history.map((n, idx) => (
               <div
                 key={n.id}
