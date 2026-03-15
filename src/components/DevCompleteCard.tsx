@@ -13,6 +13,9 @@ import {
   Pencil,
   Shield,
   Eye,
+  UserCheck,
+  GitMerge,
+  ShieldCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
