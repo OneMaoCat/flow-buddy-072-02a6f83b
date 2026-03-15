@@ -58,21 +58,31 @@ const BlockResolver = ({ blockInfo, onResolve, conversationId, onNavigateToConve
   };
 
   const buildResolution = (): string => {
+    let base = "";
     switch (blockInfo.type) {
       case "clarify":
       case "design":
-        return `选择了: ${blockInfo.options?.[selectedOption!]?.label}`;
+        base = selectedOption !== null ? `选择了: ${blockInfo.options?.[selectedOption]?.label}` : "";
+        break;
       case "dependency":
-        return `已确认所有外部依赖就绪`;
+        base = `已确认所有外部依赖就绪`;
+        break;
       case "conflict":
-        return `冲突解决: ${Object.entries(conflictChoices).map(([i, c]) => `${blockInfo.conflictFiles?.[+i]} → ${c === "mine" ? "保留我的" : "采用AI的"}`).join("; ")}`;
+        base = `冲突解决: ${Object.entries(conflictChoices).map(([i, c]) => `${blockInfo.conflictFiles?.[+i]} → ${c === "mine" ? "保留我的" : "采用AI的"}`).join("; ")}`;
+        break;
       case "permission":
-        return permissionChoice === "approve" ? "已授权操作" : "已拒绝操作";
+        base = permissionChoice === "approve" ? "已授权操作" : "已拒绝操作";
+        break;
       case "test_failure":
-        return `测试处理: ${Object.entries(testChoices).map(([i, c]) => `#${+i + 1} → ${c}`).join("; ")}`;
+        base = `测试处理: ${Object.entries(testChoices).map(([i, c]) => `#${+i + 1} → ${c}`).join("; ")}`;
+        break;
       default:
-        return "已解除";
+        base = "已解除";
     }
+    if (hasCustomReply) {
+      return base ? `${base}\n补充说明：${customReply.trim()}` : `自定义回复：${customReply.trim()}`;
+    }
+    return base || "已解除";
   };
 
   const toggleCheck = (idx: number) => {
