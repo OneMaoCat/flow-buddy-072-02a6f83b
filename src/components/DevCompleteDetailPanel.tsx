@@ -879,20 +879,11 @@ const DevCompleteDetailPanel = ({
                 defaultOpen={false}
                 inlineSummary="点击查看"
               >
-                <div className="space-y-3">
-                  <RequirementPreview
+                <RequirementPreview
                     previewPath={result.previewPath}
                     requirementTitle={result.requirementTitle}
                     projectId={result.projectId}
                   />
-                  <button
-                    onClick={() => setActiveTab("preview")}
-                    className="flex items-center gap-1 text-xs text-foreground/60 hover:text-foreground transition-colors"
-                  >
-                    <ExternalLink size={11} />
-                    <span>打开全屏预览</span>
-                  </button>
-                </div>
               </ReportSection>
             </div>
 
