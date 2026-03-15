@@ -30,6 +30,17 @@ interface TestCase {
   duration: number;
 }
 
+export interface AcceptanceIssue {
+  id: string;
+  severity: "critical" | "warning" | "test_fail";
+  title: string;
+  description: string;
+  filePath?: string;
+  lineRange?: string;
+  aiSuggestion: string;
+  options: { label: string; value: string; recommended?: boolean }[];
+}
+
 export interface DevCompleteResult {
   id: string;
   requirementTitle: string;

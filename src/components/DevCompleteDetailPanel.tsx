@@ -27,7 +27,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { DevCompleteResult } from "@/components/DevCompleteCard";
+import type { DevCompleteResult, AcceptanceIssue } from "@/components/DevCompleteCard";
 import type { ReviewInfo, FindingSeverity } from "@/data/reviewTypes";
 import { isReviewApproved } from "@/data/reviewTypes";
 
