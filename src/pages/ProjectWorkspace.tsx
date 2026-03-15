@@ -509,9 +509,11 @@ const ProjectWorkspace = () => {
                   onClose={() => { setProcessCardId(null); setRightPanelOpen(false); }}
                   issueDecisions={processIssueDecisions}
                   otherTexts={processOtherTexts}
+                  acceptanceConfirmed={processAcceptanceConfirmed}
                   mergeApproved={processMergeApproved}
                   onDecide={handleProcessDecide}
                   onOtherText={handleProcessOtherText}
+                  onConfirmAcceptance={handleProcessAcceptance}
                   onConfirmMerge={handleProcessMerge}
                 />
               ) : (
