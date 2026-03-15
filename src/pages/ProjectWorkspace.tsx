@@ -465,6 +465,11 @@ const ProjectWorkspace = () => {
                   reviewInfo={reviewStatus.get(selectedCard.id)}
                   onUpdateReview={handleUpdateReview}
                 />
+              ) : processCard ? (
+                <DevProcessDetailPanel
+                  result={processCard}
+                  onClose={() => { setProcessCardId(null); setRightPanelOpen(false); }}
+                />
               ) : (
                 <PreviewPanel />
               )}
