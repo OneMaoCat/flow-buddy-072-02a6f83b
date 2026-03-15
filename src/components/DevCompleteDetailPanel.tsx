@@ -401,21 +401,21 @@ const DevCompleteDetailPanel = ({
         </div>
 
         {/* ═══════════ OVERVIEW — Full AI Acceptance Report ═══════════ */}
-        <TabsContent value="overview" className="flex-1 min-h-0 m-0 overflow-y-auto scrollbar-hide">
-          <div className="p-4 space-y-4">
+         <TabsContent value="overview" className="flex-1 min-h-0 m-0 overflow-y-auto scrollbar-hide">
+          <div className="px-5 py-6 space-y-0">
 
             {/* ── AI Verdict Banner ── */}
             <div className={cn(
-              "rounded-lg p-4 flex items-start gap-3",
+              "rounded-xl p-5 flex items-start gap-4 mb-6",
               verdict.type === "error" && "bg-destructive/10 border border-destructive/20",
               verdict.type === "warning" && "bg-amber-500/10 border border-amber-500/20",
               verdict.type === "ok" && "bg-emerald-500/10 border border-emerald-500/20",
               verdict.type === "pending" && "bg-muted border border-border",
             )}>
-              <span className="text-2xl shrink-0">{verdict.emoji}</span>
+              <span className="text-3xl shrink-0 leading-none mt-0.5">{verdict.emoji}</span>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-foreground">AI 验收结论</p>
-                <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{verdict.text}</p>
+                <p className="text-base font-semibold text-foreground">AI 验收结论</p>
+                <p className="text-sm text-muted-foreground mt-1.5 leading-relaxed">{verdict.text}</p>
               </div>
               {/* Quick action in verdict */}
               {!deployed && !readOnly && aiReviewDone && !hasIssues && (
