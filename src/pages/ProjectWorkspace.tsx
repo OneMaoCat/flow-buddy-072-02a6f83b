@@ -412,6 +412,15 @@ const ProjectWorkspace = () => {
       onViewProcess={(cardId: string) => { setProcessCardId(cardId); setSelectedCardId(null); setRightPanelOpen(true); }}
       rightPanelOpen={rightPanelOpen}
       onToggleRightPanel={() => setRightPanelOpen(!rightPanelOpen)}
+      processCardId={processCardId}
+      processIssueDecisions={processIssueDecisions}
+      processOtherTexts={processOtherTexts}
+      processMergeApproved={processMergeApproved}
+      processActionableIssues={processActionableIssues}
+      processAllResolved={processAllResolved}
+      onProcessDecide={handleProcessDecide}
+      onProcessOtherText={handleProcessOtherText}
+      onProcessMerge={handleProcessMerge}
     />
   );
 
