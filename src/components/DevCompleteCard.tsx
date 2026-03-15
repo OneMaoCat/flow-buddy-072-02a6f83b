@@ -187,9 +187,11 @@ const DevProcessLog = ({ result }: { result: DevCompleteResult }) => {
 export const DevInProgressCard = ({
   requirement,
   onViewDetail,
+  onPreview,
 }: {
   requirement: string;
   onViewDetail?: () => void;
+  onPreview?: () => void;
 }) => {
   const [visibleSteps, setVisibleSteps] = useState(0);
   const branchName = `feature/req-${Date.now().toString(36).slice(-6)}`;
