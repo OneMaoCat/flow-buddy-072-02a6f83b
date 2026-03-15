@@ -276,6 +276,40 @@ const BlockResolver = ({ blockInfo, onResolve, conversationId, onNavigateToConve
         )}
       </div>
 
+      {/* Custom reply area */}
+      <div className="px-4 pb-2">
+        {!showCustomReply ? (
+          <button
+            onClick={() => setShowCustomReply(true)}
+            className="flex items-center gap-1.5 text-[11px] text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <Plus size={11} /> 添加补充说明或自定义回复
+          </button>
+        ) : (
+          <div className="space-y-1.5">
+            <Textarea
+              placeholder="输入补充说明，或跳过上方选项直接自定义回复..."
+              value={customReply}
+              onChange={e => setCustomReply(e.target.value)}
+              className="min-h-[60px] text-xs bg-card"
+              autoFocus
+            />
+          </div>
+        )}
+      </div>
+
+      {/* Conversation link */}
+      {conversationId && onNavigateToConversation && (
+        <div className="px-4 pb-2">
+          <button
+            onClick={() => onNavigateToConversation(conversationId)}
+            className="flex items-center gap-1.5 text-[11px] text-primary hover:text-primary/80 transition-colors"
+          >
+            <ExternalLink size={11} /> 查看原始对话上下文
+          </button>
+        </div>
+      )}
+
       {/* Confirm button */}
       <div className="px-4 pb-3 pt-1">
         <Button
