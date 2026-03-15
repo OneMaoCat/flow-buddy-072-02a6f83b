@@ -297,25 +297,25 @@ const DevCompleteCard = ({ result, deployed, reviewing, reviewApproved, selected
         <DevProcessLog result={result} />
       </div>
       <div className="flex items-center gap-3 px-4 py-2.5 border-t border-border bg-muted/30">
-        <div className="w-6 h-6 rounded-full bg-green-500/15 flex items-center justify-center shrink-0">
-          <CheckCircle2 size={14} className="text-green-500" />
+        <div className="w-6 h-6 rounded-full bg-foreground/5 flex items-center justify-center shrink-0">
+          <CheckCircle2 size={14} className="text-foreground/40" />
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-xs font-medium text-foreground">开发完成</p>
           <p className="text-[10px] text-muted-foreground">
-            {result.files.length} 文件 · <span className="text-green-500">+{totalAdds}</span> <span className="text-destructive">-{totalDels}</span> · {passedTests}/{result.tests.length} 测试通过 · {result.elapsed}s
+            {result.files.length} 文件 · <span className="text-foreground/50">+{totalAdds}</span> <span className="text-foreground/40">-{totalDels}</span> · {passedTests}/{result.tests.length} 测试通过 · {result.elapsed}s
           </p>
         </div>
         {deployed ? (
-          <Badge className="text-[10px] bg-emerald-500/15 text-emerald-500 border-0">已发布</Badge>
+          <Badge variant="outline" className="text-[10px] border-foreground/20 text-foreground/60">已发布</Badge>
         ) : reviewApproved ? (
-          <Badge className="text-[10px] bg-emerald-500/15 text-emerald-500 border-0">审查通过</Badge>
+          <Badge variant="outline" className="text-[10px] border-foreground/20 text-foreground/60">审查通过</Badge>
         ) : reviewing ? (
-          <Badge className="text-[10px] bg-primary/15 text-primary border-0 gap-1">
+          <Badge variant="outline" className="text-[10px] border-border text-muted-foreground gap-1">
             <Shield size={10} /> AI 审查中
           </Badge>
         ) : null}
-        <div className="flex items-center gap-1 text-xs text-primary font-medium shrink-0">
+        <div className="flex items-center gap-1 text-xs text-foreground/60 font-medium shrink-0">
           <span>查看详情</span>
           <ChevronRight size={14} />
         </div>

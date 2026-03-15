@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import RequirementPreview from "@/components/RequirementPreview";
 import CodeReviewTab from "@/components/CodeReviewTab";
 import UITestReplay from "@/components/UITestReplay";
@@ -63,11 +62,11 @@ const ReportSection = ({
 }) => {
   const [open, setOpen] = useState(defaultOpen);
   const statusIcon = status === "ok" ? (
-    <CheckCircle2 size={14} className="text-emerald-500" />
+    <CheckCircle2 size={14} className="text-foreground/40" />
   ) : status === "warning" ? (
-    <AlertTriangle size={14} className="text-amber-500" />
+    <AlertTriangle size={14} className="text-foreground/50" />
   ) : status === "error" ? (
-    <XCircle size={14} className="text-destructive" />
+    <XCircle size={14} className="text-foreground/60" />
   ) : null;
 
   return (
@@ -94,12 +93,12 @@ const ReportSection = ({
   );
 };
 
-/* ── Severity styling ── */
+/* ── Severity styling — grayscale ── */
 const severityConfig: Record<FindingSeverity, { bg: string; text: string; label: string }> = {
-  critical: { bg: "bg-destructive/10", text: "text-destructive", label: "严重" },
-  warning: { bg: "bg-amber-500/10", text: "text-amber-600 dark:text-amber-400", label: "警告" },
-  suggestion: { bg: "bg-primary/10", text: "text-primary", label: "建议" },
-  praise: { bg: "bg-emerald-500/10", text: "text-emerald-500", label: "优秀" },
+  critical: { bg: "bg-foreground/10", text: "text-foreground", label: "严重" },
+  warning: { bg: "bg-foreground/5", text: "text-foreground/70", label: "警告" },
+  suggestion: { bg: "bg-muted", text: "text-muted-foreground", label: "建议" },
+  praise: { bg: "bg-muted", text: "text-foreground/60", label: "优秀" },
 };
 
 /* ── Build acceptance issues from findings + failed tests ── */
@@ -109,7 +108,6 @@ export const buildAcceptanceIssues = (
 ): AcceptanceIssue[] => {
   const issues: AcceptanceIssue[] = [];
 
-  // From critical/warning findings
   allFindings
     .filter((f) => f.severity === "critical" || f.severity === "warning")
     .forEach((f) => {
@@ -132,7 +130,6 @@ export const buildAcceptanceIssues = (
       });
     });
 
-  // From failed tests
   failedTests.forEach((t, i) => {
     issues.push({
       id: `test-fail-${i}`,
@@ -171,9 +168,9 @@ export const AcceptanceQA = ({
   const skipCount = Object.values(decisions).filter((v) => v === "skip").length;
 
   const sevCfg: Record<string, { bg: string; text: string; label: string; icon: React.ReactNode }> = {
-    critical: { bg: "bg-destructive/10", text: "text-destructive", label: "严重", icon: <XCircle size={12} /> },
-    warning: { bg: "bg-amber-500/10", text: "text-amber-600 dark:text-amber-400", label: "警告", icon: <AlertTriangle size={12} /> },
-    test_fail: { bg: "bg-destructive/10", text: "text-destructive", label: "测试失败", icon: <TestTube2 size={12} /> },
+    critical: { bg: "bg-foreground/10", text: "text-foreground", label: "严重", icon: <XCircle size={12} /> },
+    warning: { bg: "bg-foreground/5", text: "text-foreground/70", label: "警告", icon: <AlertTriangle size={12} /> },
+    test_fail: { bg: "bg-foreground/10", text: "text-foreground", label: "测试失败", icon: <TestTube2 size={12} /> },
   };
 
   const getButtonText = () => {
@@ -195,9 +192,9 @@ export const AcceptanceQA = ({
             className={cn(
               "h-1 rounded-full transition-all duration-300",
               i === currentIdx
-                ? "bg-primary w-6"
+                ? "bg-foreground w-6"
                 : decisions[issues[i].id]
-                ? "bg-primary/40 w-3"
+                ? "bg-foreground/40 w-3"
                 : "bg-border w-3"
             )}
           />
@@ -218,7 +215,6 @@ export const AcceptanceQA = ({
             const selected = decisions[issue.id];
             return (
               <div key={issue.id} className="w-full shrink-0">
-                {/* Issue header */}
                 <div className="px-3 py-2.5 flex items-start gap-2">
                   <div className={cn("mt-0.5 shrink-0", cfg.text)}>{cfg.icon}</div>
                   <div className="flex-1 min-w-0">
@@ -235,14 +231,13 @@ export const AcceptanceQA = ({
                     <p className="text-xs font-medium text-foreground mt-1">{issue.title}</p>
                     <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">{issue.description}</p>
                     <div className="flex items-center gap-1 mt-1.5">
-                      <Sparkles size={10} className="text-primary shrink-0" />
-                      <span className="text-[11px] text-primary">{issue.aiSuggestion}</span>
+                      <Sparkles size={10} className="text-foreground/50 shrink-0" />
+                      <span className="text-[11px] text-foreground/60">{issue.aiSuggestion}</span>
                     </div>
                   </div>
-                  {selected && <CheckCircle2 size={14} className="text-primary shrink-0 mt-1" />}
+                  {selected && <CheckCircle2 size={14} className="text-foreground/50 shrink-0 mt-1" />}
                 </div>
 
-                {/* Options */}
                 <div className="px-3 pb-2.5 flex flex-wrap gap-1.5">
                   {issue.options.map((opt) => (
                     <button
@@ -251,20 +246,20 @@ export const AcceptanceQA = ({
                       className={cn(
                         "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-medium border transition-all",
                         selected === opt.value
-                          ? "border-primary bg-primary/10 text-primary"
+                          ? "border-foreground bg-foreground/10 text-foreground"
                           : "border-border bg-background text-foreground hover:border-muted-foreground/40 hover:bg-muted/50",
-                        opt.recommended && !selected && "ring-1 ring-primary/20"
+                        opt.recommended && !selected && "ring-1 ring-foreground/20"
                       )}
                     >
                       <div className={cn(
                         "w-3 h-3 rounded-full border-2 flex items-center justify-center shrink-0",
-                        selected === opt.value ? "border-primary" : "border-muted-foreground/40"
+                        selected === opt.value ? "border-foreground" : "border-muted-foreground/40"
                       )}>
-                        {selected === opt.value && <div className="w-1.5 h-1.5 rounded-full bg-primary" />}
+                        {selected === opt.value && <div className="w-1.5 h-1.5 rounded-full bg-foreground" />}
                       </div>
                       {opt.label}
                       {opt.recommended && !selected && (
-                        <Badge variant="outline" className="text-[8px] h-3.5 px-1 border-primary/30 text-primary ml-0.5">推荐</Badge>
+                        <Badge variant="outline" className="text-[8px] h-3.5 px-1 border-foreground/30 text-foreground/60 ml-0.5">推荐</Badge>
                       )}
                     </button>
                   ))}
@@ -343,7 +338,6 @@ const TestReportSection = ({
   const failedCount = result.tests.length - passedTests;
   const coverage = result.coveragePercent ?? null;
 
-  // Group tests by filePath
   const groups = result.tests.reduce((acc, t) => {
     const path = t.filePath || "其他";
     if (!acc[path]) acc[path] = [];
@@ -386,18 +380,15 @@ const TestReportSection = ({
                       cx="18" cy="18" r="15.5" fill="none" strokeWidth="3"
                       strokeDasharray={`${(testPassRate / 100) * 97.4} 97.4`}
                       strokeLinecap="round"
-                      className={cn("transition-all duration-500", allTestsPassed ? "stroke-emerald-500" : "stroke-destructive")}
+                      className="stroke-foreground transition-all duration-500"
                     />
                   </svg>
-                  <span className={cn(
-                    "absolute inset-0 flex items-center justify-center text-[9px] font-bold",
-                    allTestsPassed ? "text-emerald-500" : "text-destructive"
-                  )}>
+                  <span className="absolute inset-0 flex items-center justify-center text-[9px] font-bold text-foreground">
                     {testPassRate}%
                   </span>
                 </div>
                 <div className="flex flex-col">
-                  <span className={cn("font-semibold text-[13px] leading-none", allTestsPassed ? "text-emerald-500" : "text-destructive")}>
+                  <span className="font-semibold text-[13px] leading-none text-foreground">
                     {passedTests}/{result.tests.length}
                   </span>
                   <span className="text-muted-foreground text-[10px]">
@@ -408,7 +399,6 @@ const TestReportSection = ({
 
               <div className="w-px h-6 bg-border shrink-0" />
 
-              {/* Duration */}
               <div className="flex items-center gap-1.5 px-4">
                 <Clock size={12} className="text-muted-foreground" />
                 <span className="font-semibold text-foreground">{(totalDuration / 1000).toFixed(1)}s</span>
@@ -418,10 +408,9 @@ const TestReportSection = ({
               {coverage !== null && (
                 <>
                   <div className="w-px h-6 bg-border shrink-0" />
-                  {/* Coverage */}
                   <div className="flex items-center gap-1.5 px-4">
-                    <Shield size={12} className={cn(coverage >= 80 ? "text-emerald-500" : coverage >= 60 ? "text-amber-500" : "text-destructive")} />
-                    <span className={cn("font-semibold", coverage >= 80 ? "text-emerald-500" : coverage >= 60 ? "text-amber-500" : "text-destructive")}>
+                    <Shield size={12} className="text-muted-foreground" />
+                    <span className="font-semibold text-foreground">
                       {coverage}%
                     </span>
                     <span className="text-muted-foreground">覆盖率</span>
@@ -435,13 +424,12 @@ const TestReportSection = ({
               {groupEntries.map(([filePath, tests], gi) => {
                 const groupPassed = tests.filter((t) => t.passed).length;
                 const groupAllPassed = groupPassed === tests.length;
-                const isOpen = expandedGroups[filePath] !== false; // default open
+                const isOpen = expandedGroups[filePath] !== false;
                 const fileName = filePath.split("/").pop() || filePath;
 
                 return (
                   <div key={filePath}>
                     {gi > 0 && <div className="h-px bg-border" />}
-                    {/* Group header */}
                     <button
                       onClick={() => toggleGroup(filePath)}
                       className="w-full flex items-center gap-2 px-3 py-2 text-xs hover:bg-muted/30 transition-colors"
@@ -449,11 +437,10 @@ const TestReportSection = ({
                       <ChevronDown size={12} className={cn("text-muted-foreground transition-transform shrink-0", !isOpen && "-rotate-90")} />
                       <FileCode2 size={12} className="text-muted-foreground shrink-0" />
                       <span className="font-mono text-foreground truncate flex-1 text-left" title={filePath}>{fileName}</span>
-                      <span className={cn("text-[10px] font-medium shrink-0", groupAllPassed ? "text-emerald-500" : "text-destructive")}>
+                      <span className={cn("text-[10px] font-medium shrink-0", groupAllPassed ? "text-foreground/50" : "text-foreground font-semibold")}>
                         {groupPassed}/{tests.length}
                       </span>
                     </button>
-                    {/* Group items */}
                     {isOpen && tests.map((t, ti) => {
                       const globalIdx = result.tests.indexOf(t);
                       const isFailExpanded = expandedFailures[globalIdx];
@@ -462,35 +449,34 @@ const TestReportSection = ({
                           <div
                             className={cn(
                               "flex items-center gap-2 px-3 pl-8 py-1.5 text-xs border-t border-border/50",
-                              !t.passed && "cursor-pointer hover:bg-destructive/5"
+                              !t.passed && "cursor-pointer hover:bg-muted/30"
                             )}
                             onClick={() => {
                               if (!t.passed) setExpandedFailures((prev) => ({ ...prev, [globalIdx]: !prev[globalIdx] }));
                             }}
                           >
                             {t.passed ? (
-                              <CheckCircle2 size={12} className="text-emerald-500 shrink-0" />
+                              <CheckCircle2 size={12} className="text-foreground/30 shrink-0" />
                             ) : (
-                              <XCircle size={12} className="text-destructive shrink-0" />
+                              <XCircle size={12} className="text-foreground/60 shrink-0" />
                             )}
-                            <span className={cn("flex-1 text-foreground", !t.passed && "text-destructive font-medium")}>{t.name}</span>
+                            <span className={cn("flex-1 text-foreground", !t.passed && "font-medium")}>{t.name}</span>
                             <span className="text-[10px] text-muted-foreground">{t.duration}ms</span>
                             {!t.passed && (
                               <ChevronDown size={10} className={cn("text-muted-foreground transition-transform", isFailExpanded && "rotate-180")} />
                             )}
                           </div>
-                          {/* Failure details */}
                           {!t.passed && isFailExpanded && (
                             <div className="pl-8 pr-3 pb-2 space-y-1.5">
                               {t.errorMessage && (
-                                <div className="rounded bg-destructive/5 border border-destructive/10 px-2.5 py-2 font-mono text-[10px] text-destructive leading-relaxed whitespace-pre-wrap">
+                                <div className="rounded bg-muted/50 border border-border px-2.5 py-2 font-mono text-[10px] text-foreground/70 leading-relaxed whitespace-pre-wrap">
                                   {t.errorMessage}
                                 </div>
                               )}
                               {t.aiSuggestion && (
                                 <div className="flex items-start gap-1.5 text-[11px]">
-                                  <Sparkles size={11} className="text-primary shrink-0 mt-0.5" />
-                                  <span className="text-primary leading-relaxed">{t.aiSuggestion}</span>
+                                  <Sparkles size={11} className="text-muted-foreground shrink-0 mt-0.5" />
+                                  <span className="text-muted-foreground leading-relaxed">{t.aiSuggestion}</span>
                                 </div>
                               )}
                             </div>
@@ -506,7 +492,6 @@ const TestReportSection = ({
         </TabsContent>
 
         <TabsContent value="ui-test" className="mt-0">
-          {/* UI Test summary header */}
           <div className="flex items-center gap-3 mb-3 px-1 text-xs text-muted-foreground">
             <div className="flex items-center gap-1.5">
               <Eye size={12} />
@@ -514,7 +499,7 @@ const TestReportSection = ({
             </div>
             <div className="w-px h-4 bg-border" />
             <div className="flex items-center gap-1.5">
-              <CheckCircle2 size={12} className="text-emerald-500" />
+              <CheckCircle2 size={12} className="text-foreground/40" />
               <span>全部通过</span>
             </div>
             <div className="w-px h-4 bg-border" />
@@ -569,28 +554,26 @@ const DevCompleteDetailPanel = ({
   // AI verdict
   const getVerdict = () => {
     if (!aiReviewDone) return { emoji: "⏳", text: "AI 正在审查代码，请稍候…", type: "pending" as const };
-    if (hasCritical) return { emoji: "🚨", text: `发现 ${allFindings.filter(f => f.severity === "critical").length} 个严重问题，建议修复后再发布`, type: "error" as const };
-    if (!allTestsPassed) return { emoji: "⚠️", text: `${result.tests.length - passedTests} 个测试未通过，建议检查后再发布`, type: "warning" as const };
-    if (hasWarning) return { emoji: "✅", text: `审查通过（评分 ${reviewInfo?.overallScore}），有 ${allFindings.filter(f => f.severity === "warning").length} 项警告建议关注`, type: "ok" as const };
-    return { emoji: "✅", text: `审查通过，综合评分 ${reviewInfo?.overallScore} 分，可以放心发布`, type: "ok" as const };
+    if (hasCritical) return { emoji: "⚠", text: `发现 ${allFindings.filter(f => f.severity === "critical").length} 个严重问题，建议修复后再发布`, type: "error" as const };
+    if (!allTestsPassed) return { emoji: "⚠", text: `${result.tests.length - passedTests} 个测试未通过，建议检查后再发布`, type: "warning" as const };
+    if (hasWarning) return { emoji: "✓", text: `审查通过（评分 ${reviewInfo?.overallScore}），有 ${allFindings.filter(f => f.severity === "warning").length} 项警告建议关注`, type: "ok" as const };
+    return { emoji: "✓", text: `审查通过，综合评分 ${reviewInfo?.overallScore} 分，可以放心发布`, type: "ok" as const };
   };
   const verdict = getVerdict();
 
   const statusBadge = deployed ? (
-    <Badge className="text-[10px] bg-emerald-500/15 text-emerald-500 border-0">已发布</Badge>
+    <Badge variant="outline" className="text-[10px] border-foreground/20 text-foreground/60">已发布</Badge>
   ) : approved ? (
-    <Badge className="text-[10px] bg-emerald-500/15 text-emerald-500 border-0">审查通过</Badge>
+    <Badge variant="outline" className="text-[10px] border-foreground/20 text-foreground/60">审查通过</Badge>
   ) : aiReviewRunning ? (
-    <Badge className="text-[10px] bg-primary/15 text-primary border-0">AI 审查中</Badge>
+    <Badge variant="outline" className="text-[10px] border-border text-muted-foreground">AI 审查中</Badge>
   ) : aiReviewDone && hasCritical ? (
-    <Badge className="text-[10px] bg-destructive/15 text-destructive border-0">有严重问题</Badge>
+    <Badge variant="outline" className="text-[10px] border-foreground/30 text-foreground/70">有严重问题</Badge>
   ) : aiReviewDone ? (
-    <Badge className="text-[10px] bg-emerald-500/15 text-emerald-500 border-0">
+    <Badge variant="outline" className="text-[10px] border-foreground/20 text-foreground/60">
       {reviewInfo?.overallScore} 分
     </Badge>
   ) : null;
-
-
 
 
   const testPassRate = result.tests.length > 0 ? Math.round((passedTests / result.tests.length) * 100) : 0;
@@ -600,8 +583,8 @@ const DevCompleteDetailPanel = ({
       <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0">
         {/* Header */}
         <div className="flex items-center gap-3 px-4 py-2 border-b border-border shrink-0">
-          <div className="w-7 h-7 rounded-full bg-emerald-500/15 flex items-center justify-center shrink-0">
-            <CheckCircle2 size={14} className="text-emerald-500" />
+          <div className="w-7 h-7 rounded-full bg-foreground/5 flex items-center justify-center shrink-0">
+            <CheckCircle2 size={14} className="text-foreground/40" />
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-foreground truncate">{result.requirementTitle}</p>
@@ -630,14 +613,14 @@ const DevCompleteDetailPanel = ({
             {/* ── AI Verdict + Metrics — Merged Dashboard ── */}
             <div className={cn(
               "rounded-xl border overflow-hidden",
-              verdict.type === "error" && "bg-destructive/5 border-destructive/20",
-              verdict.type === "warning" && "bg-amber-500/5 border-amber-500/20",
-              verdict.type === "ok" && "bg-emerald-500/5 border-emerald-500/20",
+              verdict.type === "error" && "bg-foreground/[0.03] border-foreground/15",
+              verdict.type === "warning" && "bg-foreground/[0.02] border-foreground/10",
+              verdict.type === "ok" && "bg-muted/30 border-border",
               verdict.type === "pending" && "bg-muted/30 border-border",
             )}>
               {/* Top: verdict headline */}
               <div className="px-4 py-3 flex items-center gap-3">
-                <span className="text-xl shrink-0">{verdict.emoji}</span>
+                <span className="text-lg font-bold shrink-0 text-foreground/60">{verdict.emoji}</span>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-foreground leading-snug">{verdict.text}</p>
                 </div>
@@ -647,7 +630,7 @@ const DevCompleteDetailPanel = ({
                   </Button>
                 )}
                 {!deployed && !readOnly && aiReviewDone && hasIssues && (
-                  <Badge variant="outline" className="text-[10px] h-5 px-2 border-amber-500/30 text-amber-600 dark:text-amber-400 shrink-0 gap-1">
+                  <Badge variant="outline" className="text-[10px] h-5 px-2 border-foreground/20 text-foreground/60 shrink-0 gap-1">
                     <AlertTriangle size={10} />
                     {acceptanceIssues.length} 个待决策
                   </Badge>
@@ -665,16 +648,10 @@ const DevCompleteDetailPanel = ({
                         cx="18" cy="18" r="15.5" fill="none" strokeWidth="2.5"
                         strokeDasharray={`${((reviewInfo?.overallScore ?? 0) / 100) * 97.4} 97.4`}
                         strokeLinecap="round"
-                        className={cn(
-                          "transition-all duration-700",
-                          (reviewInfo?.overallScore ?? 0) >= 80 ? "stroke-emerald-500" : (reviewInfo?.overallScore ?? 0) >= 60 ? "stroke-amber-500" : "stroke-destructive"
-                        )}
+                        className="stroke-foreground/60 transition-all duration-700"
                       />
                     </svg>
-                    <span className={cn(
-                      "absolute inset-0 flex items-center justify-center text-[11px] font-bold",
-                      (reviewInfo?.overallScore ?? 0) >= 80 ? "text-emerald-500" : (reviewInfo?.overallScore ?? 0) >= 60 ? "text-amber-500" : "text-destructive"
-                    )}>
+                    <span className="absolute inset-0 flex items-center justify-center text-[11px] font-bold text-foreground">
                       {aiReviewDone ? reviewInfo?.overallScore : "–"}
                     </span>
                   </div>
@@ -685,8 +662,8 @@ const DevCompleteDetailPanel = ({
 
                 {/* Tests */}
                 <div className="flex items-center gap-1.5 px-4">
-                  <TestTube2 size={13} className={cn(allTestsPassed ? "text-emerald-500" : "text-destructive")} />
-                  <span className={cn("font-semibold", allTestsPassed ? "text-emerald-500" : "text-destructive")}>
+                  <TestTube2 size={13} className="text-muted-foreground" />
+                  <span className="font-semibold text-foreground">
                     {passedTests}/{result.tests.length}
                   </span>
                   <span className="text-muted-foreground">通过</span>
@@ -699,8 +676,8 @@ const DevCompleteDetailPanel = ({
                   <Code2 size={13} className="text-muted-foreground" />
                   <span className="font-semibold text-foreground">{result.files.length}</span>
                   <span className="text-muted-foreground">文件</span>
-                  <span className="text-emerald-500 font-mono text-[11px]">+{totalAdds}</span>
-                  <span className="text-destructive font-mono text-[11px]">-{totalDels}</span>
+                  <span className="text-foreground/50 font-mono text-[11px]">+{totalAdds}</span>
+                  <span className="text-foreground/40 font-mono text-[11px]">-{totalDels}</span>
                 </div>
 
                 <div className="w-px h-5 bg-border shrink-0" />
@@ -749,7 +726,7 @@ const DevCompleteDetailPanel = ({
                 title="代码变更"
                 icon={<Code2 size={15} />}
                 defaultOpen={false}
-                inlineSummary={<span>{result.files.length} 个文件 · <span className="text-emerald-500">+{totalAdds}</span> <span className="text-destructive">-{totalDels}</span></span>}
+                inlineSummary={<span>{result.files.length} 个文件 · <span className="text-foreground/50">+{totalAdds}</span> <span className="text-foreground/40">-{totalDels}</span></span>}
                 status="ok"
               >
                 <div className="space-y-3">
@@ -761,8 +738,8 @@ const DevCompleteDetailPanel = ({
                       <div key={f.path} className="flex items-center gap-2 px-3 py-2 text-xs border-b border-border last:border-0 hover:bg-muted/30 transition-colors">
                         <FileCode2 size={12} className="text-muted-foreground shrink-0" />
                         <span className="font-mono text-foreground flex-1 min-w-0 truncate">{f.path}</span>
-                        <span className="text-emerald-500 text-[10px] font-mono">+{f.additions}</span>
-                        <span className="text-destructive text-[10px] font-mono">-{f.deletions}</span>
+                        <span className="text-foreground/50 text-[10px] font-mono">+{f.additions}</span>
+                        <span className="text-foreground/40 text-[10px] font-mono">-{f.deletions}</span>
                       </div>
                     ))}
                   </div>
@@ -777,13 +754,13 @@ const DevCompleteDetailPanel = ({
                 inlineSummary={
                   aiReviewDone
                     ? <span>{reviewInfo?.overallScore} 分 · {hasCritical ? `${allFindings.filter(f => f.severity === "critical").length} 个严重问题` : hasWarning ? `${allFindings.filter(f => f.severity === "warning").length} 项警告` : "无问题"}</span>
-                    : <span className="text-primary">审查中…</span>
+                    : <span className="text-muted-foreground">审查中…</span>
                 }
                 status={!aiReviewDone ? "pending" : hasCritical ? "error" : hasWarning ? "warning" : "ok"}
               >
                 {!aiReviewDone ? (
                   <div className="flex items-center gap-2 py-2">
-                    <Shield size={14} className="text-primary animate-pulse" />
+                    <Shield size={14} className="text-muted-foreground animate-pulse" />
                     <span className="text-sm text-muted-foreground">AI 正在审查代码…</span>
                   </div>
                 ) : (
@@ -795,10 +772,7 @@ const DevCompleteDetailPanel = ({
                           <div className="flex items-center gap-2">
                             <span className="text-sm">{r.icon}</span>
                             <span className="text-[10px] text-muted-foreground font-medium">{r.displayName}</span>
-                            <span className={cn(
-                              "ml-auto text-base font-bold",
-                              (r.score ?? 0) >= 80 ? "text-emerald-500" : (r.score ?? 0) >= 60 ? "text-amber-500" : "text-destructive"
-                            )}>
+                            <span className="ml-auto text-base font-bold text-foreground">
                               {r.score}
                             </span>
                           </div>
@@ -823,7 +797,7 @@ const DevCompleteDetailPanel = ({
                               <div key={f.id} className="flex items-stretch rounded-lg border border-border overflow-hidden">
                                 <div className={cn(
                                   "w-1 shrink-0",
-                                  f.severity === "critical" ? "bg-destructive" : f.severity === "warning" ? "bg-amber-500" : f.severity === "praise" ? "bg-emerald-500" : "bg-primary"
+                                  f.severity === "critical" ? "bg-foreground" : f.severity === "warning" ? "bg-foreground/50" : f.severity === "praise" ? "bg-foreground/30" : "bg-foreground/20"
                                 )} />
                                 <div className="flex-1 px-3 py-2.5 min-w-0">
                                   <div className="flex items-center gap-1.5 flex-wrap">
@@ -867,7 +841,7 @@ const DevCompleteDetailPanel = ({
                   />
                   <button
                     onClick={() => setActiveTab("preview")}
-                    className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors"
+                    className="flex items-center gap-1 text-xs text-foreground/60 hover:text-foreground transition-colors"
                   >
                     <ExternalLink size={11} />
                     <span>打开全屏预览</span>
@@ -881,8 +855,8 @@ const DevCompleteDetailPanel = ({
               <div id="acceptance-qa-section" className="pt-2 pb-2">
                 {aiReviewDone ? (
                   hasIssues ? (
-                    <div className="flex items-center justify-center gap-2 py-3 px-4 rounded-lg bg-amber-500/5 border border-amber-500/15">
-                      <AlertTriangle size={14} className="text-amber-500 shrink-0" />
+                    <div className="flex items-center justify-center gap-2 py-3 px-4 rounded-lg bg-muted/30 border border-border">
+                      <AlertTriangle size={14} className="text-foreground/50 shrink-0" />
                       <span className="text-xs text-muted-foreground">请在输入框上方完成问题决策后继续</span>
                     </div>
                   ) : (
@@ -897,7 +871,7 @@ const DevCompleteDetailPanel = ({
                   )
                 ) : (
                   <div className="flex items-center justify-center gap-2 py-2">
-                    <Shield size={14} className="text-primary animate-pulse" />
+                    <Shield size={14} className="text-muted-foreground animate-pulse" />
                     <span className="text-xs text-muted-foreground">AI 正在审查，完成后即可操作</span>
                   </div>
                 )}
