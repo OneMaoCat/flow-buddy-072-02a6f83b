@@ -1,5 +1,6 @@
-import { X, GitBranch, Search, Sparkles, Code2, Pencil, TestTube2, Shield, CheckCircle2, FileCode2 } from "lucide-react";
+import { X, GitBranch, Search, Sparkles, Code2, Pencil, TestTube2, Shield, CheckCircle2, FileCode2, MonitorPlay } from "lucide-react";
 import type { DevCompleteResult } from "@/components/DevCompleteCard";
+import UITestReplay, { buildMockUITestSteps } from "@/components/UITestReplay";
 
 interface DevProcessDetailPanelProps {
   result: DevCompleteResult;
