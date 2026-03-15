@@ -115,7 +115,7 @@ const DevExecution = () => {
   // UI state
   const [filter, setFilter] = useState<FilterTab>("all");
   const [search, setSearch] = useState("");
-  const [viewMode, setViewMode] = useState<ViewMode>("kanban");
+  const [viewMode, setViewMode] = useState<ViewMode>("table");
   const [selectedReqId, setSelectedReqId] = useState<string | null>(null);
   const [rejectingReq, setRejectingReq] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState("");
