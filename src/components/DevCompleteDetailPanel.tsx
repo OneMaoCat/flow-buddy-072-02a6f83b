@@ -385,7 +385,7 @@ const TestReportSection = ({
     <ReportSection
       title="测试报告"
       icon={<TestTube2 size={15} />}
-      defaultOpen={!allTestsPassed}
+      defaultOpen={true}
       inlineSummary={<span>{passedTests}/{result.tests.length} 通过{coverage !== null ? ` · 覆盖率 ${coverage}%` : ""}</span>}
       status={allTestsPassed ? "ok" : "error"}
     >
@@ -815,7 +815,7 @@ const DevCompleteDetailPanel = ({
               <ReportSection
                 title="任务背景"
                 icon={<MessageSquareText size={15} />}
-                defaultOpen={false}
+                defaultOpen={true}
                 inlineSummary={<span className="truncate max-w-[200px] inline-block">{result.requirementTitle}</span>}
                 status="ok"
               >
@@ -841,7 +841,7 @@ const DevCompleteDetailPanel = ({
               <ReportSection
                 title="代码变更"
                 icon={<Code2 size={15} />}
-                defaultOpen={false}
+                defaultOpen={true}
                 inlineSummary={<span>{result.files.length} 个文件 · <span className="text-foreground/50">+{totalAdds}</span> <span className="text-foreground/40">-{totalDels}</span></span>}
                 status="ok"
               >
@@ -866,7 +866,7 @@ const DevCompleteDetailPanel = ({
               <ReportSection
                 title="AI Code Review"
                 icon={<Shield size={15} />}
-                defaultOpen={hasCritical || hasWarning || !aiReviewDone}
+                defaultOpen={true}
                 inlineSummary={
                   aiReviewDone
                     ? <span>{reviewInfo?.overallScore} 分 · {hasCritical ? `${allFindings.filter(f => f.severity === "critical").length} 个严重问题` : hasWarning ? `${allFindings.filter(f => f.severity === "warning").length} 项警告` : "无问题"}</span>
@@ -886,7 +886,7 @@ const DevCompleteDetailPanel = ({
                       const rCritical = findings.filter(f => f.severity === "critical").length;
                       const rWarning = findings.filter(f => f.severity === "warning").length;
                       return (
-                        <ReviewerCard key={r.id} reviewer={r} defaultOpen={rIdx === 0 || rCritical > 0} criticalCount={rCritical} warningCount={rWarning} />
+                        <ReviewerCard key={r.id} reviewer={r} defaultOpen={true} criticalCount={rCritical} warningCount={rWarning} />
                       );
                     })}
                   </div>
@@ -905,7 +905,7 @@ const DevCompleteDetailPanel = ({
               <ReportSection
                 title="产品预览"
                 icon={<Eye size={15} />}
-                defaultOpen={false}
+                defaultOpen={true}
                 inlineSummary="点击查看"
               >
                 <RequirementPreview
