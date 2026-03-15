@@ -35,7 +35,11 @@ const BlockResolver = ({ blockInfo, onResolve, conversationId, onNavigateToConve
   const [customReply, setCustomReply] = useState("");
   const [showCustomReply, setShowCustomReply] = useState(false);
 
+  const hasCustomReply = customReply.trim().length > 0;
+
   const canResolve = (): boolean => {
+    // Custom reply alone can resolve any block
+    if (hasCustomReply) return true;
     switch (blockInfo.type) {
       case "clarify":
       case "design":
