@@ -152,7 +152,7 @@ export const buildAcceptanceIssues = (
 };
 
 /* ── AcceptanceQA Component ── */
-const AcceptanceQA = ({
+export const AcceptanceQA = ({
   issues,
   onConfirm,
   onDeployAnyway,
