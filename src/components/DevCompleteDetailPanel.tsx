@@ -606,9 +606,9 @@ const DevCompleteDetailPanel = ({
               </div>
             </ReportSection>
 
-            {/* ── Section 6: Product Preview ── */}
-            <ReportSection number={6} title="产品预览" icon={<Eye size={13} />} defaultOpen={true}>
-              <div className="space-y-2">
+            {/* ── Section 6: Product Preview + UI Test Replay ── */}
+            <ReportSection number={6} title="产品预览 & UI 测试回放" icon={<Eye size={13} />} defaultOpen={true}>
+              <div className="space-y-4">
                 <RequirementPreview
                   previewPath={result.previewPath}
                   requirementTitle={result.requirementTitle}
@@ -621,6 +621,11 @@ const DevCompleteDetailPanel = ({
                   <ExternalLink size={11} />
                   <span>打开全屏预览</span>
                 </button>
+
+                {/* UI Test Replay */}
+                <div className="border-t border-border pt-3">
+                  <UITestReplay />
+                </div>
               </div>
             </ReportSection>
 
