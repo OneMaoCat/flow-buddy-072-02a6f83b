@@ -149,18 +149,25 @@ const DevProcessDetailPanel = ({ result, onClose }: DevProcessDetailPanelProps) 
           <X size={16} />
         </button>
       </div>
-      <div className="flex-1 overflow-auto px-4 py-4 space-y-4">
+      <div className="flex-1 overflow-auto px-4 py-4">
         {sections.map((section, i) => (
-          <div key={i} className="space-y-2">
-            <div className="flex items-center gap-2 text-foreground">
-              <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0">
-                {section.icon}
-              </div>
-              <span className="text-xs font-semibold">{section.title}</span>
-              <CheckCircle2 size={12} className="text-primary/60 ml-auto" />
+          <div key={i} className="relative flex gap-3">
+            {/* Vertical connector line */}
+            {i < sections.length - 1 && (
+              <div className="absolute left-3 top-6 bottom-0 w-px bg-border" />
+            )}
+            {/* Icon */}
+            <div className="relative z-10 w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0">
+              {section.icon}
             </div>
-            <div className="ml-8">{section.content}</div>
-            {i < sections.length - 1 && <div className="ml-3 w-px h-3 bg-border" />}
+            {/* Content */}
+            <div className="flex-1 min-w-0 pb-5">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-xs font-semibold text-foreground">{section.title}</span>
+                <CheckCircle2 size={12} className="text-primary/60" />
+              </div>
+              {section.content}
+            </div>
           </div>
         ))}
       </div>
