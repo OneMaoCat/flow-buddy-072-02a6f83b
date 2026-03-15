@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import RequirementPreview from "@/components/RequirementPreview";
 import CodeReviewTab from "@/components/CodeReviewTab";
+import UITestReplay from "@/components/UITestReplay";
 import {
   FileCode2,
   Eye,
