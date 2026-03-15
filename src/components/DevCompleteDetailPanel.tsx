@@ -325,9 +325,213 @@ export const AcceptanceQA = ({
 };
 
 
+/* ── Test Report Section — Dashboard + Grouped + Failure Details ── */
+const TestReportSection = ({
+  result,
+  passedTests,
+  allTestsPassed,
+  testPassRate,
+}: {
+  result: DevCompleteResult;
+  passedTests: number;
+  allTestsPassed: boolean;
+  testPassRate: number;
+}) => {
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
+  const [expandedFailures, setExpandedFailures] = useState<Record<number, boolean>>({});
+  const totalDuration = result.tests.reduce((s, t) => s + t.duration, 0);
+  const failedCount = result.tests.length - passedTests;
+  const coverage = result.coveragePercent ?? null;
+
+  // Group tests by filePath
+  const groups = result.tests.reduce((acc, t) => {
+    const path = t.filePath || "其他";
+    if (!acc[path]) acc[path] = [];
+    acc[path].push(t);
+    return acc;
+  }, {} as Record<string, typeof result.tests>);
+  const groupEntries = Object.entries(groups);
+
+  const toggleGroup = (path: string) =>
+    setExpandedGroups((prev) => ({ ...prev, [path]: !prev[path] }));
+
+  return (
+    <ReportSection
+      title="测试报告"
+      icon={<TestTube2 size={15} />}
+      defaultOpen={!allTestsPassed}
+      inlineSummary={<span>{passedTests}/{result.tests.length} 通过{coverage !== null ? ` · 覆盖率 ${coverage}%` : ""}</span>}
+      status={allTestsPassed ? "ok" : "error"}
+    >
+      <Tabs defaultValue="code-test" className="w-full">
+        <TabsList className="h-7 mb-3">
+          <TabsTrigger value="code-test" className="text-[11px] h-6 px-2.5 gap-1">
+            <TestTube2 size={11} /> 代码测试
+          </TabsTrigger>
+          <TabsTrigger value="ui-test" className="text-[11px] h-6 px-2.5 gap-1">
+            <Eye size={11} /> UI 测试
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="code-test" className="mt-0">
+          <div className="space-y-3">
+            {/* ── Summary Dashboard ── */}
+            <div className="rounded-lg border border-border bg-muted/20 px-4 py-3 flex items-center gap-0 text-xs">
+              {/* Pass rate ring */}
+              <div className="flex items-center gap-2 pr-4">
+                <div className="relative w-[30px] h-[30px] shrink-0">
+                  <svg viewBox="0 0 36 36" className="w-full h-full -rotate-90">
+                    <circle cx="18" cy="18" r="15.5" fill="none" strokeWidth="3" className="stroke-border" />
+                    <circle
+                      cx="18" cy="18" r="15.5" fill="none" strokeWidth="3"
+                      strokeDasharray={`${(testPassRate / 100) * 97.4} 97.4`}
+                      strokeLinecap="round"
+                      className={cn("transition-all duration-500", allTestsPassed ? "stroke-emerald-500" : "stroke-destructive")}
+                    />
+                  </svg>
+                  <span className={cn(
+                    "absolute inset-0 flex items-center justify-center text-[9px] font-bold",
+                    allTestsPassed ? "text-emerald-500" : "text-destructive"
+                  )}>
+                    {testPassRate}%
+                  </span>
+                </div>
+                <div className="flex flex-col">
+                  <span className={cn("font-semibold text-[13px] leading-none", allTestsPassed ? "text-emerald-500" : "text-destructive")}>
+                    {passedTests}/{result.tests.length}
+                  </span>
+                  <span className="text-muted-foreground text-[10px]">
+                    {allTestsPassed ? "全部通过" : `${failedCount} 个失败`}
+                  </span>
+                </div>
+              </div>
+
+              <div className="w-px h-6 bg-border shrink-0" />
+
+              {/* Duration */}
+              <div className="flex items-center gap-1.5 px-4">
+                <Clock size={12} className="text-muted-foreground" />
+                <span className="font-semibold text-foreground">{(totalDuration / 1000).toFixed(1)}s</span>
+                <span className="text-muted-foreground">耗时</span>
+              </div>
+
+              {coverage !== null && (
+                <>
+                  <div className="w-px h-6 bg-border shrink-0" />
+                  {/* Coverage */}
+                  <div className="flex items-center gap-1.5 px-4">
+                    <Shield size={12} className={cn(coverage >= 80 ? "text-emerald-500" : coverage >= 60 ? "text-amber-500" : "text-destructive")} />
+                    <span className={cn("font-semibold", coverage >= 80 ? "text-emerald-500" : coverage >= 60 ? "text-amber-500" : "text-destructive")}>
+                      {coverage}%
+                    </span>
+                    <span className="text-muted-foreground">覆盖率</span>
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* ── Grouped Test List ── */}
+            <div className="rounded-md border border-border overflow-hidden">
+              {groupEntries.map(([filePath, tests], gi) => {
+                const groupPassed = tests.filter((t) => t.passed).length;
+                const groupAllPassed = groupPassed === tests.length;
+                const isOpen = expandedGroups[filePath] !== false; // default open
+                const fileName = filePath.split("/").pop() || filePath;
+
+                return (
+                  <div key={filePath}>
+                    {gi > 0 && <div className="h-px bg-border" />}
+                    {/* Group header */}
+                    <button
+                      onClick={() => toggleGroup(filePath)}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-xs hover:bg-muted/30 transition-colors"
+                    >
+                      <ChevronDown size={12} className={cn("text-muted-foreground transition-transform shrink-0", !isOpen && "-rotate-90")} />
+                      <FileCode2 size={12} className="text-muted-foreground shrink-0" />
+                      <span className="font-mono text-foreground truncate flex-1 text-left" title={filePath}>{fileName}</span>
+                      <span className={cn("text-[10px] font-medium shrink-0", groupAllPassed ? "text-emerald-500" : "text-destructive")}>
+                        {groupPassed}/{tests.length}
+                      </span>
+                    </button>
+                    {/* Group items */}
+                    {isOpen && tests.map((t, ti) => {
+                      const globalIdx = result.tests.indexOf(t);
+                      const isFailExpanded = expandedFailures[globalIdx];
+                      return (
+                        <div key={ti}>
+                          <div
+                            className={cn(
+                              "flex items-center gap-2 px-3 pl-8 py-1.5 text-xs border-t border-border/50",
+                              !t.passed && "cursor-pointer hover:bg-destructive/5"
+                            )}
+                            onClick={() => {
+                              if (!t.passed) setExpandedFailures((prev) => ({ ...prev, [globalIdx]: !prev[globalIdx] }));
+                            }}
+                          >
+                            {t.passed ? (
+                              <CheckCircle2 size={12} className="text-emerald-500 shrink-0" />
+                            ) : (
+                              <XCircle size={12} className="text-destructive shrink-0" />
+                            )}
+                            <span className={cn("flex-1 text-foreground", !t.passed && "text-destructive font-medium")}>{t.name}</span>
+                            <span className="text-[10px] text-muted-foreground">{t.duration}ms</span>
+                            {!t.passed && (
+                              <ChevronDown size={10} className={cn("text-muted-foreground transition-transform", isFailExpanded && "rotate-180")} />
+                            )}
+                          </div>
+                          {/* Failure details */}
+                          {!t.passed && isFailExpanded && (
+                            <div className="pl-8 pr-3 pb-2 space-y-1.5">
+                              {t.errorMessage && (
+                                <div className="rounded bg-destructive/5 border border-destructive/10 px-2.5 py-2 font-mono text-[10px] text-destructive leading-relaxed whitespace-pre-wrap">
+                                  {t.errorMessage}
+                                </div>
+                              )}
+                              {t.aiSuggestion && (
+                                <div className="flex items-start gap-1.5 text-[11px]">
+                                  <Sparkles size={11} className="text-primary shrink-0 mt-0.5" />
+                                  <span className="text-primary leading-relaxed">{t.aiSuggestion}</span>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="ui-test" className="mt-0">
+          {/* UI Test summary header */}
+          <div className="flex items-center gap-3 mb-3 px-1 text-xs text-muted-foreground">
+            <div className="flex items-center gap-1.5">
+              <Eye size={12} />
+              <span className="font-medium text-foreground">8 步骤</span>
+            </div>
+            <div className="w-px h-4 bg-border" />
+            <div className="flex items-center gap-1.5">
+              <CheckCircle2 size={12} className="text-emerald-500" />
+              <span>全部通过</span>
+            </div>
+            <div className="w-px h-4 bg-border" />
+            <div className="flex items-center gap-1.5">
+              <Clock size={12} />
+              <span>3.2s</span>
+            </div>
+          </div>
+          <UITestReplay />
+        </TabsContent>
+      </Tabs>
+    </ReportSection>
+  );
+};
 
 
-/* ── Main Component ── */
+
 const DevCompleteDetailPanel = ({
   result,
   onDeploy,
