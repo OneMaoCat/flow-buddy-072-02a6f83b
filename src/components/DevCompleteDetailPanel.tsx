@@ -400,14 +400,22 @@ const DevCompleteDetailPanel = ({
                 <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{verdict.text}</p>
               </div>
               {/* Quick action in verdict */}
-              {!deployed && !readOnly && aiReviewDone && !hasCritical && (
+              {!deployed && !readOnly && aiReviewDone && !hasIssues && (
                 <Button size="sm" className="h-8 text-xs gap-1 shrink-0" onClick={() => onDeploy(result.id)}>
                   <Rocket size={12} /> 发布
                 </Button>
               )}
-              {!deployed && !readOnly && aiReviewDone && hasCritical && (
-                <Button size="sm" variant="outline" className="h-8 text-xs gap-1 shrink-0" onClick={() => onReject(result.id)}>
-                  <RotateCcw size={12} /> 打回修改
+              {!deployed && !readOnly && aiReviewDone && hasIssues && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-8 text-xs gap-1 shrink-0"
+                  onClick={() => {
+                    const el = document.getElementById("acceptance-qa-section");
+                    el?.scrollIntoView({ behavior: "smooth", block: "start" });
+                  }}
+                >
+                  查看下方问题 ↓
                 </Button>
               )}
             </div>
