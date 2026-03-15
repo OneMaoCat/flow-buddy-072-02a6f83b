@@ -315,6 +315,9 @@ const DevCompleteDetailPanel = ({
   const allFindings = (reviewInfo?.aiReviewers || []).flatMap(
     (r) => (r.findings || []).map((f) => ({ ...f, reviewer: r.displayName }))
   );
+  const failedTests = result.tests.filter((t) => !t.passed);
+  const acceptanceIssues = aiReviewDone ? buildAcceptanceIssues(allFindings, failedTests) : [];
+  const hasIssues = acceptanceIssues.length > 0;
 
   // AI verdict
   const getVerdict = () => {
