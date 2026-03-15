@@ -96,12 +96,12 @@ const ReportSection = ({
   );
 };
 
-/* ── Severity styling — grayscale ── */
-const severityConfig: Record<FindingSeverity, { bg: string; text: string; label: string }> = {
-  critical: { bg: "bg-foreground/10", text: "text-foreground", label: "严重" },
-  warning: { bg: "bg-foreground/5", text: "text-foreground/70", label: "警告" },
-  suggestion: { bg: "bg-muted", text: "text-muted-foreground", label: "建议" },
-  praise: { bg: "bg-muted", text: "text-foreground/60", label: "优秀" },
+/* ── Severity styling — grayscale (matching CodeReviewTab) ── */
+const severityConfig: Record<FindingSeverity, { bg: string; text: string; label: string; barClass: string; icon: React.ReactNode }> = {
+  critical: { bg: "bg-foreground/10", text: "text-foreground", label: "严重", barClass: "bg-foreground", icon: <AlertCircle size={11} /> },
+  warning: { bg: "bg-foreground/5", text: "text-foreground/70", label: "警告", barClass: "bg-foreground/50", icon: <AlertTriangle size={11} /> },
+  suggestion: { bg: "bg-muted", text: "text-muted-foreground", label: "建议", barClass: "bg-muted-foreground/60", icon: <Lightbulb size={11} /> },
+  praise: { bg: "bg-muted", text: "text-foreground/60", label: "优点", barClass: "bg-foreground/20", icon: <ThumbsUp size={11} /> },
 };
 
 /* ── Build acceptance issues from findings + failed tests ── */
