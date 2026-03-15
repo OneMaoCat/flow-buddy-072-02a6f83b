@@ -38,6 +38,8 @@ export interface DevCompleteResult {
   files: DiffFile[];
   tests: TestCase[];
   elapsed: number;
+  sourceContext?: { userPrompt: string; aiSummary: string };
+  aiChangeSummary?: string;
 }
 
 export const buildMockDevResult = (
