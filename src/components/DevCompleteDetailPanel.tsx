@@ -439,27 +439,39 @@ const DevCompleteDetailPanel = ({
             </div>
 
             {/* ── Section 1: Task Background ── */}
-            <ReportSection number={1} title="任务背景" icon={<MessageSquareText size={13} />}>
-              <div className="space-y-2.5">
+            <ReportSection
+              title="任务背景"
+              icon={<MessageSquareText size={15} />}
+              defaultOpen={false}
+              inlineSummary={<span className="truncate max-w-[200px] inline-block">{result.requirementTitle}</span>}
+              status="ok"
+            >
+              <div className="space-y-3">
                 <div>
-                  <div className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1">原始需求</div>
-                  <p className="text-xs text-foreground leading-relaxed bg-muted/30 rounded-md px-3 py-2">
+                  <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider mb-1.5">原始需求</div>
+                  <p className="text-sm text-foreground leading-relaxed bg-muted/30 rounded-md px-3 py-2.5">
                     {result.sourceContext?.userPrompt || result.requirementTitle}
                   </p>
                 </div>
                 {result.sourceContext?.aiSummary && (
                   <div>
-                    <div className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1 flex items-center gap-1">
-                      <Sparkles size={10} /> AI 理解摘要
+                    <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider mb-1.5 flex items-center gap-1">
+                      <Sparkles size={11} /> AI 理解摘要
                     </div>
-                    <p className="text-xs text-foreground leading-relaxed">{result.sourceContext.aiSummary}</p>
+                    <p className="text-sm text-foreground leading-relaxed">{result.sourceContext.aiSummary}</p>
                   </div>
                 )}
               </div>
             </ReportSection>
 
             {/* ── Section 2: Dev Process Timeline ── */}
-            <ReportSection number={2} title={`开发过程 · 耗时 ${result.elapsed}s`} icon={<Clock size={13} />}>
+            <ReportSection
+              title={`开发过程 · ${result.elapsed}s`}
+              icon={<Clock size={15} />}
+              defaultOpen={false}
+              inlineSummary="已完成"
+              status="ok"
+            >
               <div className="relative">
                 {timelineSteps.map((step, i) => (
                   <div key={i} className="flex gap-3 relative">
@@ -478,9 +490,9 @@ const DevCompleteDetailPanel = ({
                     <div className="pb-3 flex-1 min-w-0">
                       <div className="flex items-center gap-1.5">
                         <span className="text-muted-foreground">{step.icon}</span>
-                        <span className="text-xs font-medium text-foreground">{step.label}</span>
+                        <span className="text-sm font-medium text-foreground">{step.label}</span>
                       </div>
-                      <p className="text-[11px] text-muted-foreground mt-0.5">{step.detail}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{step.detail}</p>
                     </div>
                   </div>
                 ))}
@@ -488,13 +500,17 @@ const DevCompleteDetailPanel = ({
             </ReportSection>
 
             {/* ── Section 3: Code Change Summary ── */}
-            <ReportSection number={3} title="代码变更" icon={<Code2 size={13} />}>
+            <ReportSection
+              title="代码变更"
+              icon={<Code2 size={15} />}
+              defaultOpen={false}
+              inlineSummary={<span>{result.files.length} 个文件 · <span className="text-emerald-500">+{totalAdds}</span> <span className="text-destructive">-{totalDels}</span></span>}
+              status="ok"
+            >
               <div className="space-y-3">
-                {/* AI summary */}
                 {result.aiChangeSummary && (
-                  <p className="text-xs text-foreground leading-relaxed">{result.aiChangeSummary}</p>
+                  <p className="text-sm text-foreground leading-relaxed">{result.aiChangeSummary}</p>
                 )}
-                {/* File list */}
                 <div className="rounded-md border border-border overflow-hidden">
                   {result.files.map((f) => (
                     <div key={f.path} className="flex items-center gap-2 px-3 py-2 text-xs border-b border-border last:border-0 hover:bg-muted/30 transition-colors">
@@ -505,24 +521,28 @@ const DevCompleteDetailPanel = ({
                     </div>
                   ))}
                 </div>
-                <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
-                  <span>{result.files.length} 个文件</span>
-                  <span className="text-emerald-500 font-medium">+{totalAdds} 行新增</span>
-                  <span className="text-destructive font-medium">-{totalDels} 行删除</span>
-                </div>
               </div>
             </ReportSection>
 
             {/* ── Section 4: AI Code Review ── */}
-            <ReportSection number={4} title="AI Code Review" icon={<Shield size={13} />}>
+            <ReportSection
+              title="AI Code Review"
+              icon={<Shield size={15} />}
+              defaultOpen={hasCritical || hasWarning || !aiReviewDone}
+              inlineSummary={
+                aiReviewDone
+                  ? <span>{reviewInfo?.overallScore} 分 · {hasCritical ? `${allFindings.filter(f => f.severity === "critical").length} 个严重问题` : hasWarning ? `${allFindings.filter(f => f.severity === "warning").length} 项警告` : "无问题"}</span>
+                  : <span className="text-primary">审查中…</span>
+              }
+              status={!aiReviewDone ? "pending" : hasCritical ? "error" : hasWarning ? "warning" : "ok"}
+            >
               {!aiReviewDone ? (
                 <div className="flex items-center gap-2 py-2">
                   <Shield size={14} className="text-primary animate-pulse" />
-                  <span className="text-xs text-muted-foreground">AI 正在审查代码…</span>
+                  <span className="text-sm text-muted-foreground">AI 正在审查代码…</span>
                 </div>
               ) : (
-                <div className="space-y-3">
-                  {/* Score + model summaries */}
+                <div className="space-y-4">
                   <div className="flex items-center gap-4">
                     <div className="w-14 h-14 rounded-full border-[3px] border-primary flex items-center justify-center shrink-0">
                       <span className={cn(
@@ -532,27 +552,25 @@ const DevCompleteDetailPanel = ({
                         {reviewInfo?.overallScore}
                       </span>
                     </div>
-                    <div className="flex-1 space-y-1.5">
+                    <div className="flex-1 space-y-2">
                       {(reviewInfo?.aiReviewers || []).map((r) => (
                         <div key={r.id} className="flex items-center gap-2">
                           <span className="text-sm">{r.icon}</span>
-                          <span className="text-[11px] font-medium text-foreground w-24 shrink-0">{r.displayName}</span>
+                          <span className="text-xs font-medium text-foreground w-24 shrink-0">{r.displayName}</span>
                           <span className={cn(
-                            "text-[11px] font-bold",
+                            "text-xs font-bold",
                             (r.score ?? 0) >= 80 ? "text-emerald-500" : (r.score ?? 0) >= 60 ? "text-amber-500" : "text-destructive"
                           )}>
                             {r.score}分
                           </span>
-                          <span className="text-[10px] text-muted-foreground truncate flex-1">{r.summary}</span>
+                          <span className="text-[11px] text-muted-foreground truncate flex-1">{r.summary}</span>
                         </div>
                       ))}
                     </div>
                   </div>
-
-                  {/* All findings grouped by severity */}
                   {allFindings.length > 0 && (
-                    <div className="space-y-1.5">
-                      <div className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">全部发现 ({allFindings.length})</div>
+                    <div className="space-y-2">
+                      <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">全部发现 ({allFindings.length})</div>
                       {allFindings
                         .sort((a, b) => {
                           const order: FindingSeverity[] = ["critical", "warning", "suggestion", "praise"];
@@ -561,7 +579,7 @@ const DevCompleteDetailPanel = ({
                         .map((f) => {
                           const cfg = severityConfig[f.severity];
                           return (
-                            <div key={f.id} className={cn("flex items-start gap-2 px-3 py-2 rounded-md text-xs", cfg.bg)}>
+                            <div key={f.id} className={cn("flex items-start gap-2 px-3 py-2.5 rounded-md text-xs", cfg.bg)}>
                               {f.severity === "critical" ? <XCircle size={13} className={cn("shrink-0 mt-0.5", cfg.text)} />
                                 : f.severity === "warning" ? <AlertTriangle size={13} className={cn("shrink-0 mt-0.5", cfg.text)} />
                                 : f.severity === "praise" ? <CheckCircle2 size={13} className={cn("shrink-0 mt-0.5", cfg.text)} />
@@ -586,9 +604,14 @@ const DevCompleteDetailPanel = ({
             </ReportSection>
 
             {/* ── Section 5: Test Report ── */}
-            <ReportSection number={5} title="测试报告" icon={<TestTube2 size={13} />}>
+            <ReportSection
+              title="测试报告"
+              icon={<TestTube2 size={15} />}
+              defaultOpen={!allTestsPassed}
+              inlineSummary={<span>{passedTests}/{result.tests.length} 通过</span>}
+              status={allTestsPassed ? "ok" : "error"}
+            >
               <div className="space-y-3">
-                {/* Pass rate bar */}
                 <div className="flex items-center gap-3">
                   <div className="flex-1">
                     <Progress
@@ -597,16 +620,15 @@ const DevCompleteDetailPanel = ({
                     />
                   </div>
                   <span className={cn(
-                    "text-xs font-bold shrink-0",
+                    "text-sm font-bold shrink-0",
                     allTestsPassed ? "text-emerald-500" : "text-destructive"
                   )}>
                     {testPassRate}% ({passedTests}/{result.tests.length})
                   </span>
                 </div>
-                {/* Test cases */}
                 <div className="rounded-md border border-border overflow-hidden">
                   {result.tests.map((t, i) => (
-                    <div key={i} className="flex items-center gap-2 px-3 py-1.5 text-xs border-b border-border last:border-0">
+                    <div key={i} className="flex items-center gap-2 px-3 py-2 text-xs border-b border-border last:border-0">
                       {t.passed ? (
                         <CheckCircle2 size={13} className="text-emerald-500 shrink-0" />
                       ) : (
@@ -617,14 +639,19 @@ const DevCompleteDetailPanel = ({
                     </div>
                   ))}
                 </div>
-                <div className="text-[10px] text-muted-foreground">
+                <div className="text-[11px] text-muted-foreground">
                   总耗时 {result.tests.reduce((s, t) => s + t.duration, 0)}ms
                 </div>
               </div>
             </ReportSection>
 
             {/* ── Section 6: Product Preview + UI Test Replay ── */}
-            <ReportSection number={6} title="产品预览 & UI 测试回放" icon={<Eye size={13} />} defaultOpen={true}>
+            <ReportSection
+              title="产品预览 & UI 测试回放"
+              icon={<Eye size={15} />}
+              defaultOpen={false}
+              inlineSummary="点击查看"
+            >
               <div className="space-y-4">
                 <RequirementPreview
                   previewPath={result.previewPath}
@@ -638,8 +665,6 @@ const DevCompleteDetailPanel = ({
                   <ExternalLink size={11} />
                   <span>打开全屏预览</span>
                 </button>
-
-                {/* UI Test Replay */}
                 <div className="border-t border-border pt-3">
                   <UITestReplay />
                 </div>
