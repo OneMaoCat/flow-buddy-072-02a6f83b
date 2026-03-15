@@ -71,7 +71,7 @@ const UITestProcessLog = () => {
                       <img
                         src={mockPreviewImg}
                         alt={`步骤 ${i + 1}: ${s.description}`}
-                        className="w-full h-32 object-cover object-top"
+                        className="w-full h-48 object-cover object-top"
                       />
                       <div className="absolute inset-0 bg-background/20" />
                       {/* Action indicator dot */}
