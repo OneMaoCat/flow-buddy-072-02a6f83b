@@ -45,35 +45,52 @@ interface DevCompleteDetailPanelProps {
   readOnly?: boolean;
 }
 
-/* ── Section wrapper ── */
+/* ── Section wrapper — narrative style ── */
 const ReportSection = ({
-  number,
   title,
   icon,
   children,
   defaultOpen = true,
+  inlineSummary,
+  status = "ok",
 }: {
-  number: number;
+  number?: number;
   title: string;
   icon: React.ReactNode;
   children: React.ReactNode;
   defaultOpen?: boolean;
+  inlineSummary?: React.ReactNode;
+  status?: "ok" | "warning" | "error" | "pending";
 }) => {
   const [open, setOpen] = useState(defaultOpen);
+  const statusIcon = status === "ok" ? (
+    <CheckCircle2 size={14} className="text-emerald-500" />
+  ) : status === "warning" ? (
+    <AlertTriangle size={14} className="text-amber-500" />
+  ) : status === "error" ? (
+    <XCircle size={14} className="text-destructive" />
+  ) : null;
+
   return (
-    <div className="border border-border rounded-lg overflow-hidden">
+    <div>
       <button
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center gap-2.5 px-4 py-2.5 bg-muted/30 hover:bg-muted/50 transition-colors text-left"
+        className="w-full flex items-center gap-3 py-3 hover:opacity-80 transition-opacity text-left group"
       >
-        <span className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary shrink-0">
-          {number}
-        </span>
         <span className="text-muted-foreground shrink-0">{icon}</span>
-        <span className="text-xs font-semibold text-foreground flex-1">{title}</span>
-        {open ? <ChevronUp size={13} className="text-muted-foreground" /> : <ChevronDown size={13} className="text-muted-foreground" />}
+        <span className="text-sm font-medium text-foreground">{title}</span>
+        <span className="flex-1" />
+        {!open && inlineSummary && (
+          <span className="text-xs text-muted-foreground">{inlineSummary}</span>
+        )}
+        {statusIcon && <span className="shrink-0">{statusIcon}</span>}
+        <ChevronDown size={14} className={cn(
+          "text-muted-foreground transition-transform duration-200 shrink-0",
+          open && "rotate-180"
+        )} />
       </button>
-      {open && <div className="px-4 py-3 border-t border-border">{children}</div>}
+      {open && <div className="pb-5 pl-8">{children}</div>}
+      <div className="h-px bg-border" />
     </div>
   );
 };
