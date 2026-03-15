@@ -1018,9 +1018,7 @@ const DetailPanel = ({
           <TabsContent value="codereview" className="flex-1 min-h-0 m-0">
             <CodeReviewTab
               review={req.reviewInfo || createDefaultReview()}
-              onUpdateReview={(updated) => {
-                setRequirements(prev => prev.map(r => r.id === req.id ? { ...r, reviewInfo: updated } : r));
-              }}
+              onUpdateReview={() => {}}
             />
           </TabsContent>
         )}
