@@ -5,6 +5,7 @@ interface PromptBarProps {
   onSubmit?: (data: { text: string; isPlanMode: boolean }) => void;
   defaultText?: string;
   compact?: boolean;
+  contextSlot?: React.ReactNode;
 }
 
 const PromptBar = ({ onSubmit, defaultText, compact }: PromptBarProps) => {
