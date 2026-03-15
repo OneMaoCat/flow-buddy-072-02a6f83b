@@ -16,13 +16,16 @@ import {
   X,
   Shield,
   LayoutDashboard,
-  
   Code2,
   AlertTriangle,
+  AlertCircle,
+  Lightbulb,
+  ThumbsUp,
   Clock,
   MessageSquareText,
   Sparkles,
   ChevronDown,
+  ChevronRight,
   ExternalLink,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
