@@ -502,6 +502,7 @@ const ChatArea = ({
   onSelectCard,
   onClearCard,
   onViewInProgressDetail,
+  onViewProcess,
   rightPanelOpen,
   onToggleRightPanel,
 }: {
@@ -523,6 +524,7 @@ const ChatArea = ({
   onSelectCard: (id: string) => void;
   onClearCard: () => void;
   onViewInProgressDetail: () => void;
+  onViewProcess: (cardId: string) => void;
   rightPanelOpen: boolean;
   onToggleRightPanel: () => void;
 }) => {
