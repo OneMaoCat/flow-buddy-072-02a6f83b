@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { X, GitBranch, Search, Sparkles, Code2, Pencil, TestTube2, Shield, CheckCircle2, FileCode2, MonitorPlay, MousePointerClick, Type, Eye, ArrowRight, Loader2, ChevronDown, ChevronUp } from "lucide-react";
 import type { DevCompleteResult } from "@/components/DevCompleteCard";
+import { buildMockAIReview, type FindingSeverity } from "@/data/reviewTypes";
 import { buildMockUITestSteps, type UITestStep } from "@/components/UITestReplay";
 import mockPreviewImg from "@/assets/mock-preview.jpg";
 import { cn } from "@/lib/utils";
@@ -237,11 +238,68 @@ const DevProcessDetailPanel = ({ result, onClose }: DevProcessDetailPanelProps) 
     {
       icon: <Shield size={14} />,
       title: "AI Code Review",
-      content: (
-        <div className="text-xs text-muted-foreground">
-          <p>AI 多模型审查已完成，未发现严重问题。代码风格良好，逻辑清晰，测试覆盖全面。</p>
-        </div>
-      ),
+      content: (() => {
+        const review = buildMockAIReview();
+        const severityStyles: Record<FindingSeverity, { label: string; className: string }> = {
+          critical: { label: "严重", className: "text-destructive bg-destructive/10 border-destructive/20" },
+          warning: { label: "警告", className: "text-orange-500 bg-orange-500/10 border-orange-500/20" },
+          suggestion: { label: "建议", className: "text-blue-500 bg-blue-500/10 border-blue-500/20" },
+          praise: { label: "优秀", className: "text-green-500 bg-green-500/10 border-green-500/20" },
+        };
+        return (
+          <div className="text-xs text-muted-foreground space-y-3">
+            {/* Overall score */}
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full border-2 border-primary flex items-center justify-center shrink-0">
+                <span className="text-sm font-bold text-foreground">{review.overallScore}</span>
+              </div>
+              <div>
+                <p className="text-foreground font-medium">综合评分 {review.overallScore}/100</p>
+                <p className="text-[10px]">{review.aiReviewers?.length} 个 AI 模型并行审查完成</p>
+              </div>
+            </div>
+
+            {/* Each model */}
+            {review.aiReviewers?.map(reviewer => (
+              <div key={reviewer.id} className="rounded-md border border-border overflow-hidden">
+                <div className="flex items-center gap-2 px-3 py-2 bg-muted/50 border-b border-border">
+                  <span>{reviewer.icon}</span>
+                  <span className="text-foreground font-medium">{reviewer.displayName}</span>
+                  <span className="ml-auto text-[10px] font-medium text-foreground/60">{reviewer.score}/100</span>
+                </div>
+                <div className="px-3 py-2 space-y-2">
+                  {reviewer.summary && (
+                    <p className="text-muted-foreground">{reviewer.summary}</p>
+                  )}
+                  {reviewer.findings && reviewer.findings.length > 0 && (
+                    <div className="space-y-1.5">
+                      {reviewer.findings.map(f => {
+                        const style = severityStyles[f.severity];
+                        return (
+                          <div key={f.id} className="flex items-start gap-2">
+                            <span className={cn("inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-medium border shrink-0 mt-0.5", style.className)}>
+                              {style.label}
+                            </span>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-foreground font-medium">{f.title}</p>
+                              <p className="text-muted-foreground">{f.description}</p>
+                              {f.filePath && (
+                                <p className="text-[10px] text-muted-foreground/50 font-mono mt-0.5">
+                                  {f.filePath}{f.lineRange ? ` · ${f.lineRange}` : ""}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        );
+      })(),
     },
   ];
 
