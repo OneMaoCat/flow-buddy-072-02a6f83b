@@ -541,6 +541,15 @@ const ChatArea = ({
   onViewProcess,
   rightPanelOpen,
   onToggleRightPanel,
+  processCardId,
+  processIssueDecisions,
+  processOtherTexts,
+  processMergeApproved,
+  processActionableIssues,
+  processAllResolved,
+  onProcessDecide,
+  onProcessOtherText,
+  onProcessMerge,
 }: {
   projectId: string;
   planFlow: { active: boolean; requirement: string };
@@ -563,6 +572,15 @@ const ChatArea = ({
   onViewProcess: (cardId: string) => void;
   rightPanelOpen: boolean;
   onToggleRightPanel: () => void;
+  processCardId: string | null;
+  processIssueDecisions: Record<string, IssueDecision>;
+  processOtherTexts: Record<string, string>;
+  processMergeApproved: boolean;
+  processActionableIssues: import("@/data/reviewTypes").AIReviewFinding[];
+  processAllResolved: boolean;
+  onProcessDecide: (id: string, decision: IssueDecision) => void;
+  onProcessOtherText: (id: string, text: string) => void;
+  onProcessMerge: () => void;
 }) => {
   const renderUserMessage = (msg: ChatMessage) => (
     <div key={msg.id} className="flex justify-end gap-2 animate-in fade-in slide-in-from-bottom-2 duration-300">
