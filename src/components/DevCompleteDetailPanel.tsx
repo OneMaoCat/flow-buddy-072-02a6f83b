@@ -1069,7 +1069,7 @@ const DevCompleteDetailPanel = ({
               variant="outline"
               size="sm"
               className="h-7 text-xs gap-1 mr-2"
-              onClick={() => setActiveTab("process")}
+              onClick={() => setActiveTab("overview")}
             >
               <LayoutDashboard size={12} />
               查看开发过程
