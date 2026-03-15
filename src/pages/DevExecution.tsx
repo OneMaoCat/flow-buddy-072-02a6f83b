@@ -1123,14 +1123,21 @@ const DetailPanel = ({
         </div>
       )}
 
-      {/* Blocked action bar */}
+      {/* Blocked action bar — interactive BlockResolver */}
       {req.status === "blocked" && (
-        <div className="shrink-0 border-t border-red-500/20 px-4 py-3 bg-red-500/5">
-          <div className="text-[11px] text-red-500 mb-2">⚠ 阻塞原因：{req.blockReason}</div>
-          <Button size="sm" className="w-full gap-1.5 h-8 text-xs bg-blue-600 hover:bg-blue-700" onClick={() => onUnblock(req.id)}>
-            <Zap size={12} /> 确认解除阻塞，继续执行
-          </Button>
-        </div>
+        req.blockInfo ? (
+          <BlockResolver
+            blockInfo={req.blockInfo}
+            onResolve={(resolution) => onUnblock(req.id, resolution)}
+          />
+        ) : (
+          <div className="shrink-0 border-t border-red-500/20 px-4 py-3 bg-red-500/5">
+            <div className="text-[11px] text-red-500 mb-2">⚠ 阻塞原因：{req.blockReason}</div>
+            <Button size="sm" className="w-full gap-1.5 h-8 text-xs bg-blue-600 hover:bg-blue-700" onClick={() => onUnblock(req.id)}>
+              <Zap size={12} /> 确认解除阻塞，继续执行
+            </Button>
+          </div>
+        )
       )}
     </>
   );
