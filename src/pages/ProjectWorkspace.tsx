@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { PanelRightOpen, PanelRightClose, ListTodo, Loader2, Circle, Check, Shield, Bell, CheckCheck, X } from "lucide-react";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
@@ -15,7 +15,8 @@ import { requestNotificationPermission, notifyDevComplete } from "@/components/D
 import NotificationCenter from "@/components/NotificationCenter";
 import { type AppNotification, buildMockNotifications } from "@/data/notifications";
 import PreviewPanel from "@/components/PreviewPanel";
-import DevProcessDetailPanel from "@/components/DevProcessDetailPanel";
+import DevProcessDetailPanel, { ProcessReviewQA, extractActionableIssues, type IssueDecision } from "@/components/DevProcessDetailPanel";
+import { buildMockAIReview as buildProcessReview } from "@/data/reviewTypes";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -58,6 +59,26 @@ const ProjectWorkspace = () => {
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
   const [processCardId, setProcessCardId] = useState<string | null>(null);
   const [detailReadOnly, setDetailReadOnly] = useState(false);
+
+  // Process panel shared state
+  const [processIssueDecisions, setProcessIssueDecisions] = useState<Record<string, IssueDecision>>({});
+  const [processOtherTexts, setProcessOtherTexts] = useState<Record<string, string>>({});
+  const [processMergeApproved, setProcessMergeApproved] = useState(false);
+
+  const processReview = useMemo(() => buildProcessReview(), []);
+  const processActionableIssues = useMemo(() => extractActionableIssues(processReview), [processReview]);
+  const processAllResolved = processActionableIssues.length === 0 || processActionableIssues.every(i => processIssueDecisions[i.id]);
+
+  const handleProcessDecide = useCallback((id: string, decision: IssueDecision) => {
+    setProcessIssueDecisions(prev => ({ ...prev, [id]: decision }));
+  }, []);
+  const handleProcessOtherText = useCallback((id: string, text: string) => {
+    setProcessOtherTexts(prev => ({ ...prev, [id]: text }));
+  }, []);
+  const handleProcessMerge = useCallback(() => {
+    setProcessMergeApproved(true);
+    toast.success("已确认合并主分支，正在执行回归测试...");
+  }, []);
   const [planFlow, setPlanFlow] = useState<{ active: boolean; requirement: string }>({ active: false, requirement: "" });
 
   const activeConversation = conversations.find((c) => c.id === activeConversationId) || null;
@@ -391,6 +412,15 @@ const ProjectWorkspace = () => {
       onViewProcess={(cardId: string) => { setProcessCardId(cardId); setSelectedCardId(null); setRightPanelOpen(true); }}
       rightPanelOpen={rightPanelOpen}
       onToggleRightPanel={() => setRightPanelOpen(!rightPanelOpen)}
+      processCardId={processCardId}
+      processIssueDecisions={processIssueDecisions}
+      processOtherTexts={processOtherTexts}
+      processMergeApproved={processMergeApproved}
+      processActionableIssues={processActionableIssues}
+      processAllResolved={processAllResolved}
+      onProcessDecide={handleProcessDecide}
+      onProcessOtherText={handleProcessOtherText}
+      onProcessMerge={handleProcessMerge}
     />
   );
 
@@ -470,6 +500,12 @@ const ProjectWorkspace = () => {
                 <DevProcessDetailPanel
                   result={processCard}
                   onClose={() => { setProcessCardId(null); setRightPanelOpen(false); }}
+                  issueDecisions={processIssueDecisions}
+                  otherTexts={processOtherTexts}
+                  mergeApproved={processMergeApproved}
+                  onDecide={handleProcessDecide}
+                  onOtherText={handleProcessOtherText}
+                  onConfirmMerge={handleProcessMerge}
                 />
               ) : (
                 <PreviewPanel />
@@ -505,6 +541,15 @@ const ChatArea = ({
   onViewProcess,
   rightPanelOpen,
   onToggleRightPanel,
+  processCardId,
+  processIssueDecisions,
+  processOtherTexts,
+  processMergeApproved,
+  processActionableIssues,
+  processAllResolved,
+  onProcessDecide,
+  onProcessOtherText,
+  onProcessMerge,
 }: {
   projectId: string;
   planFlow: { active: boolean; requirement: string };
@@ -527,6 +572,15 @@ const ChatArea = ({
   onViewProcess: (cardId: string) => void;
   rightPanelOpen: boolean;
   onToggleRightPanel: () => void;
+  processCardId: string | null;
+  processIssueDecisions: Record<string, IssueDecision>;
+  processOtherTexts: Record<string, string>;
+  processMergeApproved: boolean;
+  processActionableIssues: import("@/data/reviewTypes").AIReviewFinding[];
+  processAllResolved: boolean;
+  onProcessDecide: (id: string, decision: IssueDecision) => void;
+  onProcessOtherText: (id: string, text: string) => void;
+  onProcessMerge: () => void;
 }) => {
   const renderUserMessage = (msg: ChatMessage) => (
     <div key={msg.id} className="flex justify-end gap-2 animate-in fade-in slide-in-from-bottom-2 duration-300">
@@ -635,9 +689,26 @@ const ChatArea = ({
         )}
       </div>
       {(() => {
+        // Check if ProcessReviewQA should be shown (process panel open with unresolved issues)
+        let processQAPanel: React.ReactNode = null;
+        if (processCardId && processActionableIssues.length > 0) {
+          processQAPanel = (
+            <ProcessReviewQA
+              issues={processActionableIssues}
+              decisions={processIssueDecisions}
+              otherTexts={processOtherTexts}
+              onDecide={onProcessDecide}
+              onOtherText={onProcessOtherText}
+              onConfirmMerge={onProcessMerge}
+              allResolved={processAllResolved}
+              mergeApproved={processMergeApproved}
+            />
+          );
+        }
+
         // Check if AcceptanceQA should be shown
         let qaPanel: React.ReactNode = null;
-        if (selectedCardId) {
+        if (!processQAPanel && selectedCardId) {
           const card = devCards.find(c => c.id === selectedCardId);
           if (card && !deployedIds.has(card.id)) {
             const review = reviewStatus.get(card.id);
@@ -659,12 +730,15 @@ const ChatArea = ({
             }
           }
         }
-        const showQA = !!qaPanel;
+        const showQA = !!qaPanel || !!processQAPanel;
 
         return (
           <div className="sticky bottom-0 bg-background/80 backdrop-blur-md border-t border-border">
-            {showQA ? (
-              /* QA mode: only show the issue carousel, hide everything else */
+            {processQAPanel ? (
+              <div className="p-3">
+                {processQAPanel}
+              </div>
+            ) : showQA ? (
               <div className="p-3">
                 {qaPanel}
               </div>
