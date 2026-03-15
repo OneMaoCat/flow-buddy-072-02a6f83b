@@ -564,6 +564,7 @@ const ChatArea = ({
               reviewApproved={reviewApproved}
               selected={selectedCardId === card.id}
               onClick={() => onSelectCard(card.id)}
+              onViewProcess={() => onViewProcess(card.id)}
             />
           </div>
         </div>
