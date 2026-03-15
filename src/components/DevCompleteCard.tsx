@@ -335,13 +335,6 @@ const DevCompleteCard = ({ result, selected, onClick, onViewProcess }: DevComple
           <Code2 size={12} />
           <span>开发过程</span>
         </button>
-        <button
-          onClick={(e) => { e.stopPropagation(); onClick?.(); }}
-          className="flex items-center gap-1 text-xs text-foreground/70 font-medium hover:text-foreground transition-colors"
-        >
-          <span>查看详情</span>
-          <ChevronRight size={14} />
-        </button>
       </div>
     </div>
   );
