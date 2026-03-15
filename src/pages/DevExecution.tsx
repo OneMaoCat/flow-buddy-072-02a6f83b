@@ -27,10 +27,11 @@ import type { AppNotification } from "@/data/notifications";
 import {
   createInitialRequirements, formatTime, logTemplates, generateTestsForRequirement, deriveSubStatus,
   type Requirement, type RequirementGroup, type Agent, type AgentStatus, type RequirementStatus,
-  type LogEntry, type TestItemStatus, type SubStatus, type RiskLevel, type TaskType,
+  type LogEntry, type TestItemStatus, type SubStatus, type RiskLevel, type TaskType, type BlockType,
 } from "@/data/devExecutionMock";
 import { generateDiffForRequirement, type DiffFile } from "@/data/diffMock";
 import GitDiffViewer from "@/components/GitDiffViewer";
+import BlockResolver, { blockTypeMeta } from "@/components/BlockResolver";
 
 // ---------- Icon map ----------
 const agentIcons: Record<string, React.ReactNode> = {
