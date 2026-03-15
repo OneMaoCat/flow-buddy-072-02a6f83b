@@ -491,6 +491,12 @@ const ProjectWorkspace = () => {
                 <DevProcessDetailPanel
                   result={processCard}
                   onClose={() => { setProcessCardId(null); setRightPanelOpen(false); }}
+                  issueDecisions={processIssueDecisions}
+                  otherTexts={processOtherTexts}
+                  mergeApproved={processMergeApproved}
+                  onDecide={handleProcessDecide}
+                  onOtherText={handleProcessOtherText}
+                  onConfirmMerge={handleProcessMerge}
                 />
               ) : (
                 <PreviewPanel />
