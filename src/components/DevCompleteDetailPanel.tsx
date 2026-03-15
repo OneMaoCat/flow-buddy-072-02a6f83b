@@ -16,13 +16,16 @@ import {
   X,
   Shield,
   LayoutDashboard,
-  
   Code2,
   AlertTriangle,
+  AlertCircle,
+  Lightbulb,
+  ThumbsUp,
   Clock,
   MessageSquareText,
   Sparkles,
   ChevronDown,
+  ChevronRight,
   ExternalLink,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -93,12 +96,12 @@ const ReportSection = ({
   );
 };
 
-/* ── Severity styling — grayscale ── */
-const severityConfig: Record<FindingSeverity, { bg: string; text: string; label: string }> = {
-  critical: { bg: "bg-foreground/10", text: "text-foreground", label: "严重" },
-  warning: { bg: "bg-foreground/5", text: "text-foreground/70", label: "警告" },
-  suggestion: { bg: "bg-muted", text: "text-muted-foreground", label: "建议" },
-  praise: { bg: "bg-muted", text: "text-foreground/60", label: "优秀" },
+/* ── Severity styling — grayscale (matching CodeReviewTab) ── */
+const severityConfig: Record<FindingSeverity, { bg: string; text: string; label: string; barClass: string; icon: React.ReactNode }> = {
+  critical: { bg: "bg-foreground/10", text: "text-foreground", label: "严重", barClass: "bg-foreground", icon: <AlertCircle size={11} /> },
+  warning: { bg: "bg-foreground/5", text: "text-foreground/70", label: "警告", barClass: "bg-foreground/50", icon: <AlertTriangle size={11} /> },
+  suggestion: { bg: "bg-muted", text: "text-muted-foreground", label: "建议", barClass: "bg-muted-foreground/60", icon: <Lightbulb size={11} /> },
+  praise: { bg: "bg-muted", text: "text-foreground/60", label: "优点", barClass: "bg-foreground/20", icon: <ThumbsUp size={11} /> },
 };
 
 /* ── Build acceptance issues from findings + failed tests ── */
@@ -515,6 +518,90 @@ const TestReportSection = ({
   );
 };
 
+/* ── Collapsible Reviewer Card (matching CodeReviewTab style) ── */
+import type { AIModelReviewer } from "@/data/reviewTypes";
+
+const ReviewerCard = ({ reviewer, defaultOpen, criticalCount, warningCount }: {
+  reviewer: AIModelReviewer;
+  defaultOpen: boolean;
+  criticalCount: number;
+  warningCount: number;
+}) => {
+  const [expanded, setExpanded] = useState(defaultOpen);
+  const findings = reviewer.findings || [];
+
+  return (
+    <div className={cn(
+      "rounded-xl border overflow-hidden",
+      criticalCount > 0 ? "border-foreground/15" : "border-border"
+    )}>
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="w-full px-3.5 py-2.5 flex items-center gap-2.5 hover:bg-muted/30 transition-colors text-left"
+      >
+        <span className="text-base shrink-0">{reviewer.icon}</span>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs font-semibold text-foreground">{reviewer.displayName}</span>
+            {criticalCount > 0 && (
+              <span className="text-[8px] px-1.5 py-0.5 rounded-full bg-foreground/10 text-foreground font-medium">{criticalCount} 严重</span>
+            )}
+            {warningCount > 0 && (
+              <span className="text-[8px] px-1.5 py-0.5 rounded-full bg-foreground/5 text-foreground/60 font-medium">{warningCount} 警告</span>
+            )}
+          </div>
+          {reviewer.summary && (
+            <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-1">{reviewer.summary}</p>
+          )}
+        </div>
+        <span className="text-sm font-bold text-foreground tabular-nums">{reviewer.score}</span>
+        <ChevronRight size={12} className={cn(
+          "text-muted-foreground/40 transition-transform duration-200 shrink-0",
+          expanded && "rotate-90"
+        )} />
+      </button>
+
+      {expanded && findings.length > 0 && (
+        <div className="border-t border-border/50 px-3.5 py-1.5 space-y-0">
+          {findings
+            .sort((a, b) => {
+              const order: FindingSeverity[] = ["critical", "warning", "suggestion", "praise"];
+              return order.indexOf(a.severity) - order.indexOf(b.severity);
+            })
+            .map(f => {
+              const cfg = severityConfig[f.severity];
+              return (
+                <div key={f.id} className="flex items-stretch gap-0">
+                  <div className={cn("w-0.5 shrink-0 rounded-full my-0.5", cfg.barClass)} />
+                  <div className="flex-1 min-w-0 pl-2.5 py-1.5">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className={cn("shrink-0", cfg.text)}>{cfg.icon}</span>
+                      <span className="text-[11px] font-medium text-foreground">{f.title}</span>
+                      <Badge variant="outline" className={cn("text-[8px] h-3.5 px-1 border-border font-medium", cfg.text)}>{cfg.label}</Badge>
+                    </div>
+                    <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">{f.description}</p>
+                    {f.filePath && (
+                      <p className="text-[9px] text-muted-foreground/50 mt-0.5 font-mono flex items-center gap-1">
+                        <FileCode2 size={8} />
+                        {f.filePath}{f.lineRange ? ` ${f.lineRange}` : ""}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+        </div>
+      )}
+
+      {!expanded && findings.length > 0 && (
+        <div className="border-t border-border/30 px-3.5 py-1">
+          <p className="text-[9px] text-muted-foreground/60">{findings.length} 条发现</p>
+        </div>
+      )}
+    </div>
+  );
+};
+
 
 
 const DevCompleteDetailPanel = ({
@@ -764,56 +851,15 @@ const DevCompleteDetailPanel = ({
                     <span className="text-sm text-muted-foreground">AI 正在审查代码…</span>
                   </div>
                 ) : (
-                  <div className="space-y-4">
-                    {/* Reviewer scores */}
-                    <div className="flex gap-2.5">
-                      {(reviewInfo?.aiReviewers || []).map((r) => (
-                        <div key={r.id} className="flex-1 rounded-lg border border-border bg-muted/15 px-3 py-2.5">
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm">{r.icon}</span>
-                            <span className="text-[10px] text-muted-foreground font-medium">{r.displayName}</span>
-                            <span className="ml-auto text-base font-bold text-foreground">
-                              {r.score}
-                            </span>
-                          </div>
-                          {r.summary && (
-                            <p className="text-[10px] text-muted-foreground mt-1.5 leading-relaxed line-clamp-2">{r.summary}</p>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                    {/* Findings as cards */}
-                    {allFindings.length > 0 && (
-                      <div className="space-y-2">
-                        <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">发现项 ({allFindings.length})</div>
-                        {allFindings
-                          .sort((a, b) => {
-                            const order: FindingSeverity[] = ["critical", "warning", "suggestion", "praise"];
-                            return order.indexOf(a.severity) - order.indexOf(b.severity);
-                          })
-                          .map((f) => {
-                            const cfg = severityConfig[f.severity];
-                            return (
-                              <div key={f.id} className="flex items-stretch rounded-lg border border-border overflow-hidden">
-                                <div className={cn(
-                                  "w-1 shrink-0",
-                                  f.severity === "critical" ? "bg-foreground" : f.severity === "warning" ? "bg-foreground/50" : f.severity === "praise" ? "bg-foreground/30" : "bg-foreground/20"
-                                )} />
-                                <div className="flex-1 px-3 py-2.5 min-w-0">
-                                  <div className="flex items-center gap-1.5 flex-wrap">
-                                    <Badge variant="outline" className={cn("text-[9px] h-4 px-1.5 border-0", cfg.bg, cfg.text)}>{cfg.label}</Badge>
-                                    <span className="text-xs font-medium text-foreground">{f.title}</span>
-                                    {f.filePath && (
-                                      <span className="text-[10px] opacity-50 font-mono">{f.filePath}{f.lineRange ? `:${f.lineRange}` : ""}</span>
-                                    )}
-                                  </div>
-                                  <p className="text-[11px] text-muted-foreground mt-1 leading-relaxed">{f.description}</p>
-                                </div>
-                              </div>
-                            );
-                          })}
-                      </div>
-                    )}
+                  <div className="space-y-3">
+                    {(reviewInfo?.aiReviewers || []).map((r, rIdx) => {
+                      const findings = r.findings || [];
+                      const rCritical = findings.filter(f => f.severity === "critical").length;
+                      const rWarning = findings.filter(f => f.severity === "warning").length;
+                      return (
+                        <ReviewerCard key={r.id} reviewer={r} defaultOpen={rIdx === 0 || rCritical > 0} criticalCount={rCritical} warningCount={rWarning} />
+                      );
+                    })}
                   </div>
                 )}
               </ReportSection>
