@@ -381,27 +381,7 @@ const DevExecution = () => {
       onNotificationCenterClick={() => setShowNotificationCenter(true)}
       notificationCenterActive={showNotificationCenter}
       headerRight={
-        showNotificationCenter ? (
-          <div className="flex items-center gap-2">
-            <Bell size={15} className="text-foreground" />
-            <span className="text-sm font-semibold text-foreground">消息中心</span>
-            {unreadNotificationCount > 0 && (
-              <span className="inline-flex items-center justify-center h-4 min-w-4 px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-semibold">
-                {unreadNotificationCount}
-              </span>
-            )}
-            <div className="flex-1" />
-            {unreadNotificationCount > 0 && (
-              <button
-                onClick={() => setNotifications(prev => prev.map(n => ({ ...n, read: true })))}
-                className="flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-medium text-primary hover:bg-primary/10 transition-colors"
-              >
-                <CheckCheck size={12} />
-                全部已读
-              </button>
-            )}
-          </div>
-        ) : (
+        showNotificationCenter ? undefined : (
           <div className="flex items-center gap-2">
             {filterTabs.map(tab => (
               <button
