@@ -423,17 +423,10 @@ const DevCompleteDetailPanel = ({
                 </Button>
               )}
               {!deployed && !readOnly && aiReviewDone && hasIssues && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="h-8 text-xs gap-1 shrink-0"
-                  onClick={() => {
-                    const el = document.getElementById("acceptance-qa-section");
-                    el?.scrollIntoView({ behavior: "smooth", block: "start" });
-                  }}
-                >
-                  查看下方问题 ↓
-                </Button>
+                <Badge variant="outline" className="text-[10px] h-6 px-2 border-amber-500/30 text-amber-600 dark:text-amber-400 shrink-0 gap-1">
+                  <AlertTriangle size={10} />
+                  {acceptanceIssues.length} 个待决策
+                </Badge>
               )}
             </div>
 
