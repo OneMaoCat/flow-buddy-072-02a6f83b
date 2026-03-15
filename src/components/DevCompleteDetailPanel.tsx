@@ -151,7 +151,7 @@ export const buildAcceptanceIssues = (
   return issues;
 };
 
-/* ── AcceptanceQA Component ── */
+/* ── AcceptanceQA Component — Carousel Mode ── */
 export const AcceptanceQA = ({
   issues,
   onConfirm,
@@ -162,123 +162,161 @@ export const AcceptanceQA = ({
   onDeployAnyway?: () => void;
 }) => {
   const [decisions, setDecisions] = useState<Record<string, string>>({});
-  const answeredCount = Object.keys(decisions).length;
-  const allAnswered = answeredCount === issues.length;
+  const [currentIdx, setCurrentIdx] = useState(0);
+  const total = issues.length;
+  const current = issues[currentIdx];
+  const isLast = currentIdx === total - 1;
+  const allAnswered = Object.keys(decisions).length === total;
   const aiFixCount = Object.values(decisions).filter((v) => v === "ai_fix").length;
   const skipCount = Object.values(decisions).filter((v) => v === "skip").length;
 
-  const severityConfig: Record<string, { bg: string; text: string; label: string; icon: React.ReactNode }> = {
+  const sevCfg: Record<string, { bg: string; text: string; label: string; icon: React.ReactNode }> = {
     critical: { bg: "bg-destructive/10", text: "text-destructive", label: "严重", icon: <XCircle size={12} /> },
     warning: { bg: "bg-amber-500/10", text: "text-amber-600 dark:text-amber-400", label: "警告", icon: <AlertTriangle size={12} /> },
     test_fail: { bg: "bg-destructive/10", text: "text-destructive", label: "测试失败", icon: <TestTube2 size={12} /> },
   };
 
   const getButtonText = () => {
-    if (!allAnswered) return `请完成所有问题的选择 (${answeredCount}/${issues.length})`;
+    if (!allAnswered) return `确认并提交`;
     if (aiFixCount > 0 && skipCount > 0) return `让 AI 修复 ${aiFixCount} 项，跳过 ${skipCount} 项`;
     if (aiFixCount > 0) return `确认并让 AI 修复 ${aiFixCount} 项`;
-    if (skipCount === issues.length) return "跳过所有问题并发布";
+    if (skipCount === total) return "跳过所有问题并发布";
     return "确认处理方案";
   };
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-center gap-2 px-1">
-        <span className="text-xs font-semibold text-foreground">
-          🤖 AI 已整理 {issues.length} 个需要您决策的问题
+    <div className="w-full">
+      {/* Progress dots + counter */}
+      <div className="flex items-center gap-1.5 px-1 pb-2">
+        {issues.map((_, i) => (
+          <button
+            key={i}
+            onClick={() => setCurrentIdx(i)}
+            className={cn(
+              "h-1 rounded-full transition-all duration-300",
+              i === currentIdx
+                ? "bg-primary w-6"
+                : decisions[issues[i].id]
+                ? "bg-primary/40 w-3"
+                : "bg-border w-3"
+            )}
+          />
+        ))}
+        <span className="ml-auto text-[10px] text-muted-foreground">
+          {currentIdx + 1} / {total}
         </span>
-        <span className="text-[10px] text-muted-foreground">点选即可，无需手动操作</span>
       </div>
 
-      {issues.map((issue, idx) => {
-        const cfg = severityConfig[issue.severity];
-        const selected = decisions[issue.id];
-
-        return (
-          <div
-            key={issue.id}
-            className={cn(
-              "rounded-lg border overflow-hidden transition-all",
-              selected ? "border-primary/30 bg-primary/[0.02]" : "border-border"
-            )}
-          >
-            {/* Issue header */}
-            <div className="px-3 py-2.5 flex items-start gap-2">
-              <div className={cn("mt-0.5 shrink-0", cfg.text)}>{cfg.icon}</div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-[10px] text-muted-foreground">问题 {idx + 1}/{issues.length}</span>
-                  <Badge variant="outline" className={cn("text-[9px] h-4 px-1.5 border-0", cfg.bg, cfg.text)}>
-                    {cfg.label}
-                  </Badge>
-                  {issue.filePath && (
-                    <span className="text-[10px] font-mono text-muted-foreground">
-                      {issue.filePath}{issue.lineRange ? `:${issue.lineRange}` : ""}
-                    </span>
-                  )}
+      {/* Sliding cards */}
+      <div className="overflow-hidden rounded-lg border border-border">
+        <div
+          className="flex transition-transform duration-300 ease-out"
+          style={{ transform: `translateX(-${currentIdx * 100}%)` }}
+        >
+          {issues.map((issue) => {
+            const cfg = sevCfg[issue.severity];
+            const selected = decisions[issue.id];
+            return (
+              <div key={issue.id} className="w-full shrink-0">
+                {/* Issue header */}
+                <div className="px-3 py-2.5 flex items-start gap-2">
+                  <div className={cn("mt-0.5 shrink-0", cfg.text)}>{cfg.icon}</div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <Badge variant="outline" className={cn("text-[9px] h-4 px-1.5 border-0", cfg.bg, cfg.text)}>
+                        {cfg.label}
+                      </Badge>
+                      {issue.filePath && (
+                        <span className="text-[10px] font-mono text-muted-foreground">
+                          {issue.filePath}{issue.lineRange ? `:${issue.lineRange}` : ""}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs font-medium text-foreground mt-1">{issue.title}</p>
+                    <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">{issue.description}</p>
+                    <div className="flex items-center gap-1 mt-1.5">
+                      <Sparkles size={10} className="text-primary shrink-0" />
+                      <span className="text-[11px] text-primary">{issue.aiSuggestion}</span>
+                    </div>
+                  </div>
+                  {selected && <CheckCircle2 size={14} className="text-primary shrink-0 mt-1" />}
                 </div>
-                <p className="text-xs font-medium text-foreground mt-1">{issue.title}</p>
-                <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">{issue.description}</p>
-                <div className="flex items-center gap-1 mt-1.5">
-                  <Sparkles size={10} className="text-primary shrink-0" />
-                  <span className="text-[11px] text-primary">{issue.aiSuggestion}</span>
+
+                {/* Options */}
+                <div className="px-3 pb-2.5 flex flex-wrap gap-1.5">
+                  {issue.options.map((opt) => (
+                    <button
+                      key={opt.value}
+                      onClick={() => setDecisions((prev) => ({ ...prev, [issue.id]: opt.value }))}
+                      className={cn(
+                        "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-medium border transition-all",
+                        selected === opt.value
+                          ? "border-primary bg-primary/10 text-primary"
+                          : "border-border bg-background text-foreground hover:border-muted-foreground/40 hover:bg-muted/50",
+                        opt.recommended && !selected && "ring-1 ring-primary/20"
+                      )}
+                    >
+                      <div className={cn(
+                        "w-3 h-3 rounded-full border-2 flex items-center justify-center shrink-0",
+                        selected === opt.value ? "border-primary" : "border-muted-foreground/40"
+                      )}>
+                        {selected === opt.value && <div className="w-1.5 h-1.5 rounded-full bg-primary" />}
+                      </div>
+                      {opt.label}
+                      {opt.recommended && !selected && (
+                        <Badge variant="outline" className="text-[8px] h-3.5 px-1 border-primary/30 text-primary ml-0.5">推荐</Badge>
+                      )}
+                    </button>
+                  ))}
                 </div>
               </div>
-              {selected && (
-                <CheckCircle2 size={14} className="text-primary shrink-0 mt-1" />
-              )}
-            </div>
+            );
+          })}
+        </div>
+      </div>
 
-            {/* Options */}
-            <div className="px-3 pb-2.5 flex flex-wrap gap-1.5">
-              {issue.options.map((opt) => (
-                <button
-                  key={opt.value}
-                  onClick={() => setDecisions((prev) => ({ ...prev, [issue.id]: opt.value }))}
-                  className={cn(
-                    "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-medium border transition-all",
-                    selected === opt.value
-                      ? "border-primary bg-primary/10 text-primary"
-                      : "border-border bg-background text-foreground hover:border-muted-foreground/40 hover:bg-muted/50",
-                    opt.recommended && !selected && "ring-1 ring-primary/20"
-                  )}
-                >
-                  <div className={cn(
-                    "w-3 h-3 rounded-full border-2 flex items-center justify-center shrink-0",
-                    selected === opt.value ? "border-primary" : "border-muted-foreground/40"
-                  )}>
-                    {selected === opt.value && <div className="w-1.5 h-1.5 rounded-full bg-primary" />}
-                  </div>
-                  {opt.label}
-                  {opt.recommended && !selected && (
-                    <Badge variant="outline" className="text-[8px] h-3.5 px-1 border-primary/30 text-primary ml-0.5">推荐</Badge>
-                  )}
-                </button>
-              ))}
-            </div>
-          </div>
-        );
-      })}
-
-      {/* Confirm bar */}
-      <div className="flex items-center gap-2 pt-1">
+      {/* Navigation footer */}
+      <div className="flex items-center justify-between pt-2">
         <Button
+          variant="ghost"
           size="sm"
-          className="flex-1 h-10 text-sm gap-1.5"
-          disabled={!allAnswered}
-          onClick={() => onConfirm(decisions)}
+          onClick={() => setCurrentIdx((i) => i - 1)}
+          disabled={currentIdx === 0}
+          className="gap-1 text-xs h-8"
         >
-          <Rocket size={14} />
-          {getButtonText()}
+          <ChevronDown size={14} className="rotate-90" />
+          上一个
         </Button>
-        {onDeployAnyway && allAnswered && skipCount === issues.length && (
+
+        {isLast ? (
+          <div className="flex items-center gap-2">
+            {onDeployAnyway && allAnswered && skipCount === total && (
+              <Button variant="outline" size="sm" className="text-xs h-8" onClick={onDeployAnyway}>
+                直接发布
+              </Button>
+            )}
+            <Button
+              size="sm"
+              disabled={!allAnswered}
+              onClick={() => onConfirm(decisions)}
+              className="gap-1.5 text-xs h-8"
+            >
+              <Rocket size={14} />
+              {getButtonText()}
+            </Button>
+          </div>
+        ) : (
           <Button
             variant="outline"
             size="sm"
-            className="h-10 text-sm"
-            onClick={onDeployAnyway}
+            onClick={() => {
+              if (decisions[current.id]) setCurrentIdx((i) => i + 1);
+            }}
+            disabled={!decisions[current.id]}
+            className="gap-1 text-xs h-8"
           >
-            直接发布
+            下一个
+            <ChevronDown size={14} className="-rotate-90" />
           </Button>
         )}
       </div>
