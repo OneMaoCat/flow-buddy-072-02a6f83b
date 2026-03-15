@@ -920,12 +920,7 @@ const DevCompleteDetailPanel = ({
             {!deployed && !readOnly && (
               <div id="acceptance-qa-section" className="pt-2 pb-2">
                 {aiReviewDone ? (
-                  hasIssues ? (
-                    <div className="flex items-center justify-center gap-2 py-3 px-4 rounded-lg bg-muted/30 border border-border">
-                      <AlertTriangle size={14} className="text-foreground/50 shrink-0" />
-                      <span className="text-xs text-muted-foreground">请在输入框上方完成问题决策后继续</span>
-                    </div>
-                  ) : (
+                  !hasIssues ? (
                     <Button
                       size="sm"
                       className="w-full gap-1.5 h-10 text-sm"
