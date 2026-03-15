@@ -34,6 +34,9 @@ import GitDiffViewer from "@/components/GitDiffViewer";
 import BlockResolver, { blockTypeMeta } from "@/components/BlockResolver";
 import CodeReviewTab from "@/components/CodeReviewTab";
 import { createDefaultReview } from "@/data/reviewTypes";
+import DevCompleteDetailPanel from "@/components/DevCompleteDetailPanel";
+import type { DevCompleteResult } from "@/components/DevCompleteCard";
+import { generateDiffForRequirement as genDiff } from "@/data/diffMock";
 
 // ---------- Icon map ----------
 const agentIcons: Record<string, React.ReactNode> = {
