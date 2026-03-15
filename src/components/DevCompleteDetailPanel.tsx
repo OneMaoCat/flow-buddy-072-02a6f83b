@@ -169,7 +169,12 @@ export const AcceptanceQA = ({
   const total = issues.length;
   const current = issues[currentIdx];
   const isLast = currentIdx === total - 1;
-  const allAnswered = Object.keys(decisions).length === total;
+  const allAnswered = issues.every((issue) => {
+    const d = decisions[issue.id];
+    if (!d) return false;
+    if (d === "other" && !customTexts[issue.id]?.trim()) return false;
+    return true;
+  });
   const aiFixCount = Object.values(decisions).filter((v) => v === "ai_fix").length;
   const skipCount = Object.values(decisions).filter((v) => v === "skip").length;
 
