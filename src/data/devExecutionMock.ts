@@ -79,6 +79,7 @@ export interface Requirement {
   riskLevel: RiskLevel;
   taskType: TaskType;
   blockReason?: string;
+  blockInfo?: BlockInfo;
   sourceContext: SourceContext;
   groupId: string;
   changedFiles?: number;
