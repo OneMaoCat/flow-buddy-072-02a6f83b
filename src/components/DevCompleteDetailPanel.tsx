@@ -385,7 +385,7 @@ const TestReportSection = ({
 
   return (
     <ReportSection
-      title="测试报告"
+      title="6. 运行测试"
       icon={<TestTube2 size={15} />}
       defaultOpen={true}
       inlineSummary={<span>{passedTests}/{result.tests.length} 通过{coverage !== null ? ` · 覆盖率 ${coverage}%` : ""}</span>}
