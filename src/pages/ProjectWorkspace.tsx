@@ -388,6 +388,7 @@ const ProjectWorkspace = () => {
       onSelectCard={handleSelectCard}
       onClearCard={() => setSelectedCardId(null)}
       onViewInProgressDetail={() => setRightPanelOpen(true)}
+      onViewProcess={(cardId: string) => { setProcessCardId(cardId); setSelectedCardId(null); setRightPanelOpen(true); }}
       rightPanelOpen={rightPanelOpen}
       onToggleRightPanel={() => setRightPanelOpen(!rightPanelOpen)}
     />
