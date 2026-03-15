@@ -500,7 +500,7 @@ const ChatArea = ({
   reviewStatus: Map<string, ReviewInfo>;
   devInProgress: boolean;
   onDeploy: (id: string) => void;
-  onReject: (id: string) => void;
+  onReject: (id: string, decisions?: Record<string, string>) => void;
   selectedCardId: string | null;
   onSelectCard: (id: string) => void;
   onClearCard: () => void;
