@@ -1148,6 +1148,8 @@ const DetailPanel = ({
           <BlockResolver
             blockInfo={req.blockInfo}
             onResolve={(resolution) => onUnblock(req.id, resolution)}
+            conversationId={req.conversationId}
+            onNavigateToConversation={onNavigateToConversation}
           />
         ) : (
           <div className="shrink-0 border-t border-red-500/20 px-4 py-3 bg-red-500/5">

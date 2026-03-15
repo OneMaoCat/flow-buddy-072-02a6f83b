@@ -360,6 +360,7 @@ export const createInitialRequirements = (): { requirements: Requirement[]; grou
         changedFiles: Math.floor(Math.random() * 8) + 2,
         linesAdded: Math.floor(Math.random() * 300) + 50,
         linesRemoved: Math.floor(Math.random() * 80) + 5,
+        conversationId: `conv-${(catIdx % 3) + 1}`,
       });
     }
 
