@@ -490,6 +490,7 @@ const ChatArea = ({
   rightPanelOpen,
   onToggleRightPanel,
 }: {
+  projectId: string;
   planFlow: { active: boolean; requirement: string };
   onSubmit: (data: { text: string; isPlanMode: boolean }) => void;
   onCancel: () => void;
