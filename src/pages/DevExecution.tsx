@@ -540,7 +540,14 @@ const ActionRequiredBar = ({
             className="flex items-center gap-1.5 px-2 py-1 rounded-md border border-border/60 bg-card text-left shrink-0 hover:shadow-sm transition-all text-[11px] min-w-0"
           >
             {item.status === "blocked" ? (
-              <AlertTriangle size={11} className="text-red-500 shrink-0" />
+              <>
+                <AlertTriangle size={11} className="text-red-500 shrink-0" />
+                {item.blockInfo && (
+                  <span className={cn("text-[9px] px-1 py-0.5 rounded shrink-0", blockTypeMeta[item.blockInfo.type].color)}>
+                    {blockTypeMeta[item.blockInfo.type].label}
+                  </span>
+                )}
+              </>
             ) : (
               <ShieldCheck size={11} className="text-orange-500 shrink-0" />
             )}
