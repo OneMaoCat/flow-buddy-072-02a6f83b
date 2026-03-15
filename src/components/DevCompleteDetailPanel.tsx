@@ -941,14 +941,78 @@ const DevCompleteDetailPanel = ({
           </div>
         </TabsContent>
 
-        {/* ═══════════ PREVIEW ═══════════ */}
-        <TabsContent value="preview" className="flex-1 min-h-0 m-0">
-          <RequirementPreview
-            previewPath={result.previewPath}
-            requirementTitle={result.requirementTitle}
-            projectId={result.projectId}
-            fullscreen
-          />
+        {/* ═══════════ PREVIEW (default) ═══════════ */}
+        <TabsContent value="preview" className="flex-1 min-h-0 m-0 flex flex-col">
+          <div className="flex-1 min-h-0">
+            <RequirementPreview
+              previewPath={result.previewPath}
+              requirementTitle={result.requirementTitle}
+              projectId={result.projectId}
+              fullscreen
+            />
+          </div>
+          {/* Bottom metrics bar */}
+          <div className="shrink-0 border-t border-border bg-card/80 backdrop-blur-sm px-4 py-2.5 flex items-center gap-0 text-xs">
+            {/* Score ring */}
+            <div className="flex items-center gap-2 pr-4">
+              <div className="relative w-[28px] h-[28px] shrink-0">
+                <svg viewBox="0 0 36 36" className="w-full h-full -rotate-90">
+                  <circle cx="18" cy="18" r="15.5" fill="none" strokeWidth="3" className="stroke-border" />
+                  <circle
+                    cx="18" cy="18" r="15.5" fill="none" strokeWidth="3"
+                    strokeDasharray={`${((reviewInfo?.overallScore ?? 0) / 100) * 97.4} 97.4`}
+                    strokeLinecap="round"
+                    className="stroke-foreground/60 transition-all duration-700"
+                  />
+                </svg>
+                <span className="absolute inset-0 flex items-center justify-center text-[9px] font-bold text-foreground">
+                  {aiReviewDone ? reviewInfo?.overallScore : "–"}
+                </span>
+              </div>
+              <span className="text-muted-foreground">分</span>
+            </div>
+            <div className="w-px h-5 bg-border shrink-0" />
+            <div className="flex items-center gap-1.5 px-3">
+              <TestTube2 size={12} className="text-muted-foreground" />
+              <span className="font-semibold text-foreground">{passedTests}/{result.tests.length}</span>
+              <span className="text-muted-foreground">通过</span>
+            </div>
+            <div className="w-px h-5 bg-border shrink-0" />
+            <div className="flex items-center gap-1.5 px-3">
+              <Code2 size={12} className="text-muted-foreground" />
+              <span className="font-semibold text-foreground">{result.files.length}</span>
+              <span className="text-muted-foreground">文件</span>
+            </div>
+            <div className="w-px h-5 bg-border shrink-0" />
+            <div className="flex items-center gap-1.5 px-3">
+              <Clock size={12} className="text-muted-foreground" />
+              <span className="font-semibold text-foreground">{result.elapsed}s</span>
+            </div>
+            <span className="flex-1" />
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-7 text-xs gap-1 mr-2"
+              onClick={() => setActiveTab("process")}
+            >
+              <LayoutDashboard size={12} />
+              查看开发过程
+            </Button>
+            {!deployed && !readOnly && aiReviewDone && !hasIssues && (
+              <Button size="sm" className="h-7 text-xs gap-1" onClick={() => onDeploy(result.id)}>
+                <Rocket size={12} /> 发布
+              </Button>
+            )}
+            {!deployed && !readOnly && aiReviewDone && hasIssues && (
+              <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={() => setActiveTab("process")}>
+                <AlertTriangle size={10} />
+                {acceptanceIssues.length} 个待决策
+              </Button>
+            )}
+            {deployed && (
+              <Badge variant="outline" className="text-[10px] border-foreground/20 text-foreground/60">已发布</Badge>
+            )}
+          </div>
         </TabsContent>
 
         {/* ═══════════ AI REVIEW (detailed) ═══════════ */}
