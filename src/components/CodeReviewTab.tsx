@@ -162,42 +162,43 @@ const DoneModelCard = ({ reviewer, index }: { reviewer: AIModelReviewer; index: 
   const [expanded, setExpanded] = useState(false);
   const findings = reviewer.findings || [];
   const criticalCount = findings.filter(f => f.severity === "critical").length;
+  const defaultVisible = 4;
 
   return (
     <div
       className={cn(
-        "flex-1 min-w-0 rounded-xl border bg-card transition-all duration-500 overflow-hidden",
+        "w-full rounded-xl border bg-card transition-all duration-500 overflow-hidden",
         "animate-fade-in",
         criticalCount > 0 ? "border-destructive/20" : "border-border"
       )}
       style={{ animationDelay: `${index * 120}ms`, animationFillMode: "backwards" }}
     >
       {/* Header */}
-      <div className="p-3 flex items-center gap-3 border-b border-border/50">
-        <span className="text-lg">{reviewer.icon}</span>
+      <div className="px-4 py-3 flex items-center gap-3 border-b border-border/50">
+        <span className="text-xl">{reviewer.icon}</span>
         <div className="flex-1 min-w-0">
-          <span className="text-xs font-semibold text-foreground">{reviewer.displayName}</span>
+          <span className="text-sm font-semibold text-foreground">{reviewer.displayName}</span>
           {reviewer.summary && (
-            <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-2">{reviewer.summary}</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">{reviewer.summary}</p>
           )}
         </div>
         {reviewer.score !== undefined && (
-          <ScoreRing score={reviewer.score} size={36} animate />
+          <ScoreRing score={reviewer.score} size={40} animate />
         )}
       </div>
 
-      {/* Findings preview (top 2) */}
-      <div className="px-2 py-1.5 space-y-0.5">
-        {findings.slice(0, expanded ? findings.length : 2).map(f => (
+      {/* Findings */}
+      <div className="px-3 py-2 space-y-0.5">
+        {findings.slice(0, expanded ? findings.length : defaultVisible).map(f => (
           <FindingItem key={f.id} finding={f} />
         ))}
       </div>
 
       {/* Expand toggle */}
-      {findings.length > 2 && (
+      {findings.length > defaultVisible && (
         <button
           onClick={() => setExpanded(!expanded)}
-          className="w-full flex items-center justify-center gap-1 py-1.5 text-[10px] text-muted-foreground hover:text-foreground transition-colors border-t border-border/50"
+          className="w-full flex items-center justify-center gap-1 py-2 text-[10px] text-muted-foreground hover:text-foreground transition-colors border-t border-border/50"
         >
           {expanded ? "收起" : `查看全部 ${findings.length} 条发现`}
           <ChevronDown size={10} className={cn("transition-transform duration-200", expanded && "rotate-180")} />
@@ -286,12 +287,10 @@ const CodeReviewTab = ({ review }: CodeReviewTabProps) => {
         )}
 
         {/* Three-column report cards */}
-        <div className="p-4">
-          <div className="flex gap-3">
-            {aiReviewers.map((r, i) => (
-              <DoneModelCard key={r.id} reviewer={r} index={i} />
-            ))}
-          </div>
+        <div className="p-4 space-y-3">
+          {aiReviewers.map((r, i) => (
+            <DoneModelCard key={r.id} reviewer={r} index={i} />
+          ))}
         </div>
       </div>
 
