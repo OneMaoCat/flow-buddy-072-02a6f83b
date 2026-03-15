@@ -9,7 +9,7 @@ import DeepFlowPanel from "@/components/DeepFlowPanel";
 import ProjectSidebarLayout from "@/components/ProjectSidebarLayout";
 import RequirementDocEditor from "@/components/RequirementDocEditor";
 import DevCompleteCard, { DevInProgressCard, buildMockDevResult, type DevCompleteResult } from "@/components/DevCompleteCard";
-import DevCompleteDetailPanel from "@/components/DevCompleteDetailPanel";
+import DevCompleteDetailPanel, { AcceptanceQA, buildAcceptanceIssues } from "@/components/DevCompleteDetailPanel";
 import SidebarConversationList from "@/components/SidebarConversationList";
 import { requestNotificationPermission, notifyDevComplete } from "@/components/DevNotification";
 import NotificationCenter from "@/components/NotificationCenter";
