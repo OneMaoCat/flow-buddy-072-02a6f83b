@@ -156,7 +156,7 @@ export const buildMockNotifications = (): AppNotification[] => [
     type: "review_rejected",
     title: "审查需要修改",
     description: "搜索功能性能优化",
-    actor: "张东杰",
+    actor: "沈楚城",
     conversationId: "conv-1",
     timestamp: now - 26 * 3600_000,
     read: true,
