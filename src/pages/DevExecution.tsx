@@ -99,6 +99,36 @@ const formatRelativeTime = (date: Date) => {
   return `${Math.floor(hrs / 24)}天前`;
 };
 
+/** Convert a Requirement into a DevCompleteResult so we can reuse DevCompleteDetailPanel */
+const reqToDevResult = (req: Requirement, projectId: string): DevCompleteResult => {
+  const diffFiles = genDiff(req);
+  return {
+    id: req.id,
+    requirementTitle: req.title,
+    previewPath: req.previewPath || "/login",
+    projectId,
+    elapsed: Math.floor(Math.random() * 20) + 5,
+    sourceContext: {
+      userPrompt: req.sourceContext.userPrompt,
+      aiSummary: req.sourceContext.aiSummary,
+    },
+    aiChangeSummary: `本次变更涉及 ${req.changedFiles ?? diffFiles.length} 个文件，新增 ${req.linesAdded ?? diffFiles.reduce((s, f) => s + f.additions, 0)} 行，删除 ${req.linesRemoved ?? diffFiles.reduce((s, f) => s + f.deletions, 0)} 行。`,
+    files: diffFiles.map(f => ({
+      path: f.path,
+      additions: f.additions,
+      deletions: f.deletions,
+      lines: f.lines.map(l => ({ type: l.type, content: l.content })),
+    })),
+    tests: req.testResult
+      ? req.testResult.tests.map(t => ({
+          name: t.name,
+          passed: t.status === "passed",
+          duration: t.duration ?? 0,
+        }))
+      : [],
+  };
+};
+
 // ---------- Component ----------
 const DevExecution = () => {
   const { id } = useParams();
