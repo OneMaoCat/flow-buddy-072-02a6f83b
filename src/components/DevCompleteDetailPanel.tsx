@@ -886,7 +886,7 @@ const DevCompleteDetailPanel = ({
                       const rCritical = findings.filter(f => f.severity === "critical").length;
                       const rWarning = findings.filter(f => f.severity === "warning").length;
                       return (
-                        <ReviewerCard key={r.id} reviewer={r} defaultOpen={rIdx === 0 || rCritical > 0} criticalCount={rCritical} warningCount={rWarning} />
+                        <ReviewerCard key={r.id} reviewer={r} defaultOpen={true} criticalCount={rCritical} warningCount={rWarning} />
                       );
                     })}
                   </div>
