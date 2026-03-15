@@ -1080,7 +1080,7 @@ const DevCompleteDetailPanel = ({
               </Button>
             )}
             {!deployed && !readOnly && aiReviewDone && hasIssues && (
-              <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={() => setActiveTab("process")}>
+              <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={() => setActiveTab("overview")}>
                 <AlertTriangle size={10} />
                 {acceptanceIssues.length} 个待决策
               </Button>
