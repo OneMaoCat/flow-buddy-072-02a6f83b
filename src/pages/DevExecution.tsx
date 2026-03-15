@@ -463,16 +463,8 @@ const DevExecution = () => {
         <ResizablePanelGroup direction="horizontal" className="h-full">
           <ResizablePanel defaultSize={selectedReq ? 60 : 100} minSize={35}>
             <div className="flex flex-col h-full overflow-hidden min-w-0">
-              {/* Action Required Bar */}
-              {actionItems.length > 0 && filter !== "action" && (
-                <ActionRequiredBar
-                  items={actionItems}
-                  onSelect={setSelectedReqId}
-                  onAccept={handleAccept}
-                  onUnblock={handleUnblock}
-                  onViewAll={() => setFilter("action")}
-                />
-              )}
+
+
 
               {/* Content */}
               <ScrollArea className="flex-1 min-h-0">
