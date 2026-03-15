@@ -866,7 +866,7 @@ const DevCompleteDetailPanel = ({
               <ReportSection
                 title="AI Code Review"
                 icon={<Shield size={15} />}
-                defaultOpen={hasCritical || hasWarning || !aiReviewDone}
+                defaultOpen={true}
                 inlineSummary={
                   aiReviewDone
                     ? <span>{reviewInfo?.overallScore} 分 · {hasCritical ? `${allFindings.filter(f => f.severity === "critical").length} 个严重问题` : hasWarning ? `${allFindings.filter(f => f.severity === "warning").length} 项警告` : "无问题"}</span>
