@@ -27,10 +27,11 @@ import type { AppNotification } from "@/data/notifications";
 import {
   createInitialRequirements, formatTime, logTemplates, generateTestsForRequirement, deriveSubStatus,
   type Requirement, type RequirementGroup, type Agent, type AgentStatus, type RequirementStatus,
-  type LogEntry, type TestItemStatus, type SubStatus, type RiskLevel, type TaskType,
+  type LogEntry, type TestItemStatus, type SubStatus, type RiskLevel, type TaskType, type BlockType,
 } from "@/data/devExecutionMock";
 import { generateDiffForRequirement, type DiffFile } from "@/data/diffMock";
 import GitDiffViewer from "@/components/GitDiffViewer";
+import BlockResolver, { blockTypeMeta } from "@/components/BlockResolver";
 
 // ---------- Icon map ----------
 const agentIcons: Record<string, React.ReactNode> = {
@@ -296,14 +297,17 @@ const DevExecution = () => {
     setRequirements(prev => prev.map(r => r.status === "review" ? { ...r, status: "accepted" as RequirementStatus } : r));
   }, []);
 
-  const handleUnblock = useCallback((reqId: string) => {
+  const handleUnblock = useCallback((reqId: string, resolution?: string) => {
     setRequirements(prev => prev.map(r => {
       if (r.id !== reqId) return r;
       const resetAgents = r.agents.map(a => ({ ...a, progress: 0, status: "waiting" as AgentStatus }));
       const first = resetAgents.find(a => !a.dependsOn);
       if (first) first.status = "running" as AgentStatus;
-      return { ...r, status: "running" as RequirementStatus, blockReason: undefined, subStatus: undefined };
+      return { ...r, status: "running" as RequirementStatus, blockReason: undefined, blockInfo: undefined, subStatus: undefined };
     }));
+    if (resolution) {
+      setLogs(l => [...l, { time: formatTime(), reqId, agentName: "用户", message: `解除阻塞：${resolution}` }]);
+    }
     setAllDone(false);
   }, []);
 
@@ -514,7 +518,7 @@ const ActionRequiredBar = ({
   items: Requirement[];
   onSelect: (id: string) => void;
   onAccept: (id: string) => void;
-  onUnblock: (id: string) => void;
+  onUnblock: (id: string, resolution?: string) => void;
   onViewAll: () => void;
 }) => {
   const blockedCount = items.filter(r => r.status === "blocked").length;
@@ -536,7 +540,14 @@ const ActionRequiredBar = ({
             className="flex items-center gap-1.5 px-2 py-1 rounded-md border border-border/60 bg-card text-left shrink-0 hover:shadow-sm transition-all text-[11px] min-w-0"
           >
             {item.status === "blocked" ? (
-              <AlertTriangle size={11} className="text-red-500 shrink-0" />
+              <>
+                <AlertTriangle size={11} className="text-red-500 shrink-0" />
+                {item.blockInfo && (
+                  <span className={cn("text-[9px] px-1 py-0.5 rounded shrink-0", blockTypeMeta[item.blockInfo.type].color)}>
+                    {blockTypeMeta[item.blockInfo.type].label}
+                  </span>
+                )}
+              </>
             ) : (
               <ShieldCheck size={11} className="text-orange-500 shrink-0" />
             )}
@@ -676,7 +687,7 @@ const KanbanView = ({
   onSelect: (id: string) => void;
   getProgress: (r: Requirement) => number;
   onAccept: (id: string) => void;
-  onUnblock: (id: string) => void;
+  onUnblock: (id: string, resolution?: string) => void;
 }) => (
   <div className="flex gap-3 px-4 py-3 h-full min-w-0 overflow-x-auto">
     {columns.map(col => {
@@ -727,8 +738,17 @@ const KanbanView = ({
                       </div>
                     )}
 
-                    {/* Block reason */}
-                    {req.blockReason && (
+                    {/* Block reason with type badge */}
+                    {req.blockInfo ? (
+                      <div className="text-[10px] text-red-500 bg-red-500/5 rounded px-1.5 py-1 mb-1.5">
+                        <div className="flex items-center gap-1 mb-0.5">
+                          <span className={cn("text-[9px] px-1 py-0.5 rounded", blockTypeMeta[req.blockInfo.type].color)}>
+                            {blockTypeMeta[req.blockInfo.type].label}
+                          </span>
+                        </div>
+                        <span className="truncate block">⚠ {req.blockInfo.reason}</span>
+                      </div>
+                    ) : req.blockReason && (
                       <div className="text-[10px] text-red-500 bg-red-500/5 rounded px-1.5 py-1 mb-1.5 truncate">
                         ⚠ {req.blockReason}
                       </div>
@@ -824,7 +844,7 @@ const DetailPanel = ({
   onClose: () => void;
   onAccept: (id: string) => void;
   onReject: (id: string) => void;
-  onUnblock: (id: string) => void;
+  onUnblock: (id: string, resolution?: string) => void;
   rejectingReq: string | null;
   setRejectingReq: (id: string | null) => void;
   rejectReason: string;
@@ -1103,14 +1123,21 @@ const DetailPanel = ({
         </div>
       )}
 
-      {/* Blocked action bar */}
+      {/* Blocked action bar — interactive BlockResolver */}
       {req.status === "blocked" && (
-        <div className="shrink-0 border-t border-red-500/20 px-4 py-3 bg-red-500/5">
-          <div className="text-[11px] text-red-500 mb-2">⚠ 阻塞原因：{req.blockReason}</div>
-          <Button size="sm" className="w-full gap-1.5 h-8 text-xs bg-blue-600 hover:bg-blue-700" onClick={() => onUnblock(req.id)}>
-            <Zap size={12} /> 确认解除阻塞，继续执行
-          </Button>
-        </div>
+        req.blockInfo ? (
+          <BlockResolver
+            blockInfo={req.blockInfo}
+            onResolve={(resolution) => onUnblock(req.id, resolution)}
+          />
+        ) : (
+          <div className="shrink-0 border-t border-red-500/20 px-4 py-3 bg-red-500/5">
+            <div className="text-[11px] text-red-500 mb-2">⚠ 阻塞原因：{req.blockReason}</div>
+            <Button size="sm" className="w-full gap-1.5 h-8 text-xs bg-blue-600 hover:bg-blue-700" onClick={() => onUnblock(req.id)}>
+              <Zap size={12} /> 确认解除阻塞，继续执行
+            </Button>
+          </div>
+        )
       )}
     </>
   );
