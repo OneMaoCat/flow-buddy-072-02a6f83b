@@ -183,9 +183,9 @@ const DevProcessLog = ({ result }: { result: DevCompleteResult }) => {
               {step.icon}
             </div>
             <div className="flex-1 min-w-0">
-              <span className={cn("text-xs font-medium", isCompleted ? "text-foreground line-through decoration-foreground/30" : "text-muted-foreground")}>{step.label}</span>
+              <span className={cn("text-xs font-medium", isCompleted ? "text-foreground/50 line-through decoration-foreground/60 decoration-2" : "text-muted-foreground")}>{step.label}</span>
               {step.detail && (
-                <span className={cn("text-xs ml-1.5", isCompleted ? "text-muted-foreground line-through decoration-muted-foreground/30" : "text-muted-foreground/60")}>{step.detail}</span>
+                <span className={cn("text-xs ml-1.5", isCompleted ? "text-muted-foreground/40 line-through decoration-muted-foreground/50 decoration-2" : "text-muted-foreground/60")}>{step.detail}</span>
               )}
             </div>
             {isCompleted ? (
