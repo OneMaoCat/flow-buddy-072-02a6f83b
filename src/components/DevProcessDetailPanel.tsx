@@ -20,7 +20,7 @@ const actionLabels: Record<UITestStep["action"], string> = {
 const UITestProcessLog = () => {
   const uiSteps = buildMockUITestSteps();
   const uiPassed = uiSteps.filter(s => s.passed).length;
-  const [expandedStep, setExpandedStep] = useState<string | null>(null);
+  const [collapsedSteps, setCollapsedSteps] = useState<Set<string>>(new Set());
 
   return (
     <div className="text-xs text-muted-foreground space-y-2">
@@ -29,11 +29,11 @@ const UITestProcessLog = () => {
       </p>
       <div className="space-y-0.5">
         {uiSteps.map((s, i) => {
-          const isExpanded = expandedStep === s.id;
+          const isExpanded = !collapsedSteps.has(s.id);
           return (
             <div key={s.id}>
               <button
-                onClick={() => setExpandedStep(isExpanded ? null : s.id)}
+                onClick={() => setCollapsedSteps(prev => { const next = new Set(prev); if (next.has(s.id)) next.delete(s.id); else next.add(s.id); return next; })}
                 className="w-full flex items-start gap-2 py-1.5 px-1 rounded-md hover:bg-muted/50 transition-colors text-left"
               >
                 <div className="mt-0.5 w-4 h-4 rounded-full bg-muted flex items-center justify-center shrink-0 text-[8px] font-bold text-muted-foreground">
@@ -71,7 +71,7 @@ const UITestProcessLog = () => {
                       <img
                         src={mockPreviewImg}
                         alt={`步骤 ${i + 1}: ${s.description}`}
-                        className="w-full h-32 object-cover object-top"
+                        className="w-full h-48 object-cover object-top"
                       />
                       <div className="absolute inset-0 bg-background/20" />
                       {/* Action indicator dot */}
