@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { X, GitBranch, Search, Sparkles, Code2, Pencil, TestTube2, Shield, CheckCircle2, FileCode2, MonitorPlay, MousePointerClick, Type, Eye, ArrowRight, Loader2, ChevronDown, ChevronUp } from "lucide-react";
 import type { DevCompleteResult } from "@/components/DevCompleteCard";
+import { buildMockAIReview, type FindingSeverity } from "@/data/reviewTypes";
 import { buildMockUITestSteps, type UITestStep } from "@/components/UITestReplay";
 import mockPreviewImg from "@/assets/mock-preview.jpg";
 import { cn } from "@/lib/utils";
