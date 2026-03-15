@@ -564,7 +564,7 @@ const ChatArea = ({
           <DevInProgressCard
             requirement={planFlow.requirement || "新需求"}
             onViewDetail={onViewInProgressDetail}
-            onPreview={() => window.open(`/project/${id}/preview`, "_blank")}
+            onPreview={() => window.open(`/project/${projectId}/preview`, "_blank")}
           />
         </div>
       </div>
