@@ -16,10 +16,10 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import type { ReviewInfo, AIModelReviewer, AIReviewFinding, FindingSeverity } from "@/data/reviewTypes";
 
 const severityConfig: Record<FindingSeverity, { label: string; icon: React.ReactNode; className: string; dotClass: string }> = {
-  critical: { label: "严重", icon: <AlertCircle size={12} />, className: "text-destructive", dotClass: "bg-destructive" },
-  warning: { label: "警告", icon: <AlertTriangle size={12} />, className: "text-amber-500", dotClass: "bg-amber-500" },
-  suggestion: { label: "建议", icon: <Lightbulb size={12} />, className: "text-blue-500", dotClass: "bg-blue-500" },
-  praise: { label: "优点", icon: <ThumbsUp size={12} />, className: "text-emerald-500", dotClass: "bg-emerald-500" },
+  critical: { label: "严重", icon: <AlertCircle size={12} />, className: "text-foreground", dotClass: "bg-foreground" },
+  warning: { label: "警告", icon: <AlertTriangle size={12} />, className: "text-foreground/70", dotClass: "bg-foreground/50" },
+  suggestion: { label: "建议", icon: <Lightbulb size={12} />, className: "text-muted-foreground", dotClass: "bg-muted-foreground" },
+  praise: { label: "优点", icon: <ThumbsUp size={12} />, className: "text-foreground/50", dotClass: "bg-foreground/30" },
 };
 
 /* ─── Score Ring ─── */
@@ -28,7 +28,6 @@ const ScoreRing = ({ score, size = 48, animate = false }: { score: number; size?
   const r = (size - 6) / 2;
   const c = 2 * Math.PI * r;
   const offset = c - (displayed / 100) * c;
-  const color = displayed >= 85 ? "text-emerald-500" : displayed >= 70 ? "text-amber-500" : "text-destructive";
 
   useEffect(() => {
     if (!animate) { setDisplayed(score); return; }
@@ -49,10 +48,10 @@ const ScoreRing = ({ score, size = 48, animate = false }: { score: number; size?
     <div className="relative" style={{ width: size, height: size }}>
       <svg width={size} height={size} className="-rotate-90">
         <circle cx={size / 2} cy={size / 2} r={r} fill="none" strokeWidth={3} className="stroke-border" />
-        <circle cx={size / 2} cy={size / 2} r={r} fill="none" strokeWidth={3} strokeLinecap="round" strokeDasharray={c} strokeDashoffset={offset} className={cn("transition-all duration-700", color.replace("text-", "stroke-"))} />
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" strokeWidth={3} strokeLinecap="round" strokeDasharray={c} strokeDashoffset={offset} className="stroke-foreground/60 transition-all duration-700" />
       </svg>
       <div className="absolute inset-0 flex items-center justify-center">
-        <span className={cn("font-bold", color, size > 40 ? "text-sm" : "text-[10px]")}>{displayed}</span>
+        <span className={cn("font-bold text-foreground", size > 40 ? "text-sm" : "text-[10px]")}>{displayed}</span>
       </div>
     </div>
   );
@@ -67,14 +66,14 @@ const FindingItem = ({ finding }: { finding: AIReviewFinding }) => {
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5">
           <span className="text-[11px] font-medium text-foreground">{finding.title}</span>
-          <span className={cn("text-[9px] px-1 py-0.5 rounded-full font-medium", `${cfg.dotClass}/10 ${cfg.className}`)}>{cfg.label}</span>
+          <span className={cn("text-[9px] px-1 py-0.5 rounded-full font-medium bg-muted", cfg.className)}>{cfg.label}</span>
         </div>
         <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">{finding.description}</p>
         {finding.filePath && (
           <p className="text-[9px] text-muted-foreground/60 mt-0.5 font-mono flex items-center gap-1">
             <FileCode2 size={9} />
             {finding.filePath}
-            {finding.lineRange && <span className="text-primary/60">{finding.lineRange}</span>}
+            {finding.lineRange && <span className="text-foreground/40">{finding.lineRange}</span>}
           </p>
         )}
       </div>
@@ -87,8 +86,8 @@ const ReviewProgress = ({ progress, status }: { progress: number; status: string
   <div className="w-full h-1.5 rounded-full bg-secondary overflow-hidden">
     <div
       className={cn(
-        "h-full rounded-full transition-all duration-500",
-        status === "done" ? "bg-emerald-500" : "bg-primary",
+        "h-full rounded-full transition-all duration-500 bg-foreground/40",
+        status === "done" && "bg-foreground/60",
         status === "reviewing" && "animate-pulse"
       )}
       style={{ width: `${progress}%` }}
@@ -107,10 +106,10 @@ const SeverityBar = ({ findings }: { findings: AIReviewFinding[] }) => {
   };
   return (
     <div className="flex h-2 rounded-full overflow-hidden bg-secondary">
-      {counts.critical > 0 && <div className="bg-destructive transition-all duration-500" style={{ width: `${(counts.critical / total) * 100}%` }} />}
-      {counts.warning > 0 && <div className="bg-amber-500 transition-all duration-500" style={{ width: `${(counts.warning / total) * 100}%` }} />}
-      {counts.suggestion > 0 && <div className="bg-blue-500 transition-all duration-500" style={{ width: `${(counts.suggestion / total) * 100}%` }} />}
-      {counts.praise > 0 && <div className="bg-emerald-500 transition-all duration-500" style={{ width: `${(counts.praise / total) * 100}%` }} />}
+      {counts.critical > 0 && <div className="bg-foreground transition-all duration-500" style={{ width: `${(counts.critical / total) * 100}%` }} />}
+      {counts.warning > 0 && <div className="bg-foreground/50 transition-all duration-500" style={{ width: `${(counts.warning / total) * 100}%` }} />}
+      {counts.suggestion > 0 && <div className="bg-foreground/30 transition-all duration-500" style={{ width: `${(counts.suggestion / total) * 100}%` }} />}
+      {counts.praise > 0 && <div className="bg-foreground/15 transition-all duration-500" style={{ width: `${(counts.praise / total) * 100}%` }} />}
     </div>
   );
 };
@@ -125,8 +124,8 @@ const RunningModelCard = ({ reviewer, index }: { reviewer: AIModelReviewer; inde
       className={cn(
         "flex-1 min-w-0 rounded-xl border bg-card p-4 flex flex-col items-center gap-3 transition-all duration-500",
         "animate-fade-in",
-        reviewer.status === "reviewing" && "border-primary/40 shadow-[0_0_12px_-3px_hsl(var(--primary)/0.3)]",
-        reviewer.status === "done" && "border-emerald-500/30",
+        reviewer.status === "reviewing" && "border-foreground/20 shadow-[0_0_12px_-3px_hsl(var(--foreground)/0.1)]",
+        reviewer.status === "done" && "border-foreground/15",
         reviewer.status === "pending" && "opacity-60"
       )}
       style={{ animationDelay: `${index * 100}ms`, animationFillMode: "backwards" }}
@@ -145,9 +144,9 @@ const RunningModelCard = ({ reviewer, index }: { reviewer: AIModelReviewer; inde
 
       <div className="flex items-center gap-1.5">
         {reviewer.status === "done" ? (
-          <CheckCircle2 size={12} className="text-emerald-500" />
+          <CheckCircle2 size={12} className="text-foreground/40" />
         ) : reviewer.status === "reviewing" ? (
-          <Loader2 size={12} className="text-primary animate-spin" />
+          <Loader2 size={12} className="text-foreground/50 animate-spin" />
         ) : (
           <div className="w-3 h-3 rounded-full border-2 border-muted-foreground/20" />
         )}
@@ -169,7 +168,7 @@ const DoneModelCard = ({ reviewer, index }: { reviewer: AIModelReviewer; index: 
       className={cn(
         "w-full rounded-xl border bg-card transition-all duration-500 overflow-hidden",
         "animate-fade-in",
-        criticalCount > 0 ? "border-destructive/20" : "border-border"
+        criticalCount > 0 ? "border-foreground/20" : "border-border"
       )}
       style={{ animationDelay: `${index * 120}ms`, animationFillMode: "backwards" }}
     >
@@ -230,7 +229,7 @@ const CodeReviewTab = ({ review }: CodeReviewTabProps) => {
     return (
       <div className="flex flex-col h-full p-4 gap-4">
         <div className="flex items-center gap-2 justify-center">
-          <Shield size={18} className="text-primary animate-pulse" />
+          <Shield size={18} className="text-foreground/50 animate-pulse" />
           <p className="text-sm font-semibold text-foreground">AI Code Review 并行审查中…</p>
         </div>
         <p className="text-[11px] text-muted-foreground text-center">多个 AI 模型正在同时审查代码变更</p>
@@ -259,22 +258,22 @@ const CodeReviewTab = ({ review }: CodeReviewTabProps) => {
                 <p className="text-[11px] text-muted-foreground mt-0.5">{aiReviewers.length} 个模型并行审查完成</p>
                 <div className="flex flex-wrap gap-2 mt-1.5">
                   {criticalCount > 0 && (
-                    <span className="flex items-center gap-1 text-[10px] font-medium text-destructive">
+                    <span className="flex items-center gap-1 text-[10px] font-medium text-foreground">
                       <AlertCircle size={10} /> {criticalCount} 严重
                     </span>
                   )}
                   {warningCount > 0 && (
-                    <span className="flex items-center gap-1 text-[10px] font-medium text-amber-500">
+                    <span className="flex items-center gap-1 text-[10px] font-medium text-foreground/70">
                       <AlertTriangle size={10} /> {warningCount} 警告
                     </span>
                   )}
                   {suggestionCount > 0 && (
-                    <span className="flex items-center gap-1 text-[10px] font-medium text-blue-500">
+                    <span className="flex items-center gap-1 text-[10px] font-medium text-muted-foreground">
                       <Lightbulb size={10} /> {suggestionCount} 建议
                     </span>
                   )}
                   {praiseCount > 0 && (
-                    <span className="flex items-center gap-1 text-[10px] font-medium text-emerald-500">
+                    <span className="flex items-center gap-1 text-[10px] font-medium text-foreground/50">
                       <ThumbsUp size={10} /> {praiseCount} 优点
                     </span>
                   )}
@@ -296,15 +295,15 @@ const CodeReviewTab = ({ review }: CodeReviewTabProps) => {
 
       {/* Bottom hint */}
       {isDone && criticalCount > 0 && (
-        <div className="px-4 py-3 border-t border-border bg-destructive/5">
-          <p className="text-[11px] text-destructive/80 text-center">
+        <div className="px-4 py-3 border-t border-border bg-muted/30">
+          <p className="text-[11px] text-muted-foreground text-center">
             发现 {criticalCount} 个严重问题，建议在输入框中描述修改意见后重新开发
           </p>
         </div>
       )}
       {isDone && criticalCount === 0 && (
-        <div className="px-4 py-3 border-t border-border bg-emerald-500/5">
-          <p className="text-[11px] text-emerald-600 text-center">
+        <div className="px-4 py-3 border-t border-border bg-muted/20">
+          <p className="text-[11px] text-muted-foreground text-center">
             代码审查通过，可直接发布到测试环境
           </p>
         </div>
