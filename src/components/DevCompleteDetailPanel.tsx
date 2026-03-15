@@ -881,6 +881,142 @@ const DevCompleteDetailPanel = ({
           </div>
         </TabsContent>
 
+        {/* ═══════════ ACCEPTANCE REPORT (验收报告) ═══════════ */}
+        <TabsContent value="overview" className="flex-1 min-h-0 m-0 overflow-y-auto scrollbar-hide">
+          <div className="px-5 py-5 space-y-5">
+            {/* Verdict Banner */}
+            <div className={cn(
+              "rounded-lg border px-4 py-3 flex items-center gap-3",
+              verdict.type === "error" && "bg-foreground/[0.03] border-foreground/15",
+              verdict.type === "warning" && "bg-foreground/[0.02] border-foreground/10",
+              verdict.type === "ok" && "bg-muted/30 border-border",
+              verdict.type === "pending" && "bg-muted/20 border-border",
+            )}>
+              <span className="text-lg font-bold shrink-0 text-foreground/60">{verdict.emoji}</span>
+              <p className="text-sm text-foreground flex-1">{verdict.text}</p>
+              {aiReviewDone && hasIssues && (
+                <Badge variant="outline" className="text-[10px] border-foreground/20 text-foreground/60 shrink-0">
+                  {acceptanceIssues.length} 个待决策
+                </Badge>
+              )}
+            </div>
+
+            {/* 2x2 Metrics Cards */}
+            <div className="grid grid-cols-2 gap-3">
+              {/* Score */}
+              <div className="rounded-lg border border-border bg-card/50 px-4 py-3 flex items-center gap-3">
+                <div className="relative w-[34px] h-[34px] shrink-0">
+                  <svg viewBox="0 0 36 36" className="w-full h-full -rotate-90">
+                    <circle cx="18" cy="18" r="15.5" fill="none" strokeWidth="3" className="stroke-border" />
+                    <circle cx="18" cy="18" r="15.5" fill="none" strokeWidth="3"
+                      strokeDasharray={`${((reviewInfo?.overallScore ?? 0) / 100) * 97.4} 97.4`}
+                      strokeLinecap="round"
+                      className="stroke-foreground/60 transition-all duration-700"
+                    />
+                  </svg>
+                  <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-foreground">
+                    {aiReviewDone ? reviewInfo?.overallScore : "–"}
+                  </span>
+                </div>
+                <div>
+                  <div className="text-[10px] text-muted-foreground">综合评分</div>
+                  <div className="text-sm font-semibold text-foreground">{aiReviewDone ? `${reviewInfo?.overallScore} 分` : "审查中"}</div>
+                </div>
+              </div>
+              {/* Test Pass Rate */}
+              <div className="rounded-lg border border-border bg-card/50 px-4 py-3 flex items-center gap-3">
+                <TestTube2 size={20} className="text-muted-foreground shrink-0" />
+                <div>
+                  <div className="text-[10px] text-muted-foreground">测试通过率</div>
+                  <div className="text-sm font-semibold text-foreground">{testPassRate}% <span className="text-xs font-normal text-muted-foreground">({passedTests}/{result.tests.length})</span></div>
+                </div>
+              </div>
+              {/* Code Changes */}
+              <div className="rounded-lg border border-border bg-card/50 px-4 py-3 flex items-center gap-3">
+                <Code2 size={20} className="text-muted-foreground shrink-0" />
+                <div>
+                  <div className="text-[10px] text-muted-foreground">代码变更</div>
+                  <div className="text-sm font-semibold text-foreground">{result.files.length} 文件 <span className="text-xs font-normal text-foreground/50">+{totalAdds} -{totalDels}</span></div>
+                </div>
+              </div>
+              {/* Elapsed Time */}
+              <div className="rounded-lg border border-border bg-card/50 px-4 py-3 flex items-center gap-3">
+                <Clock size={20} className="text-muted-foreground shrink-0" />
+                <div>
+                  <div className="text-[10px] text-muted-foreground">执行耗时</div>
+                  <div className="text-sm font-semibold text-foreground">{result.elapsed}s</div>
+                </div>
+              </div>
+            </div>
+
+            {/* AI Review Findings Summary */}
+            {aiReviewDone && (
+              <div className="space-y-2">
+                <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider">AI 审查发现</div>
+                {(reviewInfo?.aiReviewers || []).map((r) => {
+                  const findings = r.findings || [];
+                  const rCritical = findings.filter(f => f.severity === "critical").length;
+                  const rWarning = findings.filter(f => f.severity === "warning").length;
+                  return (
+                    <ReviewerCard key={r.id} reviewer={r} defaultOpen={rCritical > 0 || rWarning > 0} criticalCount={rCritical} warningCount={rWarning} />
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Test Summary */}
+            <ReportSection
+              title="测试报告"
+              icon={<TestTube2 size={15} />}
+              defaultOpen={!allTestsPassed}
+              inlineSummary={<span>{passedTests}/{result.tests.length} 通过</span>}
+              status={allTestsPassed ? "ok" : "error"}
+            >
+              <div className="rounded-md border border-border overflow-hidden">
+                {result.tests.map((t, i) => (
+                  <div key={i} className="flex items-center gap-2 px-3 py-1.5 text-xs border-b border-border/50 last:border-0">
+                    {t.passed ? (
+                      <CheckCircle2 size={12} className="text-foreground/30 shrink-0" />
+                    ) : (
+                      <XCircle size={12} className="text-foreground/60 shrink-0" />
+                    )}
+                    <span className={cn("flex-1 text-foreground", !t.passed && "font-medium")}>{t.name}</span>
+                    <span className="text-[10px] text-muted-foreground">{t.duration}ms</span>
+                  </div>
+                ))}
+              </div>
+            </ReportSection>
+
+            {/* Deploy / Acceptance QA */}
+            {!deployed && !readOnly && (
+              <div id="acceptance-qa-section" className="pt-2 pb-2">
+                {aiReviewDone ? (
+                  !hasIssues ? (
+                    <Button
+                      size="sm"
+                      className="w-full gap-1.5 h-10 text-sm"
+                      onClick={() => onDeploy(result.id)}
+                    >
+                      <Rocket size={14} />
+                      确认发布到测试环境
+                    </Button>
+                  ) : null
+                ) : (
+                  <div className="flex items-center justify-center gap-2 py-2">
+                    <Shield size={14} className="text-muted-foreground animate-pulse" />
+                    <span className="text-xs text-muted-foreground">AI 正在审查，完成后即可操作</span>
+                  </div>
+                )}
+              </div>
+            )}
+            {deployed && (
+              <div className="flex items-center justify-center gap-2 py-2">
+                <Badge variant="outline" className="text-[10px] border-foreground/20 text-foreground/60">已发布到测试环境</Badge>
+              </div>
+            )}
+          </div>
+        </TabsContent>
+
         {/* ═══════════ PREVIEW (default) ═══════════ */}
         <TabsContent value="preview" className="flex-1 min-h-0 m-0 flex flex-col">
           <div className="flex-1 min-h-0">
