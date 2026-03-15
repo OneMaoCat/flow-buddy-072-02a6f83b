@@ -13,6 +13,9 @@ import {
   Pencil,
   Shield,
   Eye,
+  UserCheck,
+  GitMerge,
+  ShieldCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -154,6 +157,9 @@ const buildProcessSteps = (result: DevCompleteResult): ProcessStep[] => {
     { icon: <Pencil size={12} />, label: "修改代码", detail: `${result.files.length} 个文件 · +${totalAdds} -${totalDels}` },
     { icon: <TestTube2 size={12} />, label: "运行测试", detail: `${passedTests}/${result.tests.length} 用例通过` },
     { icon: <Shield size={12} />, label: "Code Review", detail: "AI 多模型审查" },
+    { icon: <UserCheck size={12} />, label: "人工验收", detail: "确认功能符合需求" },
+    { icon: <GitMerge size={12} />, label: "合并主分支", detail: "合并到 main 分支" },
+    { icon: <ShieldCheck size={12} />, label: "全流程回归测试", detail: "单元/集成/E2E 测试" },
   ];
 };
 
@@ -161,23 +167,35 @@ const buildProcessSteps = (result: DevCompleteResult): ProcessStep[] => {
 
 const DevProcessLog = ({ result }: { result: DevCompleteResult }) => {
   const steps = buildProcessSteps(result);
+  // First 7 steps are completed (up to Code Review), last 3 are pending
+  const completedCount = 7;
 
   return (
     <div className="flex flex-col gap-0">
-      {steps.map((step, i) => (
-        <div key={i} className="flex items-start gap-2.5 py-1">
-          <div className="mt-0.5 w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center shrink-0 text-primary">
-            {step.icon}
-          </div>
-          <div className="flex-1 min-w-0">
-            <span className="text-xs font-medium text-foreground">{step.label}</span>
-            {step.detail && (
-              <span className="text-xs text-muted-foreground ml-1.5">{step.detail}</span>
+      {steps.map((step, i) => {
+        const isCompleted = i < completedCount;
+        return (
+          <div key={i} className={cn("flex items-start gap-2.5 py-1", !isCompleted && "opacity-40")}>
+            <div className={cn(
+              "mt-0.5 w-5 h-5 rounded-full flex items-center justify-center shrink-0",
+              isCompleted ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
+            )}>
+              {step.icon}
+            </div>
+            <div className="flex-1 min-w-0">
+              <span className={cn("text-xs font-medium", isCompleted ? "text-foreground line-through decoration-foreground/30" : "text-muted-foreground")}>{step.label}</span>
+              {step.detail && (
+                <span className={cn("text-xs ml-1.5", isCompleted ? "text-muted-foreground line-through decoration-muted-foreground/30" : "text-muted-foreground/60")}>{step.detail}</span>
+              )}
+            </div>
+            {isCompleted ? (
+              <CheckCircle2 size={12} className="text-primary/60 shrink-0 mt-0.5" />
+            ) : (
+              <div className="w-3 h-3 rounded-full border-2 border-muted-foreground/20 shrink-0 mt-0.5" />
             )}
           </div>
-          <CheckCircle2 size={12} className="text-primary/60 shrink-0 mt-0.5" />
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 };
@@ -204,6 +222,9 @@ export const DevInProgressCard = ({
     { icon: <Pencil size={12} />, label: "修改代码", detail: "处理文件变更中…" },
     { icon: <TestTube2 size={12} />, label: "运行测试", detail: "待执行" },
     { icon: <Shield size={12} />, label: "Code Review", detail: "AI 多模型审查" },
+    { icon: <UserCheck size={12} />, label: "人工验收", detail: "确认功能符合需求" },
+    { icon: <GitMerge size={12} />, label: "合并主分支", detail: "合并到 main 分支" },
+    { icon: <ShieldCheck size={12} />, label: "全流程回归测试", detail: "单元/集成/E2E 测试" },
   ];
 
   useEffect(() => {
@@ -231,15 +252,15 @@ export const DevInProgressCard = ({
                 {isLast ? <Loader2 size={12} className="animate-spin" /> : step.icon}
               </div>
               <div className="flex-1 min-w-0">
-                <span className="text-xs font-medium text-foreground">{step.label}</span>
-                <span className="text-xs text-muted-foreground ml-1.5">{step.detail}</span>
+                <span className={cn("text-xs font-medium", isCompleted ? "text-foreground line-through decoration-foreground/30" : "text-foreground")}>{step.label}</span>
+                <span className={cn("text-xs ml-1.5", isCompleted ? "text-muted-foreground line-through decoration-muted-foreground/30" : "text-muted-foreground")}>{step.detail}</span>
               </div>
               {isCompleted && <CheckCircle2 size={12} className="text-primary/60 shrink-0 mt-0.5" />}
             </div>
           );
         })}
         {steps.slice(visibleSteps).map((step, i) => (
-          <div key={`upcoming-${i}`} className="flex items-start gap-2.5 py-1 opacity-30">
+          <div key={`upcoming-${i}`} className="flex items-start gap-2.5 py-1 opacity-40">
             <div className="mt-0.5 w-5 h-5 rounded-full bg-muted flex items-center justify-center shrink-0 text-muted-foreground">
               {step.icon}
             </div>
@@ -247,6 +268,7 @@ export const DevInProgressCard = ({
               <span className="text-xs font-medium text-muted-foreground">{step.label}</span>
               <span className="text-xs text-muted-foreground/60 ml-1.5">{step.detail}</span>
             </div>
+            <div className="w-3 h-3 rounded-full border-2 border-muted-foreground/20 shrink-0 mt-0.5" />
           </div>
         ))}
       </div>
