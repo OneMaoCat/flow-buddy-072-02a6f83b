@@ -136,6 +136,9 @@ const ProjectWorkspace = () => {
         );
         setConversations((prev) => addTaskToConversation(prev, capturedConvId, result));
         notifyDevComplete(result.requirementTitle);
+        setSelectedCardId(result.id);
+        setEditingDoc(null);
+        setRightPanelOpen(true);
         // Auto-trigger AI Code Review
         startAIReview(result.id);
       }, delay);
