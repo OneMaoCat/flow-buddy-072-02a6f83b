@@ -907,6 +907,11 @@ const DetailPanel = ({
               <GitBranch size={12} /> 代码变更
             </TabsTrigger>
           )}
+          {["review", "accepted", "done", "testing"].includes(req.status) && (
+            <TabsTrigger value="codereview" className="text-xs gap-1.5">
+              <ShieldCheck size={12} /> 代码审查
+            </TabsTrigger>
+          )}
           <TabsTrigger value="tests" className="text-xs gap-1.5">
             <TestTube2 size={12} /> 测试报告
           </TabsTrigger>
