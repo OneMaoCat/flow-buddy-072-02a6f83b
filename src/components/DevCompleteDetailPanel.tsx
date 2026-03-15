@@ -815,7 +815,7 @@ const DevCompleteDetailPanel = ({
               <ReportSection
                 title="任务背景"
                 icon={<MessageSquareText size={15} />}
-                defaultOpen={false}
+                defaultOpen={true}
                 inlineSummary={<span className="truncate max-w-[200px] inline-block">{result.requirementTitle}</span>}
                 status="ok"
               >
