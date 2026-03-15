@@ -878,28 +878,6 @@ const DevCompleteDetailPanel = ({
               )}
             </ReportSection>
 
-            {/* ── Bottom: Deploy or Acceptance QA ── */}
-            {!deployed && !readOnly && (
-              <div id="acceptance-qa-section" className="pt-4 pb-2">
-                {aiReviewDone ? (
-                  !hasIssues ? (
-                    <Button
-                      size="sm"
-                      className="w-full gap-1.5 h-10 text-sm"
-                      onClick={() => onDeploy(result.id)}
-                    >
-                      <Rocket size={14} />
-                      确认发布到测试环境
-                    </Button>
-                  ) : null
-                ) : (
-                  <div className="flex items-center justify-center gap-2 py-2">
-                    <Shield size={14} className="text-muted-foreground animate-pulse" />
-                    <span className="text-xs text-muted-foreground">AI 正在审查，完成后即可操作</span>
-                  </div>
-                )}
-              </div>
-            )}
           </div>
         </TabsContent>
 
