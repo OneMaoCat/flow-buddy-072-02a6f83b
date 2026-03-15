@@ -1,57 +1,84 @@
-# 需求平台 + 异步开发 + 消息卡片验收
 
-## 已完成
 
-### 1. DevCompleteCard — 聊天区验收卡片 ✅
-- 代码变更 Tab（文件列表 + diff 视图）
-- 产品预览 Tab（复用 RequirementPreview）
-- 自测报告 Tab（测试用例列表 + 通过率）
-- 操作栏（发起 Code Review / 打回修改）
+# 验收报告：AI 驱动的问题 Q&A 决策面板
 
-### 2. PlanFlow 改造 ✅
-- 确认需求后不再跳转 /dev 页面
-- 触发 onDevSubmitted 回调启动异步模拟
+## 问题
 
-### 3. ProjectWorkspace 状态管理 ✅
-- devCards 数组管理已完成的开发结果
-- 异步模拟 3-7s 后推送 DevCompleteCard 到聊天区
-- 发布/打回操作 + toast 反馈
+当前有问题时（critical findings、测试失败、warnings），只有一个笼统的"打回修改"按钮。用户不知道 AI 打算怎么修、修哪些，也无法对每个问题单独做决策。这不符合"AI 驱动、人最小力气介入"的原则。
 
-### 4. DevNotification 浏览器通知 ✅
-- Notification API 权限请求
-- 后台标签页系统通知 + sonner toast
+## 方案
 
-### 5. 侧边栏任务追踪列表 ✅
-- SidebarTaskList 组件：按状态分组（开发中/待审查/审查中/已发布）
-- ProjectSidebarLayout 增加 taskList/taskCount props，Collapsible 区域
-- ProjectWorkspace 连接数据，点击任务项定位卡片+打开详情面板
-- 聊天区卡片增加 data-card-id，支持 scrollIntoView 定位
+当验收报告中存在问题（critical/warning findings、测试失败）时，在底部操作区替换为 **AI 生成的问题决策面板**——把所有问题提炼为结构化 Q&A，每个问题给出 2-3 个选项，用户只需点选即可。
 
-### 6. 两层结合 — 开发过程展示增强 ✅
-- DevInProgressCard 6 步里程碑（拉取分支→分析需求→制定方案→编写代码→修改代码→运行测试）
-- 每步带具体 detail 信息（分支名、文件名等）
-- 进行中/完成后均可点击「查看详情」打开右侧面板
+### 交互流程
 
-### 7. Code Review 审查流程 ✅
-- 开发完成后主按钮改为「发起 Code Review」
-- 审查 Tab：审查人列表（通过/待审状态）、邀请审查人、评论区
-- 状态流转：开发完成 → 审查中 → 审查通过 → 发布到测试环境
-- 操作栏按状态切换（未审查/审查中/审查通过/已发布）
-- SidebarTaskList 增加「审查中」分组
+```text
+┌─────────────────────────────────────────┐
+│  🚨 AI 验收结论：发现 2 个需要您决策的问题  │
+├─────────────────────────────────────────┤
+│                                         │
+│  问题 1/2  [严重]                        │
+│  "LoginForm 第 42 行残留 console.log"     │
+│  AI 建议：移除该调试语句                   │
+│                                         │
+│  ○ 同意 AI 修复（自动移除）     ← 推荐     │
+│  ○ 保留不修改（标记为已知）                │
+│  ○ 我来手动处理                          │
+│                                         │
+│  问题 2/2  [警告]                        │
+│  "密码强度阈值偏低，仅要求 8 位"           │
+│  AI 建议：增加特殊字符可选支持             │
+│                                         │
+│  ○ 同意 AI 修复                  ← 推荐   │
+│  ○ 暂不处理，后续迭代                     │
+│  ○ 我来手动处理                          │
+│                                         │
+├─────────────────────────────────────────┤
+│  [确认并让 AI 执行修复]  (2/2 已选择)      │
+└─────────────────────────────────────────┘
+```
 
-### 8. 开发执行中心改版 — AI 研发执行中枢 ✅
-- **改版一**：需求包 + 子任务两层结构（RequirementGroup 按模块分组，表格视图可折叠展开）
-- **改版二**：「需你处理」专区（ActionRequiredBar 顶部横条，聚合阻塞 + 待验收，红点提示）
-- **改版三**：决策卡片增强（二级状态标签、风险等级、测试摘要、类型图标、变更摘要、快捷操作按钮）
-- **改版四**：AI 执行透明度（subStatus 实时显示当前阶段如「编码中 · LoginForm.tsx」）
-- **改版五**：详情面板「需求上下文」Tab（用户原话、AI 理解摘要、AI 拆解依据、所属需求包）
-- 新增 blocked 状态 + blockReason 阻塞管理
-- 看板新增阻塞列，卡片内嵌快捷通过/解除阻塞按钮
+用户点选完所有问题后，一键确认，AI 根据选择自动修复 / 跳过。
 
-### 9. 消息中心升级 — 可操作的研发消息中枢 ✅
-- 「需要处理」筛选 Tab + 动作型消息置顶
-- 每条消息增加动作按钮（去审查/查看预览/查看详情等）
-- 消息优先级视觉分层（动作型橙色竖条、发布型绿色图标背景）
-- 上下文摘要（contextSummary 一句话描述）
-- 时间分组（今天/昨天/更早）
-- 需求包聚合折叠（同 taskId 消息折叠，展开查看历史）
+### 改动细节
+
+#### 1. 新增类型 `AcceptanceIssue`（在 DevCompleteCard.tsx 中）
+
+```ts
+interface AcceptanceIssue {
+  id: string;
+  severity: "critical" | "warning" | "test_fail";
+  title: string;
+  description: string;
+  filePath?: string;
+  lineRange?: string;
+  aiSuggestion: string;  // AI 建议的修复方案
+  options: { label: string; value: string; recommended?: boolean }[];
+}
+```
+
+#### 2. 新增组件 `AcceptanceQA`（在 DevCompleteDetailPanel.tsx 内部）
+
+- 从 `allFindings`（critical + warning）和失败测试中自动构建 `AcceptanceIssue[]`
+- 每个问题渲染为卡片，含：severity badge、标题、AI 建议、radio 选项组
+- 底部显示进度（如 "1/3 已选择"），全部选完后启用确认按钮
+- 确认按钮文字根据选择动态变化："让 AI 修复 2 项并发布" / "跳过所有问题并发布"
+
+#### 3. 修改验收报告底部操作区
+
+- **无问题时**：保持现有的"确认发布"按钮
+- **有问题时**：替换为 `AcceptanceQA` 组件，不再显示独立的"打回修改"按钮
+- verdict banner 中的快捷按钮也同步更新为"查看下方问题决策"锚点跳转
+
+#### 4. onReject 回调扩展
+
+`onReject` 改为接收决策结果 `(id: string, decisions?: Record<string, string>)`，让上层知道每个问题的用户决策。
+
+### 涉及文件
+
+| 文件 | 改动 |
+|------|------|
+| `src/components/DevCompleteDetailPanel.tsx` | 新增 AcceptanceQA 组件，重写底部操作区逻辑 |
+| `src/components/DevCompleteCard.tsx` | 新增 AcceptanceIssue 类型导出 |
+| `src/pages/ProjectWorkspace.tsx` | onReject 回调签名适配 |
+
