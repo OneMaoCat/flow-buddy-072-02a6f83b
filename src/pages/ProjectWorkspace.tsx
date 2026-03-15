@@ -59,6 +59,26 @@ const ProjectWorkspace = () => {
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
   const [processCardId, setProcessCardId] = useState<string | null>(null);
   const [detailReadOnly, setDetailReadOnly] = useState(false);
+
+  // Process panel shared state
+  const [processIssueDecisions, setProcessIssueDecisions] = useState<Record<string, IssueDecision>>({});
+  const [processOtherTexts, setProcessOtherTexts] = useState<Record<string, string>>({});
+  const [processMergeApproved, setProcessMergeApproved] = useState(false);
+
+  const processReview = useMemo(() => buildProcessReview(), []);
+  const processActionableIssues = useMemo(() => extractActionableIssues(processReview), [processReview]);
+  const processAllResolved = processActionableIssues.length === 0 || processActionableIssues.every(i => processIssueDecisions[i.id]);
+
+  const handleProcessDecide = useCallback((id: string, decision: IssueDecision) => {
+    setProcessIssueDecisions(prev => ({ ...prev, [id]: decision }));
+  }, []);
+  const handleProcessOtherText = useCallback((id: string, text: string) => {
+    setProcessOtherTexts(prev => ({ ...prev, [id]: text }));
+  }, []);
+  const handleProcessMerge = useCallback(() => {
+    setProcessMergeApproved(true);
+    toast.success("已确认合并主分支，正在执行回归测试...");
+  }, []);
   const [planFlow, setPlanFlow] = useState<{ active: boolean; requirement: string }>({ active: false, requirement: "" });
 
   const activeConversation = conversations.find((c) => c.id === activeConversationId) || null;
