@@ -838,6 +838,7 @@ const KanbanView = ({
 const DetailPanel = ({
   req, group, progress, logs, onClose, onAccept, onReject, onUnblock,
   rejectingReq, setRejectingReq, rejectReason, setRejectReason, projectId,
+  onNavigateToConversation,
 }: {
   req: Requirement;
   group?: RequirementGroup;
@@ -852,6 +853,7 @@ const DetailPanel = ({
   rejectReason: string;
   setRejectReason: (v: string) => void;
   projectId: string;
+  onNavigateToConversation?: (conversationId: string) => void;
 }) => {
   const isRejecting = rejectingReq === req.id;
   const logsEndRef = useRef<HTMLDivElement>(null);
