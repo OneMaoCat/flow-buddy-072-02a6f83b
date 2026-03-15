@@ -287,12 +287,10 @@ const CodeReviewTab = ({ review }: CodeReviewTabProps) => {
         )}
 
         {/* Three-column report cards */}
-        <div className="p-4">
-          <div className="flex gap-3">
-            {aiReviewers.map((r, i) => (
-              <DoneModelCard key={r.id} reviewer={r} index={i} />
-            ))}
-          </div>
+        <div className="p-4 space-y-3">
+          {aiReviewers.map((r, i) => (
+            <DoneModelCard key={r.id} reviewer={r} index={i} />
+          ))}
         </div>
       </div>
 
