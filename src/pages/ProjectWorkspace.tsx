@@ -63,6 +63,7 @@ const ProjectWorkspace = () => {
   // Process panel shared state
   const [processIssueDecisions, setProcessIssueDecisions] = useState<Record<string, IssueDecision>>({});
   const [processOtherTexts, setProcessOtherTexts] = useState<Record<string, string>>({});
+  const [processAcceptanceConfirmed, setProcessAcceptanceConfirmed] = useState(false);
   const [processMergeApproved, setProcessMergeApproved] = useState(false);
 
   const processReview = useMemo(() => buildProcessReview(), []);
@@ -74,6 +75,10 @@ const ProjectWorkspace = () => {
   }, []);
   const handleProcessOtherText = useCallback((id: string, text: string) => {
     setProcessOtherTexts(prev => ({ ...prev, [id]: text }));
+  }, []);
+  const handleProcessAcceptance = useCallback(() => {
+    setProcessAcceptanceConfirmed(true);
+    toast.success("人工验收通过，请确认合并主分支");
   }, []);
   const handleProcessMerge = useCallback(() => {
     setProcessMergeApproved(true);
