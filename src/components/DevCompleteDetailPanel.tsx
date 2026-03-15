@@ -17,7 +17,7 @@ import {
   X,
   Shield,
   LayoutDashboard,
-  GitBranch,
+  
   Code2,
   AlertTriangle,
   Clock,
