@@ -24,7 +24,6 @@ import {
   MessageSquareText,
   Sparkles,
   ChevronDown,
-  ChevronUp,
   ExternalLink,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
