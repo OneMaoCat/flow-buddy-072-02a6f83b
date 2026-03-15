@@ -297,14 +297,17 @@ const DevExecution = () => {
     setRequirements(prev => prev.map(r => r.status === "review" ? { ...r, status: "accepted" as RequirementStatus } : r));
   }, []);
 
-  const handleUnblock = useCallback((reqId: string) => {
+  const handleUnblock = useCallback((reqId: string, resolution?: string) => {
     setRequirements(prev => prev.map(r => {
       if (r.id !== reqId) return r;
       const resetAgents = r.agents.map(a => ({ ...a, progress: 0, status: "waiting" as AgentStatus }));
       const first = resetAgents.find(a => !a.dependsOn);
       if (first) first.status = "running" as AgentStatus;
-      return { ...r, status: "running" as RequirementStatus, blockReason: undefined, subStatus: undefined };
+      return { ...r, status: "running" as RequirementStatus, blockReason: undefined, blockInfo: undefined, subStatus: undefined };
     }));
+    if (resolution) {
+      setLogs(l => [...l, { time: formatTime(), reqId, agentName: "用户", message: `解除阻塞：${resolution}` }]);
+    }
     setAllDone(false);
   }, []);
 
