@@ -27,6 +27,8 @@ import {
   ChevronDown,
   ChevronRight,
   ExternalLink,
+  GitBranch,
+  Search,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { DevCompleteResult, AcceptanceIssue } from "@/components/DevCompleteCard";
