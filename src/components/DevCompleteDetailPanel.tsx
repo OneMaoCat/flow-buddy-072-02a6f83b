@@ -27,6 +27,8 @@ import {
   ChevronDown,
   ChevronRight,
   ExternalLink,
+  GitBranch,
+  Search,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { DevCompleteResult, AcceptanceIssue } from "@/components/DevCompleteCard";
@@ -383,7 +385,7 @@ const TestReportSection = ({
 
   return (
     <ReportSection
-      title="测试报告"
+      title="6. 运行测试"
       icon={<TestTube2 size={15} />}
       defaultOpen={true}
       inlineSummary={<span>{passedTests}/{result.tests.length} 通过{coverage !== null ? ` · 覆盖率 ${coverage}%` : ""}</span>}
@@ -644,7 +646,7 @@ const DevCompleteDetailPanel = ({
   onUpdateReview,
   readOnly,
 }: DevCompleteDetailPanelProps) => {
-  const [activeTab, setActiveTab] = useState("overview");
+  const [activeTab, setActiveTab] = useState("preview");
 
   const totalAdds = result.files.reduce((s, f) => s + f.additions, 0);
   const totalDels = result.files.reduce((s, f) => s + f.deletions, 0);
@@ -706,11 +708,11 @@ const DevCompleteDetailPanel = ({
             <p className="text-sm font-medium text-foreground truncate">{result.requirementTitle}</p>
           </div>
           <TabsList className="h-8">
-            <TabsTrigger value="overview" className="text-xs gap-1 h-7 px-2.5">
-              <LayoutDashboard size={12} /> 验收报告
-            </TabsTrigger>
             <TabsTrigger value="preview" className="text-xs gap-1 h-7 px-2.5">
               <Eye size={12} /> 预览
+            </TabsTrigger>
+            <TabsTrigger value="process" className="text-xs gap-1 h-7 px-2.5">
+              <LayoutDashboard size={12} /> 开发过程
             </TabsTrigger>
             <TabsTrigger value="review" className="text-xs gap-1 h-7 px-2.5">
               <Shield size={12} /> AI 审查
@@ -722,203 +724,160 @@ const DevCompleteDetailPanel = ({
           </button>
         </div>
 
-        {/* ═══════════ OVERVIEW — Canvas-style AI Acceptance Report ═══════════ */}
-        <TabsContent value="overview" className="flex-1 min-h-0 m-0 overflow-y-auto scrollbar-hide">
-          <div className="px-5 py-5 space-y-6">
+        {/* ═══════════ DEV PROCESS — 7-step narrative ═══════════ */}
+        <TabsContent value="process" className="flex-1 min-h-0 m-0 overflow-y-auto scrollbar-hide">
+          <div className="px-5 py-5 space-y-1">
 
-            {/* ── AI Verdict + Metrics — Merged Dashboard ── */}
-            <div className={cn(
-              "rounded-xl border overflow-hidden",
-              verdict.type === "error" && "bg-foreground/[0.03] border-foreground/15",
-              verdict.type === "warning" && "bg-foreground/[0.02] border-foreground/10",
-              verdict.type === "ok" && "bg-muted/30 border-border",
-              verdict.type === "pending" && "bg-muted/30 border-border",
-            )}>
-              {/* Top: verdict headline */}
-              <div className="px-4 py-3 flex items-center gap-3">
-                <span className="text-lg font-bold shrink-0 text-foreground/60">{verdict.emoji}</span>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-foreground leading-snug">{verdict.text}</p>
-                </div>
-                {!deployed && !readOnly && aiReviewDone && !hasIssues && (
-                  <Button size="sm" className="h-7 text-xs gap-1 shrink-0" onClick={() => onDeploy(result.id)}>
-                    <Rocket size={12} /> 发布
-                  </Button>
-                )}
-                {!deployed && !readOnly && aiReviewDone && hasIssues && (
-                  <Badge variant="outline" className="text-[10px] h-5 px-2 border-foreground/20 text-foreground/60 shrink-0 gap-1">
-                    <AlertTriangle size={10} />
-                    {acceptanceIssues.length} 个待决策
-                  </Badge>
-                )}
+            {/* ── Step 1: 拉取分支 ── */}
+            <ReportSection
+              title="1. 拉取分支"
+              icon={<GitBranch size={15} />}
+              defaultOpen={true}
+              inlineSummary="feature/login-form-validation"
+              status="ok"
+            >
+              <div className="space-y-2 text-sm text-foreground">
+                <p>从 <code className="text-xs bg-muted px-1.5 py-0.5 rounded font-mono">main</code> 分支创建开发分支 <code className="text-xs bg-muted px-1.5 py-0.5 rounded font-mono">feature/{result.id.slice(0, 8)}</code></p>
+                <p className="text-xs text-muted-foreground">基于最新 commit 拉取，确保无合并冲突</p>
               </div>
+            </ReportSection>
 
-              {/* Bottom: inline metric strip */}
-              <div className="px-4 py-2.5 border-t border-border/50 flex items-center gap-0 text-xs">
-                {/* Score ring */}
-                <div className="flex items-center gap-2 pr-4">
-                  <div className="relative w-[34px] h-[34px] shrink-0">
-                    <svg viewBox="0 0 36 36" className="w-full h-full -rotate-90">
-                      <circle cx="18" cy="18" r="15.5" fill="none" strokeWidth="2.5" className="stroke-border" />
-                      <circle
-                        cx="18" cy="18" r="15.5" fill="none" strokeWidth="2.5"
-                        strokeDasharray={`${((reviewInfo?.overallScore ?? 0) / 100) * 97.4} 97.4`}
-                        strokeLinecap="round"
-                        className="stroke-foreground/60 transition-all duration-700"
-                      />
-                    </svg>
-                    <span className="absolute inset-0 flex items-center justify-center text-[11px] font-bold text-foreground">
-                      {aiReviewDone ? reviewInfo?.overallScore : "–"}
-                    </span>
-                  </div>
-                  <span className="text-muted-foreground">评分</span>
+            {/* ── Step 2: 分析需求 ── */}
+            <ReportSection
+              title="2. 分析需求"
+              icon={<Search size={15} />}
+              defaultOpen={true}
+              inlineSummary={<span className="truncate max-w-[200px] inline-block">{result.requirementTitle}</span>}
+              status="ok"
+            >
+              <div className="space-y-3">
+                <div>
+                  <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider mb-1.5">原始需求</div>
+                  <p className="text-sm text-foreground leading-relaxed bg-muted/30 rounded-md px-3 py-2.5">
+                    {result.sourceContext?.userPrompt || result.requirementTitle}
+                  </p>
                 </div>
-
-                <div className="w-px h-5 bg-border shrink-0" />
-
-                {/* Tests */}
-                <div className="flex items-center gap-1.5 px-4">
-                  <TestTube2 size={13} className="text-muted-foreground" />
-                  <span className="font-semibold text-foreground">
-                    {passedTests}/{result.tests.length}
-                  </span>
-                  <span className="text-muted-foreground">通过</span>
-                </div>
-
-                <div className="w-px h-5 bg-border shrink-0" />
-
-                {/* Changes */}
-                <div className="flex items-center gap-1.5 px-4">
-                  <Code2 size={13} className="text-muted-foreground" />
-                  <span className="font-semibold text-foreground">{result.files.length}</span>
-                  <span className="text-muted-foreground">文件</span>
-                  <span className="text-foreground/50 font-mono text-[11px]">+{totalAdds}</span>
-                  <span className="text-foreground/40 font-mono text-[11px]">-{totalDels}</span>
-                </div>
-
-                <div className="w-px h-5 bg-border shrink-0" />
-
-                {/* Duration */}
-                <div className="flex items-center gap-1.5 px-4">
-                  <Clock size={13} className="text-muted-foreground" />
-                  <span className="font-semibold text-foreground">{result.elapsed}s</span>
-                </div>
-              </div>
-            </div>
-
-
-
-
-            {/* ── Detail Sections (collapsible cards) ── */}
-            <div className="space-y-3">
-              {/* Task Background */}
-              <ReportSection
-                title="任务背景"
-                icon={<MessageSquareText size={15} />}
-                defaultOpen={true}
-                inlineSummary={<span className="truncate max-w-[200px] inline-block">{result.requirementTitle}</span>}
-                status="ok"
-              >
-                <div className="space-y-3">
+                {result.sourceContext?.aiSummary && (
                   <div>
-                    <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider mb-1.5">原始需求</div>
-                    <p className="text-sm text-foreground leading-relaxed bg-muted/30 rounded-md px-3 py-2.5">
-                      {result.sourceContext?.userPrompt || result.requirementTitle}
-                    </p>
-                  </div>
-                  {result.sourceContext?.aiSummary && (
-                    <div>
-                      <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider mb-1.5 flex items-center gap-1">
-                        <Sparkles size={11} /> AI 理解摘要
-                      </div>
-                      <p className="text-sm text-foreground leading-relaxed">{result.sourceContext.aiSummary}</p>
+                    <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider mb-1.5 flex items-center gap-1">
+                      <Sparkles size={11} /> AI 理解摘要
                     </div>
-                  )}
-                </div>
-              </ReportSection>
-
-              {/* Code Changes */}
-              <ReportSection
-                title="代码变更"
-                icon={<Code2 size={15} />}
-                defaultOpen={true}
-                inlineSummary={<span>{result.files.length} 个文件 · <span className="text-foreground/50">+{totalAdds}</span> <span className="text-foreground/40">-{totalDels}</span></span>}
-                status="ok"
-              >
-                <div className="space-y-3">
-                  {result.aiChangeSummary && (
-                    <p className="text-sm text-foreground leading-relaxed">{result.aiChangeSummary}</p>
-                  )}
-                  <div className="rounded-md border border-border overflow-hidden">
-                    {result.files.map((f) => (
-                      <div key={f.path} className="flex items-center gap-2 px-3 py-2 text-xs border-b border-border last:border-0 hover:bg-muted/30 transition-colors">
-                        <FileCode2 size={12} className="text-muted-foreground shrink-0" />
-                        <span className="font-mono text-foreground flex-1 min-w-0 truncate">{f.path}</span>
-                        <span className="text-foreground/50 text-[10px] font-mono">+{f.additions}</span>
-                        <span className="text-foreground/40 text-[10px] font-mono">-{f.deletions}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </ReportSection>
-
-              {/* AI Code Review Findings */}
-              <ReportSection
-                title="AI Code Review"
-                icon={<Shield size={15} />}
-                defaultOpen={true}
-                inlineSummary={
-                  aiReviewDone
-                    ? <span>{reviewInfo?.overallScore} 分 · {hasCritical ? `${allFindings.filter(f => f.severity === "critical").length} 个严重问题` : hasWarning ? `${allFindings.filter(f => f.severity === "warning").length} 项警告` : "无问题"}</span>
-                    : <span className="text-muted-foreground">审查中…</span>
-                }
-                status={!aiReviewDone ? "pending" : hasCritical ? "error" : hasWarning ? "warning" : "ok"}
-              >
-                {!aiReviewDone ? (
-                  <div className="flex items-center gap-2 py-2">
-                    <Shield size={14} className="text-muted-foreground animate-pulse" />
-                    <span className="text-sm text-muted-foreground">AI 正在审查代码…</span>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {(reviewInfo?.aiReviewers || []).map((r, rIdx) => {
-                      const findings = r.findings || [];
-                      const rCritical = findings.filter(f => f.severity === "critical").length;
-                      const rWarning = findings.filter(f => f.severity === "warning").length;
-                      return (
-                        <ReviewerCard key={r.id} reviewer={r} defaultOpen={true} criticalCount={rCritical} warningCount={rWarning} />
-                      );
-                    })}
+                    <p className="text-sm text-foreground leading-relaxed">{result.sourceContext.aiSummary}</p>
                   </div>
                 )}
-              </ReportSection>
+              </div>
+            </ReportSection>
 
-              {/* Test Report */}
-              <TestReportSection
-                result={result}
-                passedTests={passedTests}
-                allTestsPassed={allTestsPassed}
-                testPassRate={testPassRate}
-              />
+            {/* ── Step 3: 制定方案 ── */}
+            <ReportSection
+              title="3. 制定方案"
+              icon={<Lightbulb size={15} />}
+              defaultOpen={true}
+              inlineSummary={`${result.files.length} 个文件变更计划`}
+              status="ok"
+            >
+              <div className="space-y-2 text-sm">
+                {result.aiChangeSummary && (
+                  <p className="text-foreground leading-relaxed">{result.aiChangeSummary}</p>
+                )}
+                <div className="text-xs text-muted-foreground">
+                  计划修改 {result.files.length} 个文件，预估新增 +{totalAdds} 行，删除 -{totalDels} 行
+                </div>
+              </div>
+            </ReportSection>
 
-              {/* Product Preview */}
-              <ReportSection
-                title="产品预览"
-                icon={<Eye size={15} />}
-                defaultOpen={true}
-                inlineSummary="点击查看"
-              >
-                <RequirementPreview
-                    previewPath={result.previewPath}
-                    requirementTitle={result.requirementTitle}
-                    projectId={result.projectId}
-                  />
-              </ReportSection>
-            </div>
+            {/* ── Step 4: 编写代码 ── */}
+            <ReportSection
+              title="4. 编写代码"
+              icon={<Code2 size={15} />}
+              defaultOpen={true}
+              inlineSummary={<span>{result.files.length} 个文件 · <span className="text-foreground/50">+{totalAdds}</span> <span className="text-foreground/40">-{totalDels}</span></span>}
+              status="ok"
+            >
+              <div className="space-y-3">
+                <div className="rounded-md border border-border overflow-hidden">
+                  {result.files.map((f) => (
+                    <div key={f.path} className="flex items-center gap-2 px-3 py-2 text-xs border-b border-border last:border-0 hover:bg-muted/30 transition-colors">
+                      <FileCode2 size={12} className="text-muted-foreground shrink-0" />
+                      <span className="font-mono text-foreground flex-1 min-w-0 truncate">{f.path}</span>
+                      <span className="text-foreground/50 text-[10px] font-mono">+{f.additions}</span>
+                      <span className="text-foreground/40 text-[10px] font-mono">-{f.deletions}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </ReportSection>
 
-            {/* ── Bottom: Deploy or status hint ── */}
+            {/* ── Step 5: 修改代码 (iterations) ── */}
+            <ReportSection
+              title="5. 迭代修复"
+              icon={<RotateCcw size={15} />}
+              defaultOpen={true}
+              inlineSummary="自动修复完成"
+              status="ok"
+            >
+              <div className="text-sm text-foreground space-y-2">
+                <p>根据 lint 检查和类型检查结果，自动修复了代码风格问题和类型错误。</p>
+                <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                  <span className="flex items-center gap-1"><CheckCircle2 size={11} /> ESLint 通过</span>
+                  <span className="flex items-center gap-1"><CheckCircle2 size={11} /> TypeScript 编译通过</span>
+                </div>
+              </div>
+            </ReportSection>
+
+            {/* ── Step 6: 运行测试 ── */}
+            <TestReportSection
+              result={result}
+              passedTests={passedTests}
+              allTestsPassed={allTestsPassed}
+              testPassRate={testPassRate}
+            />
+
+            {/* ── Step 7: AI Code Review ── */}
+            <ReportSection
+              title="7. AI Code Review"
+              icon={<Shield size={15} />}
+              defaultOpen={true}
+              inlineSummary={
+                aiReviewDone
+                  ? <span>{reviewInfo?.overallScore} 分 · {hasCritical ? `${allFindings.filter(f => f.severity === "critical").length} 个严重问题` : hasWarning ? `${allFindings.filter(f => f.severity === "warning").length} 项警告` : "无问题"}</span>
+                  : <span className="text-muted-foreground">审查中…</span>
+              }
+              status={!aiReviewDone ? "pending" : hasCritical ? "error" : hasWarning ? "warning" : "ok"}
+            >
+              {!aiReviewDone ? (
+                <div className="flex items-center gap-2 py-2">
+                  <Shield size={14} className="text-muted-foreground animate-pulse" />
+                  <span className="text-sm text-muted-foreground">AI 正在审查代码…</span>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {/* AI Verdict */}
+                  <div className={cn(
+                    "rounded-lg border px-3 py-2.5 flex items-center gap-3",
+                    verdict.type === "error" && "bg-foreground/[0.03] border-foreground/15",
+                    verdict.type === "warning" && "bg-foreground/[0.02] border-foreground/10",
+                    verdict.type === "ok" && "bg-muted/30 border-border",
+                  )}>
+                    <span className="text-sm font-bold shrink-0 text-foreground/60">{verdict.emoji}</span>
+                    <p className="text-xs text-foreground flex-1">{verdict.text}</p>
+                  </div>
+
+                  {(reviewInfo?.aiReviewers || []).map((r) => {
+                    const findings = r.findings || [];
+                    const rCritical = findings.filter(f => f.severity === "critical").length;
+                    const rWarning = findings.filter(f => f.severity === "warning").length;
+                    return (
+                      <ReviewerCard key={r.id} reviewer={r} defaultOpen={true} criticalCount={rCritical} warningCount={rWarning} />
+                    );
+                  })}
+                </div>
+              )}
+            </ReportSection>
+
+            {/* ── Bottom: Deploy or Acceptance QA ── */}
             {!deployed && !readOnly && (
-              <div id="acceptance-qa-section" className="pt-2 pb-2">
+              <div id="acceptance-qa-section" className="pt-4 pb-2">
                 {aiReviewDone ? (
                   !hasIssues ? (
                     <Button
@@ -941,14 +900,78 @@ const DevCompleteDetailPanel = ({
           </div>
         </TabsContent>
 
-        {/* ═══════════ PREVIEW ═══════════ */}
-        <TabsContent value="preview" className="flex-1 min-h-0 m-0">
-          <RequirementPreview
-            previewPath={result.previewPath}
-            requirementTitle={result.requirementTitle}
-            projectId={result.projectId}
-            fullscreen
-          />
+        {/* ═══════════ PREVIEW (default) ═══════════ */}
+        <TabsContent value="preview" className="flex-1 min-h-0 m-0 flex flex-col">
+          <div className="flex-1 min-h-0">
+            <RequirementPreview
+              previewPath={result.previewPath}
+              requirementTitle={result.requirementTitle}
+              projectId={result.projectId}
+              fullscreen
+            />
+          </div>
+          {/* Bottom metrics bar */}
+          <div className="shrink-0 border-t border-border bg-card/80 backdrop-blur-sm px-4 py-2.5 flex items-center gap-0 text-xs">
+            {/* Score ring */}
+            <div className="flex items-center gap-2 pr-4">
+              <div className="relative w-[28px] h-[28px] shrink-0">
+                <svg viewBox="0 0 36 36" className="w-full h-full -rotate-90">
+                  <circle cx="18" cy="18" r="15.5" fill="none" strokeWidth="3" className="stroke-border" />
+                  <circle
+                    cx="18" cy="18" r="15.5" fill="none" strokeWidth="3"
+                    strokeDasharray={`${((reviewInfo?.overallScore ?? 0) / 100) * 97.4} 97.4`}
+                    strokeLinecap="round"
+                    className="stroke-foreground/60 transition-all duration-700"
+                  />
+                </svg>
+                <span className="absolute inset-0 flex items-center justify-center text-[9px] font-bold text-foreground">
+                  {aiReviewDone ? reviewInfo?.overallScore : "–"}
+                </span>
+              </div>
+              <span className="text-muted-foreground">分</span>
+            </div>
+            <div className="w-px h-5 bg-border shrink-0" />
+            <div className="flex items-center gap-1.5 px-3">
+              <TestTube2 size={12} className="text-muted-foreground" />
+              <span className="font-semibold text-foreground">{passedTests}/{result.tests.length}</span>
+              <span className="text-muted-foreground">通过</span>
+            </div>
+            <div className="w-px h-5 bg-border shrink-0" />
+            <div className="flex items-center gap-1.5 px-3">
+              <Code2 size={12} className="text-muted-foreground" />
+              <span className="font-semibold text-foreground">{result.files.length}</span>
+              <span className="text-muted-foreground">文件</span>
+            </div>
+            <div className="w-px h-5 bg-border shrink-0" />
+            <div className="flex items-center gap-1.5 px-3">
+              <Clock size={12} className="text-muted-foreground" />
+              <span className="font-semibold text-foreground">{result.elapsed}s</span>
+            </div>
+            <span className="flex-1" />
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-7 text-xs gap-1 mr-2"
+              onClick={() => setActiveTab("process")}
+            >
+              <LayoutDashboard size={12} />
+              查看开发过程
+            </Button>
+            {!deployed && !readOnly && aiReviewDone && !hasIssues && (
+              <Button size="sm" className="h-7 text-xs gap-1" onClick={() => onDeploy(result.id)}>
+                <Rocket size={12} /> 发布
+              </Button>
+            )}
+            {!deployed && !readOnly && aiReviewDone && hasIssues && (
+              <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={() => setActiveTab("process")}>
+                <AlertTriangle size={10} />
+                {acceptanceIssues.length} 个待决策
+              </Button>
+            )}
+            {deployed && (
+              <Badge variant="outline" className="text-[10px] border-foreground/20 text-foreground/60">已发布</Badge>
+            )}
+          </div>
         </TabsContent>
 
         {/* ═══════════ AI REVIEW (detailed) ═══════════ */}
