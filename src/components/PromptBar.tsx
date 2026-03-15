@@ -8,7 +8,7 @@ interface PromptBarProps {
   contextSlot?: React.ReactNode;
 }
 
-const PromptBar = ({ onSubmit, defaultText, compact }: PromptBarProps) => {
+const PromptBar = ({ onSubmit, defaultText, compact, contextSlot }: PromptBarProps) => {
   const [planMode, setPlanMode] = useState(false);
   const [text, setText] = useState("");
 
