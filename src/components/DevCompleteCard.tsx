@@ -167,23 +167,35 @@ const buildProcessSteps = (result: DevCompleteResult): ProcessStep[] => {
 
 const DevProcessLog = ({ result }: { result: DevCompleteResult }) => {
   const steps = buildProcessSteps(result);
+  // First 7 steps are completed (up to Code Review), last 3 are pending
+  const completedCount = 7;
 
   return (
     <div className="flex flex-col gap-0">
-      {steps.map((step, i) => (
-        <div key={i} className="flex items-start gap-2.5 py-1">
-          <div className="mt-0.5 w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center shrink-0 text-primary">
-            {step.icon}
-          </div>
-          <div className="flex-1 min-w-0">
-            <span className="text-xs font-medium text-foreground">{step.label}</span>
-            {step.detail && (
-              <span className="text-xs text-muted-foreground ml-1.5">{step.detail}</span>
+      {steps.map((step, i) => {
+        const isCompleted = i < completedCount;
+        return (
+          <div key={i} className={cn("flex items-start gap-2.5 py-1", !isCompleted && "opacity-40")}>
+            <div className={cn(
+              "mt-0.5 w-5 h-5 rounded-full flex items-center justify-center shrink-0",
+              isCompleted ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
+            )}>
+              {step.icon}
+            </div>
+            <div className="flex-1 min-w-0">
+              <span className={cn("text-xs font-medium", isCompleted ? "text-foreground line-through decoration-foreground/30" : "text-muted-foreground")}>{step.label}</span>
+              {step.detail && (
+                <span className={cn("text-xs ml-1.5", isCompleted ? "text-muted-foreground line-through decoration-muted-foreground/30" : "text-muted-foreground/60")}>{step.detail}</span>
+              )}
+            </div>
+            {isCompleted ? (
+              <CheckCircle2 size={12} className="text-primary/60 shrink-0 mt-0.5" />
+            ) : (
+              <div className="w-3 h-3 rounded-full border-2 border-muted-foreground/20 shrink-0 mt-0.5" />
             )}
           </div>
-          <CheckCircle2 size={12} className="text-primary/60 shrink-0 mt-0.5" />
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 };
