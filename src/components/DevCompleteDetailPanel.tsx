@@ -929,7 +929,7 @@ const DevCompleteDetailPanel = ({
                       <Rocket size={14} />
                       确认发布到测试环境
                     </Button>
-                  )
+                  ) : null
                 ) : (
                   <div className="flex items-center justify-center gap-2 py-2">
                     <Shield size={14} className="text-muted-foreground animate-pulse" />
