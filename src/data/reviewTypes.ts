@@ -27,6 +27,7 @@ export interface AIModelReviewer {
   score?: number; // 0-100
   summary?: string;
   findings?: AIReviewFinding[];
+  progress?: number; // 0-100, used during reviewing
 }
 
 export type FindingSeverity = "critical" | "warning" | "suggestion" | "praise";

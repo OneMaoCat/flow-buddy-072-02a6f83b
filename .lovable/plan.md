@@ -1,54 +1,57 @@
+# 需求平台 + 异步开发 + 消息卡片验收
 
+## 已完成
 
-# Code Review 可读性与并行感优化
+### 1. DevCompleteCard — 聊天区验收卡片 ✅
+- 代码变更 Tab（文件列表 + diff 视图）
+- 产品预览 Tab（复用 RequirementPreview）
+- 自测报告 Tab（测试用例列表 + 通过率）
+- 操作栏（发起 Code Review / 打回修改）
 
-## 现状问题
+### 2. PlanFlow 改造 ✅
+- 确认需求后不再跳转 /dev 页面
+- 触发 onDevSubmitted 回调启动异步模拟
 
-当前 `CodeReviewTab` 的 "running" 状态是一个垂直列表，模型依次从 pending → reviewing → done，视觉上是串行的。完成后的报告也是纵向堆叠的 Collapsible，缺乏并行审查的直觉。
+### 3. ProjectWorkspace 状态管理 ✅
+- devCards 数组管理已完成的开发结果
+- 异步模拟 3-7s 后推送 DevCompleteCard 到聊天区
+- 发布/打回操作 + toast 反馈
 
-## 改动方案
+### 4. DevNotification 浏览器通知 ✅
+- Notification API 权限请求
+- 后台标签页系统通知 + sonner toast
 
-### 1. Running 状态：并行卡片布局
+### 5. 侧边栏任务追踪列表 ✅
+- SidebarTaskList 组件：按状态分组（开发中/待审查/审查中/已发布）
+- ProjectSidebarLayout 增加 taskList/taskCount props，Collapsible 区域
+- ProjectWorkspace 连接数据，点击任务项定位卡片+打开详情面板
+- 聊天区卡片增加 data-card-id，支持 scrollIntoView 定位
 
-将 running 状态从垂直列表改为 **三列并排卡片**，每个模型一张卡片，各自独立显示进度：
+### 6. 两层结合 — 开发过程展示增强 ✅
+- DevInProgressCard 6 步里程碑（拉取分支→分析需求→制定方案→编写代码→修改代码→运行测试）
+- 每步带具体 detail 信息（分支名、文件名等）
+- 进行中/完成后均可点击「查看详情」打开右侧面板
 
-```text
-┌─────────────┐  ┌─────────────┐  ┌─────────────┐
-│  🧠 GPT-5   │  │  💎 Gemini  │  │  🎭 Claude  │
-│             │  │             │  │             │
-│  ████░░ 60% │  │  ██░░░░ 30% │  │  pending... │
-│             │  │             │  │             │
-│  scanning.. │  │  analyzing  │  │  waiting    │
-└─────────────┘  └─────────────┘  └─────────────┘
-```
+### 7. Code Review 审查流程 ✅
+- 开发完成后主按钮改为「发起 Code Review」
+- 审查 Tab：审查人列表（通过/待审状态）、邀请审查人、评论区
+- 状态流转：开发完成 → 审查中 → 审查通过 → 发布到测试环境
+- 操作栏按状态切换（未审查/审查中/审查通过/已发布）
+- SidebarTaskList 增加「审查中」分组
 
-- 每张卡片有独立的进度条动画（reviewing 时脉冲）
-- 完成时卡片翻转/渐变显示分数
-- 卡片之间视觉独立，体现"同时在审"
+### 8. 开发执行中心改版 — AI 研发执行中枢 ✅
+- **改版一**：需求包 + 子任务两层结构（RequirementGroup 按模块分组，表格视图可折叠展开）
+- **改版二**：「需你处理」专区（ActionRequiredBar 顶部横条，聚合阻塞 + 待验收，红点提示）
+- **改版三**：决策卡片增强（二级状态标签、风险等级、测试摘要、类型图标、变更摘要、快捷操作按钮）
+- **改版四**：AI 执行透明度（subStatus 实时显示当前阶段如「编码中 · LoginForm.tsx」）
+- **改版五**：详情面板「需求上下文」Tab（用户原话、AI 理解摘要、AI 拆解依据、所属需求包）
+- 新增 blocked 状态 + blockReason 阻塞管理
+- 看板新增阻塞列，卡片内嵌快捷通过/解除阻塞按钮
 
-### 2. Done 状态：三列报告卡片
-
-完成后保持三列布局，每个模型一张卡片，包含：
-- 顶部：模型图标 + 名称 + 分数环
-- 中部：一句话总结
-- 底部：findings 列表（按严重程度排列，带颜色标记）
-- 卡片可展开查看完整 findings
-
-### 3. 顶部综合概览
-
-保留综合评分环，增加统计条（横向进度条显示各严重程度占比），让数据一目了然。
-
-### 4. 入场动画
-
-- 三张卡片 stagger 入场（延迟 100ms）
-- reviewing 时卡片边框有呼吸光效
-- 完成时分数数字 count-up 动画
-
-## 技术细节
-
-| 文件 | 改动 |
-|------|------|
-| `src/components/CodeReviewTab.tsx` | 重写 running 和 done 状态的布局为三列并排卡片；增加进度动画、呼吸光效、stagger 入场 |
-| `src/pages/ProjectWorkspace.tsx` | `startAIReview` 中为每个模型增加独立的进度百分比 state，体现并行推进 |
-| `src/data/reviewTypes.ts` | `AIModelReviewer` 增加可选 `progress?: number` 字段 |
-
+### 9. 消息中心升级 — 可操作的研发消息中枢 ✅
+- 「需要处理」筛选 Tab + 动作型消息置顶
+- 每条消息增加动作按钮（去审查/查看预览/查看详情等）
+- 消息优先级视觉分层（动作型橙色竖条、发布型绿色图标背景）
+- 上下文摘要（contextSummary 一句话描述）
+- 时间分组（今天/昨天/更早）
+- 需求包聚合折叠（同 taskId 消息折叠，展开查看历史）
