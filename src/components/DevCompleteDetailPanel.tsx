@@ -324,20 +324,8 @@ export const AcceptanceQA = ({
   );
 };
 
-/* ── Timeline Step ── */
-interface TimelineStep {
-  icon: React.ReactNode;
-  label: string;
-  detail: string;
-  status: "done" | "running" | "warning" | "error";
-}
 
-const statusDot: Record<TimelineStep["status"], string> = {
-  done: "bg-emerald-500",
-  running: "bg-primary animate-pulse",
-  warning: "bg-amber-500",
-  error: "bg-destructive",
-};
+
 
 /* ── Main Component ── */
 const DevCompleteDetailPanel = ({
