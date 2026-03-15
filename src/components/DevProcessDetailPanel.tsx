@@ -20,7 +20,7 @@ const actionLabels: Record<UITestStep["action"], string> = {
 const UITestProcessLog = () => {
   const uiSteps = buildMockUITestSteps();
   const uiPassed = uiSteps.filter(s => s.passed).length;
-  const [expandedStep, setExpandedStep] = useState<string | null>(null);
+  const [collapsedSteps, setCollapsedSteps] = useState<Set<string>>(new Set());
 
   return (
     <div className="text-xs text-muted-foreground space-y-2">
