@@ -518,6 +518,90 @@ const TestReportSection = ({
   );
 };
 
+/* ── Collapsible Reviewer Card (matching CodeReviewTab style) ── */
+import type { AIModelReviewer } from "@/data/reviewTypes";
+
+const ReviewerCard = ({ reviewer, defaultOpen, criticalCount, warningCount }: {
+  reviewer: AIModelReviewer;
+  defaultOpen: boolean;
+  criticalCount: number;
+  warningCount: number;
+}) => {
+  const [expanded, setExpanded] = useState(defaultOpen);
+  const findings = reviewer.findings || [];
+
+  return (
+    <div className={cn(
+      "rounded-xl border overflow-hidden",
+      criticalCount > 0 ? "border-foreground/15" : "border-border"
+    )}>
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="w-full px-3.5 py-2.5 flex items-center gap-2.5 hover:bg-muted/30 transition-colors text-left"
+      >
+        <span className="text-base shrink-0">{reviewer.icon}</span>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs font-semibold text-foreground">{reviewer.displayName}</span>
+            {criticalCount > 0 && (
+              <span className="text-[8px] px-1.5 py-0.5 rounded-full bg-foreground/10 text-foreground font-medium">{criticalCount} 严重</span>
+            )}
+            {warningCount > 0 && (
+              <span className="text-[8px] px-1.5 py-0.5 rounded-full bg-foreground/5 text-foreground/60 font-medium">{warningCount} 警告</span>
+            )}
+          </div>
+          {reviewer.summary && (
+            <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-1">{reviewer.summary}</p>
+          )}
+        </div>
+        <span className="text-sm font-bold text-foreground tabular-nums">{reviewer.score}</span>
+        <ChevronRight size={12} className={cn(
+          "text-muted-foreground/40 transition-transform duration-200 shrink-0",
+          expanded && "rotate-90"
+        )} />
+      </button>
+
+      {expanded && findings.length > 0 && (
+        <div className="border-t border-border/50 px-3.5 py-1.5 space-y-0">
+          {findings
+            .sort((a, b) => {
+              const order: FindingSeverity[] = ["critical", "warning", "suggestion", "praise"];
+              return order.indexOf(a.severity) - order.indexOf(b.severity);
+            })
+            .map(f => {
+              const cfg = severityConfig[f.severity];
+              return (
+                <div key={f.id} className="flex items-stretch gap-0">
+                  <div className={cn("w-0.5 shrink-0 rounded-full my-0.5", cfg.barClass)} />
+                  <div className="flex-1 min-w-0 pl-2.5 py-1.5">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className={cn("shrink-0", cfg.text)}>{cfg.icon}</span>
+                      <span className="text-[11px] font-medium text-foreground">{f.title}</span>
+                      <Badge variant="outline" className={cn("text-[8px] h-3.5 px-1 border-border font-medium", cfg.text)}>{cfg.label}</Badge>
+                    </div>
+                    <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">{f.description}</p>
+                    {f.filePath && (
+                      <p className="text-[9px] text-muted-foreground/50 mt-0.5 font-mono flex items-center gap-1">
+                        <FileCode2 size={8} />
+                        {f.filePath}{f.lineRange ? ` ${f.lineRange}` : ""}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+        </div>
+      )}
+
+      {!expanded && findings.length > 0 && (
+        <div className="border-t border-border/30 px-3.5 py-1">
+          <p className="text-[9px] text-muted-foreground/60">{findings.length} 条发现</p>
+        </div>
+      )}
+    </div>
+  );
+};
+
 
 
 const DevCompleteDetailPanel = ({
