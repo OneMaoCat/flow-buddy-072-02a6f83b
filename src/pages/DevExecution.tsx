@@ -474,7 +474,7 @@ const DevExecution = () => {
 
           {/* Right: detail panel */}
           {selectedReq && (
-            <div className="w-[440px] border-l border-border flex flex-col h-full bg-background shrink-0">
+            <div className="w-[560px] border-l border-border flex flex-col h-full bg-background shrink-0">
               <DetailPanel
                 req={selectedReq}
                 group={groups.find(g => g.id === selectedReq.groupId)}
