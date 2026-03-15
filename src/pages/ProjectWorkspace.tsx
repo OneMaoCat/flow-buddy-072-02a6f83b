@@ -250,6 +250,9 @@ const ProjectWorkspace = () => {
       );
       setConversations((prev) => addTaskToConversation(prev, convId, result));
       notifyDevComplete(result.requirementTitle);
+      setSelectedCardId(result.id);
+      setEditingDoc(null);
+      setRightPanelOpen(true);
       startAIReview(result.id);
     }, delay);
   }, [activeConversationId, planFlow.requirement, id, startAIReview]);
