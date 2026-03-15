@@ -322,8 +322,6 @@ const DevCompleteCard = ({ result, deployed, reviewing, reviewApproved, selected
         </div>
         {deployed ? (
           <Badge variant="outline" className="text-[10px] border-foreground/20 text-foreground/60">已发布</Badge>
-        ) : reviewApproved ? (
-          <Badge variant="outline" className="text-[10px] border-foreground/20 text-foreground/60">审查通过</Badge>
         ) : reviewing ? (
           <Badge variant="outline" className="text-[10px] border-border text-muted-foreground gap-1">
             <Shield size={10} /> AI 审查中
