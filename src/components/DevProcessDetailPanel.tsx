@@ -563,7 +563,7 @@ const DevProcessDetailPanel = ({
     {
       icon: <UserCheck size={14} />,
       title: "人工验收",
-      status: mergeApproved ? "done" : allIssuesResolved ? "active" : "pending",
+      status: acceptanceConfirmed ? "done" : allIssuesResolved ? "active" : "pending",
       visible: true,
       content: (
         <div className="text-xs text-muted-foreground space-y-3">
@@ -572,9 +572,9 @@ const DevProcessDetailPanel = ({
               <Clock size={12} />
               <span>请先处理上方 Code Review 中的问题</span>
             </div>
-          ) : !mergeApproved ? (
+          ) : !acceptanceConfirmed ? (
             <div className="space-y-2">
-              <p className="text-foreground font-medium">验收项已满足</p>
+              <p className="text-foreground font-medium">等待人工验收</p>
               {[
                 { label: "功能实现符合需求描述", checked: true },
                 { label: "UI 交互与设计稿一致", checked: true },
@@ -586,12 +586,12 @@ const DevProcessDetailPanel = ({
                   <span className={item.checked ? "text-foreground" : "text-muted-foreground/50"}>{item.label}</span>
                 </div>
               ))}
-              <p className="text-[10px] text-orange-500">👇 请在下方输入框区域确认合并</p>
+              <p className="text-[10px] text-orange-500">👇 请在下方输入框区域确认验收</p>
             </div>
           ) : (
             <div className="flex items-center gap-2 text-green-500">
               <CheckCircle2 size={12} />
-              <span className="font-medium">已确认合并，正在执行后续流程...</span>
+              <span className="font-medium">人工验收通过</span>
             </div>
           )}
         </div>
