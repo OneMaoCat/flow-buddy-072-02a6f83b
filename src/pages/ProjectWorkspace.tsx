@@ -609,29 +609,27 @@ const ChatArea = ({
               : <Circle size={10} className="text-amber-500 fill-amber-500" />;
 
           return (
-            <div className="px-3 pt-2 pb-1 animate-fade-in">
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-secondary/50 border border-border/50">
-                <div className="w-1 h-4 rounded-full bg-primary shrink-0" />
-                <span className="text-[11px] text-muted-foreground shrink-0">上下文</span>
-                <span className="text-[11px] font-medium text-foreground truncate flex-1">{card.requirementTitle}</span>
-                <div className="flex items-center gap-1 shrink-0">
-                  {statusIcon}
-                  <span className={cn("text-[10px] font-medium", statusColor)}>{statusLabel}</span>
+            <div className="px-4 pt-2.5 pb-0 animate-fade-in">
+              <div className="relative flex items-start gap-2.5 pl-3 pr-2 py-2 rounded-t-xl bg-muted/60 border border-b-0 border-border/60">
+                {/* Left quote accent bar */}
+                <div className="absolute left-0 top-2 bottom-2 w-[3px] rounded-full bg-primary" />
+                <div className="flex-1 min-w-0 ml-1">
+                  <div className="flex items-center gap-1.5 mb-0.5">
+                    <span className="text-[10px] font-medium text-muted-foreground/70">回复</span>
+                    <span className="text-[10px] text-muted-foreground/50">·</span>
+                    <div className="flex items-center gap-1">
+                      {statusIcon}
+                      <span className={cn("text-[10px] font-medium", statusColor)}>{statusLabel}</span>
+                    </div>
+                  </div>
+                  <p className="text-[12px] font-medium text-foreground/80 truncate leading-snug">{card.requirementTitle}</p>
                 </div>
                 <button
                   onClick={() => onSelectCard(card.id)}
-                  className="text-[10px] text-primary hover:text-primary/80 transition-colors shrink-0"
+                  className="shrink-0 mt-0.5 text-[10px] text-muted-foreground hover:text-foreground transition-colors px-1.5 py-0.5 rounded hover:bg-accent/50"
                 >
-                  查看详情
+                  查看 →
                 </button>
-                <button
-                  onClick={() => {
-                    // Deselect - clear context
-                    // We can't directly clear selectedCardId from here, so we use a trick
-                    // by "selecting" a non-existent card — but better to expose a clear handler
-                  }}
-                  className="hidden"
-                />
               </div>
             </div>
           );
