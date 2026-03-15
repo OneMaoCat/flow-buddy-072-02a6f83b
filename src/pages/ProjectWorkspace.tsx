@@ -677,7 +677,7 @@ const ChatArea = ({
                       <span className="text-[10px] text-muted-foreground shrink-0">{statusLabel}</span>
                     </div>
                     <button
-                      onClick={() => onSelectCard(card.id)}
+                      onClick={() => onClearCard()}
                       className="shrink-0 p-0.5 rounded hover:bg-accent/50 text-muted-foreground hover:text-foreground transition-colors"
                     >
                       <X size={14} />
