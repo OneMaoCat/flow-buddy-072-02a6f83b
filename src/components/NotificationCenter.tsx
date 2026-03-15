@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { Bell, ChevronDown, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { AppNotification, NotificationType, TimeGroup } from "@/data/notifications";
@@ -68,6 +68,28 @@ const NotificationCenter = ({
 }: NotificationCenterProps) => {
   const [filter, setFilter] = useState<FilterValue>("action_required");
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
+  const [collapsedTimeGroups, setCollapsedTimeGroups] = useState<Set<TimeGroup>>(new Set());
+  const [animKey, setAnimKey] = useState(0);
+
+  // Tab indicator
+  const filterBarRef = useRef<HTMLDivElement>(null);
+  const activeTabRef = useRef<HTMLButtonElement>(null);
+  const [indicatorStyle, setIndicatorStyle] = useState<{ left: number; width: number }>({ left: 0, width: 0 });
+
+  const updateIndicator = useCallback(() => {
+    if (activeTabRef.current && filterBarRef.current) {
+      const bar = filterBarRef.current.getBoundingClientRect();
+      const tab = activeTabRef.current.getBoundingClientRect();
+      setIndicatorStyle({
+        left: tab.left - bar.left + filterBarRef.current.scrollLeft,
+        width: tab.width,
+      });
+    }
+  }, []);
+
+  useEffect(() => {
+    updateIndicator();
+  }, [filter, updateIndicator]);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
   const actionCount = notifications.filter((n) => n.actionRequired).length;
@@ -80,7 +102,7 @@ const NotificationCenter = ({
     return n.type === filter;
   });
 
-  // Sort: action_required first in "all" view
+  // Sort
   const sorted =
     filter === "all"
       ? [...filtered].sort((a, b) => {
@@ -110,6 +132,15 @@ const NotificationCenter = ({
     });
   };
 
+  const toggleTimeGroup = (tg: TimeGroup) => {
+    setCollapsedTimeGroups((prev) => {
+      const next = new Set(prev);
+      if (next.has(tg)) next.delete(tg);
+      else next.add(tg);
+      return next;
+    });
+  };
+
   const getFilterCount = (f: FilterValue) => {
     if (f === "all") return notifications.length;
     if (f === "unread") return unreadCount;
@@ -117,39 +148,56 @@ const NotificationCenter = ({
     return notifications.filter((n) => n.type === f).length;
   };
 
+  const handleFilterChange = (value: FilterValue) => {
+    setFilter(value);
+    setAnimKey((k) => k + 1);
+  };
+
   return (
     <div className="flex flex-col h-full bg-background">
-      {/* Filter bar */}
-      <div className="flex items-center gap-1 px-4 py-2 border-b border-border overflow-x-auto scrollbar-hide">
-        {typeFilters.map((f) => {
-          const count = getFilterCount(f.value);
-          const isActionTab = f.value === "action_required";
-          return (
-            <button
-              key={f.value}
-              onClick={() => setFilter(f.value)}
-              className={cn(
-                "px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors",
-                filter === f.value
-                  ? isActionTab
-                    ? "bg-orange-500 text-white"
-                    : "bg-primary text-primary-foreground"
-                  : isActionTab && count > 0
-                  ? "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300 hover:bg-orange-200"
-                  : "bg-secondary text-muted-foreground hover:text-foreground hover:bg-secondary/80"
-              )}
-            >
-              {f.label}
-              {count > 0 && <span className="ml-1 opacity-70">({count})</span>}
-            </button>
-          );
-        })}
+      {/* Filter bar with sliding indicator */}
+      <div className="relative border-b border-border">
+        <div
+          ref={filterBarRef}
+          className="flex items-center gap-1 px-4 py-2 overflow-x-auto scrollbar-hide"
+        >
+          {typeFilters.map((f) => {
+            const count = getFilterCount(f.value);
+            const isActive = filter === f.value;
+            const isActionTab = f.value === "action_required";
+            return (
+              <button
+                key={f.value}
+                ref={isActive ? activeTabRef : undefined}
+                onClick={() => handleFilterChange(f.value)}
+                className={cn(
+                  "px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all duration-200",
+                  isActive
+                    ? isActionTab
+                      ? "bg-orange-500 text-white shadow-sm shadow-orange-500/25"
+                      : "bg-primary text-primary-foreground shadow-sm"
+                    : isActionTab && count > 0
+                    ? "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300 hover:bg-orange-200 dark:hover:bg-orange-900/50"
+                    : "bg-secondary text-muted-foreground hover:text-foreground hover:bg-accent"
+                )}
+              >
+                {f.label}
+                {count > 0 && <span className="ml-1 opacity-70">({count})</span>}
+              </button>
+            );
+          })}
+        </div>
+        {/* Sliding underline indicator */}
+        <div
+          className="absolute bottom-0 h-0.5 bg-primary rounded-full transition-all duration-300 ease-out"
+          style={{ left: indicatorStyle.left, width: indicatorStyle.width }}
+        />
       </div>
 
       {/* Notification list */}
       <div className="flex-1 overflow-y-auto">
         {aggGroups.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-muted-foreground gap-3 py-16">
+          <div className="flex flex-col items-center justify-center h-full text-muted-foreground gap-3 py-16 animate-scale-in">
             <Bell size={32} className="opacity-30" />
             <p className="text-sm">
               {filter === "unread"
@@ -160,29 +208,53 @@ const NotificationCenter = ({
             </p>
           </div>
         ) : (
-          <div>
+          <div key={animKey}>
             {timeGroupOrder.map((tg) => {
               const groups = timeGrouped.get(tg);
               if (!groups || groups.length === 0) return null;
+              const isCollapsed = collapsedTimeGroups.has(tg);
               return (
                 <div key={tg}>
-                  {/* Time group header */}
-                  <div className="px-6 py-2 bg-muted/50 border-b border-border">
+                  {/* Time group header — clickable to fold */}
+                  <button
+                    onClick={() => toggleTimeGroup(tg)}
+                    className="w-full flex items-center gap-1.5 px-6 py-2 bg-muted/50 border-b border-border hover:bg-muted/80 transition-colors cursor-pointer"
+                  >
+                    <ChevronRight
+                      size={12}
+                      className={cn(
+                        "text-muted-foreground transition-transform duration-200",
+                        !isCollapsed && "rotate-90"
+                      )}
+                    />
                     <span className="text-xs font-medium text-muted-foreground">
                       {timeGroupLabels[tg]}
                     </span>
-                  </div>
-                  {/* Groups */}
-                  <div className="divide-y divide-border">
-                    {groups.map((group) => (
-                      <NotifGroup
-                        key={group.key}
-                        group={group}
-                        expanded={expandedGroups.has(group.key)}
-                        onToggle={() => toggleExpand(group.key)}
-                        onClickNotification={onClickNotification}
-                      />
-                    ))}
+                    <span className="text-xs text-muted-foreground/50">({groups.length})</span>
+                  </button>
+                  {/* Collapsible group content */}
+                  <div
+                    className={cn(
+                      "overflow-hidden transition-all duration-300 ease-out",
+                      isCollapsed ? "max-h-0 opacity-0" : "max-h-[2000px] opacity-100"
+                    )}
+                  >
+                    <div className="divide-y divide-border">
+                      {groups.map((group, idx) => (
+                        <div
+                          key={group.key}
+                          className="animate-fade-in"
+                          style={{ animationDelay: `${idx * 40}ms`, animationFillMode: "backwards" }}
+                        >
+                          <NotifGroup
+                            group={group}
+                            expanded={expandedGroups.has(group.key)}
+                            onToggle={() => toggleExpand(group.key)}
+                            onClickNotification={onClickNotification}
+                          />
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
               );
@@ -210,22 +282,29 @@ const NotifCard = ({
 
   return (
     <div
+      onClick={() => onClickNotification(notif)}
       className={cn(
-        "w-full flex items-start gap-3 text-left transition-colors hover:bg-secondary/50 relative",
+        "w-full flex items-start gap-3 text-left relative cursor-pointer group",
+        "transition-all duration-200 ease-out",
+        "hover:bg-accent/60 hover:shadow-sm",
+        "active:scale-[0.995] active:bg-accent",
         compact ? "px-6 pl-12 py-2.5" : "px-6 py-4",
         !notif.read && "bg-primary/[0.03]"
       )}
     >
-      {/* Priority bar */}
-      {priority === "action" && (
+      {/* Priority / unread bar */}
+      {priority === "action" ? (
         <div className="absolute left-0 top-0 bottom-0 w-1 rounded-r bg-orange-500" />
-      )}
+      ) : !notif.read ? (
+        <div className="absolute left-0 top-0 bottom-0 w-1 rounded-r bg-primary/40" />
+      ) : null}
 
       {/* Icon */}
       {!compact && (
         <div
           className={cn(
             "w-10 h-10 rounded-full flex items-center justify-center shrink-0 text-lg",
+            "transition-transform duration-200 group-hover:scale-110",
             colors.iconBg
           )}
         >
@@ -244,12 +323,13 @@ const NotifCard = ({
           >
             {notif.title}
           </span>
-          {!notif.read && <span className="w-2 h-2 rounded-full bg-primary shrink-0" />}
+          {!notif.read && (
+            <span className="w-2 h-2 rounded-full bg-primary shrink-0 transition-transform duration-300" />
+          )}
         </div>
         <p className={cn("text-muted-foreground mt-0.5 truncate", compact ? "text-xs" : "text-sm")}>
           {notif.description}
         </p>
-        {/* Context summary */}
         {notif.contextSummary && !compact && (
           <p className="text-xs text-muted-foreground/70 mt-1 line-clamp-2">
             {notif.contextSummary}
@@ -271,12 +351,14 @@ const NotifCard = ({
           onClickNotification(notif);
         }}
         className={cn(
-          "shrink-0 self-center px-3 py-1.5 rounded-md text-xs font-medium transition-colors whitespace-nowrap",
+          "shrink-0 self-center px-3 py-1.5 rounded-md text-xs font-medium whitespace-nowrap",
+          "transition-all duration-200",
+          "opacity-80 group-hover:opacity-100",
           priority === "action"
-            ? "bg-orange-500 text-white hover:bg-orange-600"
+            ? "bg-orange-500 text-white hover:bg-orange-600 shadow-sm shadow-orange-500/20"
             : priority === "publish"
-            ? "bg-green-600 text-white hover:bg-green-700"
-            : "bg-secondary text-foreground hover:bg-secondary/80"
+            ? "bg-green-600 text-white hover:bg-green-700 shadow-sm shadow-green-600/20"
+            : "bg-secondary text-foreground hover:bg-accent"
         )}
       >
         {notif.actionLabel}
@@ -308,17 +390,34 @@ const NotifGroup = ({
           onClick={onToggle}
           className="w-full flex items-center gap-1.5 px-6 pb-2 -mt-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
         >
-          {expanded ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
-          <span>
-            还有 {group.history.length} 条相关通知
-          </span>
+          <ChevronRight
+            size={12}
+            className={cn(
+              "transition-transform duration-200",
+              expanded && "rotate-90"
+            )}
+          />
+          <span>还有 {group.history.length} 条相关通知</span>
         </button>
       )}
-      {hasHistory && expanded && (
-        <div className="border-t border-border/50">
-          {group.history.map((n) => (
-            <NotifCard key={n.id} notif={n} onClickNotification={onClickNotification} compact />
-          ))}
+      {hasHistory && (
+        <div
+          className={cn(
+            "overflow-hidden transition-all duration-300 ease-out",
+            expanded ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"
+          )}
+        >
+          <div className="border-t border-border/50">
+            {group.history.map((n, idx) => (
+              <div
+                key={n.id}
+                style={{ animationDelay: `${idx * 30}ms`, animationFillMode: "backwards" }}
+                className={expanded ? "animate-fade-in" : ""}
+              >
+                <NotifCard notif={n} onClickNotification={onClickNotification} compact />
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>
