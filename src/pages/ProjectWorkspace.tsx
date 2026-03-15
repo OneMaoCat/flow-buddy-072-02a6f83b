@@ -459,7 +459,9 @@ const ProjectWorkspace = () => {
                   reviewInfo={reviewStatus.get(selectedCard.id)}
                   onUpdateReview={handleUpdateReview}
                 />
-              ) : null}
+              ) : (
+                <PreviewPanel />
+              )}
             </ResizablePanel>
           </ResizablePanelGroup>
         ) : mainContent
