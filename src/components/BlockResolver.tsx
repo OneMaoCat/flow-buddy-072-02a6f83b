@@ -25,13 +25,15 @@ interface BlockResolverProps {
   onNavigateToConversation?: (conversationId: string) => void;
 }
 
-const BlockResolver = ({ blockInfo, onResolve }: BlockResolverProps) => {
+const BlockResolver = ({ blockInfo, onResolve, conversationId, onNavigateToConversation }: BlockResolverProps) => {
   const meta = blockTypeMeta[blockInfo.type];
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [checkedItems, setCheckedItems] = useState<Set<number>>(new Set());
   const [conflictChoices, setConflictChoices] = useState<Record<number, "mine" | "ai">>({});
   const [testChoices, setTestChoices] = useState<Record<number, "ignore" | "manual" | "retry">>({});
   const [permissionChoice, setPermissionChoice] = useState<"approve" | "reject" | null>(null);
+  const [customReply, setCustomReply] = useState("");
+  const [showCustomReply, setShowCustomReply] = useState(false);
 
   const canResolve = (): boolean => {
     switch (blockInfo.type) {
