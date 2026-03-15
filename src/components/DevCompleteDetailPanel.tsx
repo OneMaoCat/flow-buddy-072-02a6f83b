@@ -275,6 +275,19 @@ export const AcceptanceQA = ({
                     </button>
                   ))}
                 </div>
+
+                {/* Custom text input when "其他" is selected */}
+                {selected === "other" && (
+                  <div className="px-3 pb-2.5">
+                    <textarea
+                      value={customTexts[issue.id] || ""}
+                      onChange={(e) => setCustomTexts((prev) => ({ ...prev, [issue.id]: e.target.value }))}
+                      placeholder="请描述你的处理方案…"
+                      maxLength={500}
+                      className="w-full text-[11px] text-foreground bg-muted/30 border border-border rounded-lg px-3 py-2 resize-none h-16 placeholder:text-muted-foreground/50 focus:outline-none focus:border-foreground/30 transition-colors"
+                    />
+                  </div>
+                )}
               </div>
             );
           })}
