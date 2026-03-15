@@ -349,12 +349,13 @@ export const ProcessReviewQA = ({
 interface DevProcessDetailPanelProps {
   result: DevCompleteResult;
   onClose: () => void;
-  // Lifted state from parent
   issueDecisions: Record<string, IssueDecision>;
   otherTexts: Record<string, string>;
+  acceptanceConfirmed: boolean;
   mergeApproved: boolean;
   onDecide: (id: string, decision: IssueDecision) => void;
   onOtherText: (id: string, text: string) => void;
+  onConfirmAcceptance: () => void;
   onConfirmMerge: () => void;
 }
 
