@@ -87,10 +87,9 @@ export interface LogEntry {
 }
 
 export const mockSubmitters: Submitter[] = [
-  { name: "吴承霖", avatar: "吴", color: "bg-blue-500" },
-  { name: "邱翔", avatar: "邱", color: "bg-emerald-500" },
   { name: "李泽龙", avatar: "李", color: "bg-violet-500" },
-  { name: "张东杰", avatar: "张", color: "bg-orange-500" },
+  { name: "李娟娟", avatar: "李", color: "bg-emerald-500" },
+  { name: "沈楚城", avatar: "沈", color: "bg-orange-500" },
 ];
 
 // ---------- Test case templates per agent icon ----------

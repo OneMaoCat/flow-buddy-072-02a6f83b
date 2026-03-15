@@ -52,15 +52,15 @@ interface DocComment {
 
 /* ─── Mock Data ─── */
 const mockReviewers: Reviewer[] = [
-  { id: "r1", name: "张三", avatar: "张", email: "zhang@example.com", status: "approved" },
-  { id: "r2", name: "李四", avatar: "李", email: "li@example.com", status: "commented" },
+  { id: "r1", name: "李娟娟", avatar: "李", email: "lijuanjuan@example.com", status: "approved" },
+  { id: "r2", name: "沈楚城", avatar: "沈", email: "shenchucheng@example.com", status: "commented" },
 ];
 
 const mockComments: DocComment[] = [
-  { id: "cm1", author: "张三", avatar: "张", content: "邮箱验证规则建议增加对企业邮箱的支持", time: "10 分钟前", resolved: false, section: "background", suggestion: "当前系统的用户登录页面在表单验证方面存在若干问题，包括邮箱格式校验缺失、密码强度提示不明确、必填项未做前端拦截等。这些问题导致用户体验不佳，同时也增加了后端无效请求的处理压力。本次需求旨在全面修复登录表单验证逻辑，补充对企业邮箱格式的支持，并补充对应的单元测试以防止回归。" },
-  { id: "cm2", author: "李四", avatar: "李", content: "建议在技术方案中增加密码强度指示器组件", time: "25 分钟前", resolved: false, section: "technicalItems", suggestion: "src/components/PasswordStrengthBar.tsx" },
-  { id: "cm3", author: "张三", avatar: "张", content: "密码强度校验的正则已确认", time: "1 小时前", resolved: true },
-  { id: "cm4", author: "李四", avatar: "李", content: "表单错误提示的文案已对齐设计稿", time: "2 小时前", resolved: true },
+  { id: "cm1", author: "李娟娟", avatar: "李", content: "邮箱验证规则建议增加对企业邮箱的支持", time: "10 分钟前", resolved: false, section: "background", suggestion: "当前系统的用户登录页面在表单验证方面存在若干问题，包括邮箱格式校验缺失、密码强度提示不明确、必填项未做前端拦截等。这些问题导致用户体验不佳，同时也增加了后端无效请求的处理压力。本次需求旨在全面修复登录表单验证逻辑，补充对企业邮箱格式的支持，并补充对应的单元测试以防止回归。" },
+  { id: "cm2", author: "沈楚城", avatar: "沈", content: "建议在技术方案中增加密码强度指示器组件", time: "25 分钟前", resolved: false, section: "technicalItems", suggestion: "src/components/PasswordStrengthBar.tsx" },
+  { id: "cm3", author: "李娟娟", avatar: "李", content: "密码强度校验的正则已确认", time: "1 小时前", resolved: true },
+  { id: "cm4", author: "沈楚城", avatar: "沈", content: "表单错误提示的文案已对齐设计稿", time: "2 小时前", resolved: true },
 ];
 
 /* ─── Change type config ─── */
