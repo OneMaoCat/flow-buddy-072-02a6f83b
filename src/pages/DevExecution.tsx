@@ -521,25 +521,42 @@ const DevExecution = () => {
               <ResizableHandle withHandle />
               <ResizablePanel defaultSize={40} minSize={25} maxSize={65}>
                 <div className="flex flex-col h-full bg-background">
-                  <DetailPanel
-                    req={selectedReq}
-                    group={groups.find(g => g.id === selectedReq.groupId)}
-                    progress={getReqProgress(selectedReq)}
-                    logs={logs.filter(l => l.reqId === selectedReq.id)}
-                    onClose={() => setSelectedReqId(null)}
-                    onAccept={handleAccept}
-                    onReject={handleReject}
-                    onUnblock={handleUnblock}
-                    rejectingReq={rejectingReq}
-                    setRejectingReq={setRejectingReq}
-                    rejectReason={rejectReason}
-                    setRejectReason={setRejectReason}
-                    projectId={id || ""}
-                    onNavigateToConversation={(convId) => {
-                      setActiveConversationId(convId);
-                      navigate(`/project/${id || ""}`);
-                    }}
-                  />
+                  {["review", "accepted", "done"].includes(selectedReq.status) ? (
+                    <DevCompleteDetailPanel
+                      result={reqToDevResult(selectedReq, id || "")}
+                      onDeploy={(reqId) => handleAccept(reqId)}
+                      onReject={(reqId) => {
+                        setRejectingReq(reqId);
+                        setRejectReason("");
+                      }}
+                      onRequestReview={() => {}}
+                      onClose={() => setSelectedReqId(null)}
+                      deployed={selectedReq.status === "accepted"}
+                      reviewing={false}
+                      reviewInfo={selectedReq.reviewInfo || createDefaultReview()}
+                      onUpdateReview={() => {}}
+                    />
+                  ) : (
+                    <DetailPanel
+                      req={selectedReq}
+                      group={groups.find(g => g.id === selectedReq.groupId)}
+                      progress={getReqProgress(selectedReq)}
+                      logs={logs.filter(l => l.reqId === selectedReq.id)}
+                      onClose={() => setSelectedReqId(null)}
+                      onAccept={handleAccept}
+                      onReject={handleReject}
+                      onUnblock={handleUnblock}
+                      rejectingReq={rejectingReq}
+                      setRejectingReq={setRejectingReq}
+                      rejectReason={rejectReason}
+                      setRejectReason={setRejectReason}
+                      projectId={id || ""}
+                      onNavigateToConversation={(convId) => {
+                        setActiveConversationId(convId);
+                        navigate(`/project/${id || ""}`);
+                      }}
+                    />
+                  )}
                 </div>
               </ResizablePanel>
             </>
