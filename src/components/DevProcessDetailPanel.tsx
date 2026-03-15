@@ -1,5 +1,6 @@
-import { X, GitBranch, Search, Sparkles, Code2, Pencil, TestTube2, Shield, CheckCircle2, FileCode2 } from "lucide-react";
+import { X, GitBranch, Search, Sparkles, Code2, Pencil, TestTube2, Shield, CheckCircle2, FileCode2, MonitorPlay } from "lucide-react";
 import type { DevCompleteResult } from "@/components/DevCompleteCard";
+import UITestReplay, { buildMockUITestSteps } from "@/components/UITestReplay";
 
 interface DevProcessDetailPanelProps {
   result: DevCompleteResult;
@@ -124,6 +125,15 @@ const DevProcessDetailPanel = ({ result, onClose }: DevProcessDetailPanelProps) 
               <span className="text-muted-foreground/40 ml-auto">{t.duration}ms</span>
             </div>
           ))}
+        </div>
+      ),
+    },
+    {
+      icon: <MonitorPlay size={14} />,
+      title: "UI 测试",
+      content: (
+        <div className="text-xs text-muted-foreground">
+          <UITestReplay steps={buildMockUITestSteps()} />
         </div>
       ),
     },
