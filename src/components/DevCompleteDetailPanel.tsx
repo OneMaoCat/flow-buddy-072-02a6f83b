@@ -711,8 +711,11 @@ const DevCompleteDetailPanel = ({
             <TabsTrigger value="preview" className="text-xs gap-1 h-7 px-2.5">
               <Eye size={12} /> 预览
             </TabsTrigger>
+            <TabsTrigger value="overview" className="text-xs gap-1 h-7 px-2.5">
+              <LayoutDashboard size={12} /> 验收报告
+            </TabsTrigger>
             <TabsTrigger value="process" className="text-xs gap-1 h-7 px-2.5">
-              <LayoutDashboard size={12} /> 开发过程
+              <GitBranch size={12} /> 开发过程
             </TabsTrigger>
             <TabsTrigger value="review" className="text-xs gap-1 h-7 px-2.5">
               <Shield size={12} /> AI 审查
