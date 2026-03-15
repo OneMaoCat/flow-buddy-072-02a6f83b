@@ -844,7 +844,7 @@ const DetailPanel = ({
   onClose: () => void;
   onAccept: (id: string) => void;
   onReject: (id: string) => void;
-  onUnblock: (id: string) => void;
+  onUnblock: (id: string, resolution?: string) => void;
   rejectingReq: string | null;
   setRejectingReq: (id: string | null) => void;
   rejectReason: string;
