@@ -623,32 +623,28 @@ const DevCompleteDetailPanel = ({
               </div>
             </ReportSection>
 
-            {/* ── Bottom action bar (in scroll) ── */}
+            {/* ── Bottom: AcceptanceQA or Deploy ── */}
             {!deployed && !readOnly && (
-              <div className="flex items-center gap-2 pt-2 pb-2">
+              <div id="acceptance-qa-section" className="pt-2 pb-2">
                 {aiReviewDone ? (
-                  <>
+                  hasIssues ? (
+                    <AcceptanceQA
+                      issues={acceptanceIssues}
+                      onConfirm={(decisions) => onReject(result.id, decisions)}
+                      onDeployAnyway={() => onDeploy(result.id)}
+                    />
+                  ) : (
                     <Button
                       size="sm"
-                      className="flex-1 gap-1.5 h-10 text-sm"
-                      disabled={hasCritical}
+                      className="w-full gap-1.5 h-10 text-sm"
                       onClick={() => onDeploy(result.id)}
                     >
                       <Rocket size={14} />
-                      {hasCritical ? "有严重问题，建议修改" : "确认发布到测试环境"}
+                      确认发布到测试环境
                     </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-10 text-sm gap-1"
-                      onClick={() => onReject(result.id)}
-                    >
-                      <RotateCcw size={13} />
-                      打回修改
-                    </Button>
-                  </>
+                  )
                 ) : (
-                  <div className="flex-1 flex items-center justify-center gap-2 py-2">
+                  <div className="flex items-center justify-center gap-2 py-2">
                     <Shield size={14} className="text-primary animate-pulse" />
                     <span className="text-xs text-muted-foreground">AI 正在审查，完成后即可操作</span>
                   </div>
