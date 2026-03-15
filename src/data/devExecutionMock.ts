@@ -183,13 +183,64 @@ const sourceContextTemplates: Record<string, { userPrompt: string; aiSummary: st
   },
 };
 
-// ---------- Block reasons for demo ----------
-const blockReasons = [
-  "需要确认 UI 交互方案",
-  "等待 API 文档补充",
-  "依赖第三方服务授权",
-  "测试环境部署失败",
-  "需求描述存在歧义",
+// ---------- Block info templates for demo ----------
+const mockBlockInfos: BlockInfo[] = [
+  {
+    type: "clarify",
+    reason: "需求描述存在歧义",
+    question: "「用户登录」是否需要支持手机号验证码登录？还是仅支持邮箱密码？",
+    options: [
+      { label: "仅邮箱密码", description: "传统邮箱 + 密码登录，实现成本低" },
+      { label: "手机号 + 邮箱", description: "同时支持手机验证码和邮箱密码，覆盖面更广" },
+      { label: "全渠道登录", description: "邮箱、手机号、微信、Google 等全部支持" },
+    ],
+  },
+  {
+    type: "design",
+    reason: "需要确认 UI 交互方案",
+    question: "表单验证错误提示应采用哪种展示方式？",
+    options: [
+      { label: "行内提示", description: "错误信息显示在输入框下方，实时反馈" },
+      { label: "顶部汇总", description: "所有错误汇总在表单顶部，提交时一次性展示" },
+      { label: "Toast 弹窗", description: "使用弹窗提示错误，不占用表单空间" },
+    ],
+  },
+  {
+    type: "dependency",
+    reason: "等待外部资源就绪",
+    question: "以下外部依赖尚未就绪，请确认后勾选：",
+    missingItems: [
+      "支付服务 API Key（生产环境）",
+      "邮件服务 SMTP 配置",
+      "OSS 存储 Bucket 权限",
+    ],
+  },
+  {
+    type: "conflict",
+    reason: "代码合并存在冲突",
+    question: "以下文件存在合并冲突，请选择保留策略：",
+    conflictFiles: [
+      "src/components/UserProfile.tsx",
+      "src/hooks/useAuth.ts",
+      "src/styles/globals.css",
+    ],
+  },
+  {
+    type: "permission",
+    reason: "敏感操作需要人工确认",
+    question: "AI 需要执行以下敏感操作，是否授权？",
+    permissionAction: "删除 users 表中的 legacy_role 字段并迁移数据到 user_roles 表（影响 1,247 条记录）",
+  },
+  {
+    type: "test_failure",
+    reason: "测试持续失败，需人工介入",
+    question: "以下测试用例在 3 次自动修复后仍然失败：",
+    failedTests: [
+      "用户登录表 核心逻辑验证 — 期望返回 JWT 但收到 null",
+      "用户登录表 边界条件测试 — 超长密码场景未处理",
+      "用户登录表 异常处理测试 — 网络断开时未触发重试",
+    ],
+  },
 ];
 
 // ---------- Templates for generating requirements ----------
