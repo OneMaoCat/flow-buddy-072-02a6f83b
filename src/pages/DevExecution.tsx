@@ -86,7 +86,7 @@ const reqStatusLabel = (status: RequirementStatus) => {
   return <span className={cn("text-[10px] px-1.5 py-0.5 rounded-full font-medium", cfg.cls)}>{cfg.label}</span>;
 };
 
-type FilterTab = "all" | "action" | "running" | "testing" | "review" | "accepted" | "blocked";
+type FilterTab = "all" | "running" | "testing" | "review" | "accepted" | "blocked";
 type ViewMode = "table" | "kanban";
 
 const formatRelativeTime = (date: Date) => {
