@@ -469,6 +469,7 @@ const ProjectWorkspace = () => {
 
 /* Chat area sub-component */
 const ChatArea = ({
+  projectId,
   planFlow,
   onSubmit,
   onCancel,
