@@ -738,8 +738,17 @@ const KanbanView = ({
                       </div>
                     )}
 
-                    {/* Block reason */}
-                    {req.blockReason && (
+                    {/* Block reason with type badge */}
+                    {req.blockInfo ? (
+                      <div className="text-[10px] text-red-500 bg-red-500/5 rounded px-1.5 py-1 mb-1.5">
+                        <div className="flex items-center gap-1 mb-0.5">
+                          <span className={cn("text-[9px] px-1 py-0.5 rounded", blockTypeMeta[req.blockInfo.type].color)}>
+                            {blockTypeMeta[req.blockInfo.type].label}
+                          </span>
+                        </div>
+                        <span className="truncate block">⚠ {req.blockInfo.reason}</span>
+                      </div>
+                    ) : req.blockReason && (
                       <div className="text-[10px] text-red-500 bg-red-500/5 rounded px-1.5 py-1 mb-1.5 truncate">
                         ⚠ {req.blockReason}
                       </div>
