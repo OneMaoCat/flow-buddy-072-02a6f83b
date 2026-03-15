@@ -314,9 +314,11 @@ interface DevCompleteCardProps {
   selected?: boolean;
   onClick?: () => void;
   onViewProcess?: () => void;
+  acceptanceConfirmed?: boolean;
+  mergeApproved?: boolean;
 }
 
-const DevCompleteCard = ({ result, selected, onClick, onViewProcess }: DevCompleteCardProps) => {
+const DevCompleteCard = ({ result, selected, onClick, onViewProcess, acceptanceConfirmed, mergeApproved }: DevCompleteCardProps) => {
   return (
     <div
       className={cn(
