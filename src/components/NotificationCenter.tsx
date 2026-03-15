@@ -88,7 +88,7 @@ const NotificationCenter = ({
 
   return (
     <div className="flex flex-col h-full bg-background">
-      {/* Filter bar */}
+      {/* Single header row: filters */}
       <div className="border-b border-border/60">
         <div className="flex items-center gap-1 px-4 py-2 overflow-x-auto scrollbar-hide">
           {typeFilters.map((f) => {
