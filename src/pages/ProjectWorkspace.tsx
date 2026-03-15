@@ -420,11 +420,13 @@ const ProjectWorkspace = () => {
       processCardId={processCardId}
       processIssueDecisions={processIssueDecisions}
       processOtherTexts={processOtherTexts}
+      processAcceptanceConfirmed={processAcceptanceConfirmed}
       processMergeApproved={processMergeApproved}
       processActionableIssues={processActionableIssues}
       processAllResolved={processAllResolved}
       onProcessDecide={handleProcessDecide}
       onProcessOtherText={handleProcessOtherText}
+      onProcessAcceptance={handleProcessAcceptance}
       onProcessMerge={handleProcessMerge}
     />
   );
