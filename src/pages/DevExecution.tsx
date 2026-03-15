@@ -86,7 +86,7 @@ const reqStatusLabel = (status: RequirementStatus) => {
   return <span className={cn("text-[10px] px-1.5 py-0.5 rounded-full font-medium", cfg.cls)}>{cfg.label}</span>;
 };
 
-type FilterTab = "all" | "action" | "running" | "testing" | "review" | "accepted" | "blocked";
+type FilterTab = "all" | "running" | "testing" | "review" | "accepted" | "blocked";
 type ViewMode = "table" | "kanban";
 
 const formatRelativeTime = (date: Date) => {
@@ -176,27 +176,15 @@ const DevExecution = () => {
     action: requirements.filter(r => r.status === "review" || r.status === "blocked").length,
   }), [requirements]);
 
-  // Action required items
-  const actionItems = useMemo(() =>
-    requirements.filter(r => r.status === "review" || r.status === "blocked")
-      .sort((a, b) => {
-        if (a.status === "blocked" && b.status !== "blocked") return -1;
-        if (b.status === "blocked" && a.status !== "blocked") return 1;
-        return 0;
-      }),
-    [requirements]
-  );
-
   const filtered = useMemo(() => {
     let list = requirements;
-    if (filter === "action") list = actionItems;
-    else if (filter !== "all") list = list.filter(r => r.status === filter);
+    if (filter !== "all") list = list.filter(r => r.status === filter);
     if (search.trim()) {
       const q = search.trim().toLowerCase();
       list = list.filter(r => r.title.toLowerCase().includes(q) || r.submitter.name.includes(q));
     }
     return list;
-  }, [requirements, filter, search, actionItems]);
+  }, [requirements, filter, search]);
 
   // ---- Simulation logic ----
   useEffect(() => {
@@ -361,7 +349,6 @@ const DevExecution = () => {
 
   const filterTabs: { key: FilterTab; label: string; count: number; urgent?: boolean }[] = [
     { key: "all", label: "全部", count: counts.total },
-    { key: "action", label: "需你处理", count: counts.action, urgent: counts.action > 0 },
     { key: "running", label: "执行中", count: counts.running },
     { key: "testing", label: "测试中", count: counts.testing },
     { key: "review", label: "待验收", count: counts.review },
@@ -464,16 +451,8 @@ const DevExecution = () => {
         <ResizablePanelGroup direction="horizontal" className="h-full">
           <ResizablePanel defaultSize={selectedReq ? 60 : 100} minSize={35}>
             <div className="flex flex-col h-full overflow-hidden min-w-0">
-              {/* Action Required Bar */}
-              {actionItems.length > 0 && filter !== "action" && (
-                <ActionRequiredBar
-                  items={actionItems}
-                  onSelect={setSelectedReqId}
-                  onAccept={handleAccept}
-                  onUnblock={handleUnblock}
-                  onViewAll={() => setFilter("action")}
-                />
-              )}
+
+
 
               {/* Content */}
               <ScrollArea className="flex-1 min-h-0">
@@ -567,62 +546,8 @@ const DevExecution = () => {
   );
 };
 
-// ==================== ACTION REQUIRED BAR ====================
-const ActionRequiredBar = ({
-  items, onSelect, onAccept, onUnblock, onViewAll,
-}: {
-  items: Requirement[];
-  onSelect: (id: string) => void;
-  onAccept: (id: string) => void;
-  onUnblock: (id: string, resolution?: string) => void;
-  onViewAll: () => void;
-}) => {
-  const blockedCount = items.filter(r => r.status === "blocked").length;
-  const reviewCount = items.filter(r => r.status === "review").length;
 
-  return (
-    <div className="shrink-0 border-b border-red-500/20 bg-red-500/5 px-4 py-1.5">
-      <div className="flex items-center gap-2 overflow-x-auto">
-        <div className="flex items-center gap-1.5 shrink-0">
-          <AlertTriangle size={13} className="text-red-500" />
-          <span className="text-[11px] font-semibold text-red-600">需你处理</span>
-          <Badge variant="destructive" className="text-[10px] h-4 px-1.5">{items.length}</Badge>
-        </div>
-        <div className="w-px h-4 bg-red-500/20 shrink-0" />
-        {items.slice(0, 5).map(item => (
-          <button
-            key={item.id}
-            onClick={() => onSelect(item.id)}
-            className="flex items-center gap-1.5 px-2 py-1 rounded-md border border-border/60 bg-card text-left shrink-0 hover:shadow-sm transition-all text-[11px] min-w-0"
-          >
-            {item.status === "blocked" ? (
-              <>
-                <AlertTriangle size={11} className="text-red-500 shrink-0" />
-                {item.blockInfo && (
-                  <span className={cn("text-[9px] px-1 py-0.5 rounded shrink-0", blockTypeMeta[item.blockInfo.type].color)}>
-                    {blockTypeMeta[item.blockInfo.type].label}
-                  </span>
-                )}
-              </>
-            ) : (
-              <ShieldCheck size={11} className="text-orange-500 shrink-0" />
-            )}
-            <span className="truncate max-w-[100px] font-medium">{item.title}</span>
-            {item.status === "blocked" ? (
-              <span onClick={e => { e.stopPropagation(); onUnblock(item.id); }}
-                className="text-[10px] text-green-600 hover:underline shrink-0 cursor-pointer">解除</span>
-            ) : (
-              <span onClick={e => { e.stopPropagation(); onAccept(item.id); }}
-                className="text-[10px] text-green-600 hover:underline shrink-0 cursor-pointer">通过</span>
-            )}
-          </button>
-        ))}
-        <div className="flex-1" />
-        <button onClick={onViewAll} className="text-[10px] text-primary hover:underline shrink-0">查看全部 →</button>
-      </div>
-    </div>
-  );
-};
+
 
 // ==================== TABLE VIEW ====================
 const TableView = ({
