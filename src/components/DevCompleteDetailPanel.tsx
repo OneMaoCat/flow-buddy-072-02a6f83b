@@ -1072,7 +1072,7 @@ const DevCompleteDetailPanel = ({
               onClick={() => setActiveTab("overview")}
             >
               <LayoutDashboard size={12} />
-              查看开发过程
+              查看验收报告
             </Button>
             {!deployed && !readOnly && aiReviewDone && !hasIssues && (
               <Button size="sm" className="h-7 text-xs gap-1" onClick={() => onDeploy(result.id)}>
