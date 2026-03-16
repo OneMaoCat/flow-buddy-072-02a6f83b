@@ -86,6 +86,7 @@ const ProjectWorkspace = () => {
     toast.success("已确认合并主分支，正在执行回归测试...");
   }, []);
   const [planFlow, setPlanFlow] = useState<{ active: boolean; requirement: string }>({ active: false, requirement: "" });
+  const [pendingConfirm, setPendingConfirm] = useState<{ requirement: string; testCases: ConfirmTestCase[]; generating: boolean } | null>(null);
 
   const activeConversation = conversations.find((c) => c.id === activeConversationId) || null;
   const devCards = activeConversation?.tasks || [];
