@@ -156,28 +156,42 @@ const ProjectWorkspace = () => {
     if (data.isPlanMode) {
       setPlanFlow({ active: true, requirement: data.text });
     } else {
+      // Non-plan mode: show requirement confirm card first
       setPlanFlow({ active: false, requirement: data.text });
-      setConversations((prev) =>
-        setConversationDevInProgress(prev, convId!, true)
-      );
-      setRightPanelOpen(true);
-      const capturedConvId = convId;
-      const delay = 3000 + Math.random() * 4000;
+      setPendingConfirm({ requirement: data.text, testCases: [], generating: true });
+      // Simulate test case generation delay
       setTimeout(() => {
-        const result = buildMockDevResult(
-          crypto.randomUUID(),
-          data.text,
-          id || "demo"
-        );
-        setConversations((prev) => addTaskToConversation(prev, capturedConvId, result));
-        notifyDevComplete(result.requirementTitle);
-        setSelectedCardId(result.id);
-        setEditingDoc(null);
-        setRightPanelOpen(true);
-        // Auto-trigger AI Code Review
-        startAIReview(result.id);
-      }, delay);
+        const cases = generateMockTestCases(data.text);
+        setPendingConfirm({ requirement: data.text, testCases: cases, generating: false });
+      }, 1500);
     }
+  };
+
+  const handleConfirmRequirement = () => {
+    if (!pendingConfirm) return;
+    const convId = activeConversationId;
+    if (!convId) return;
+    setPendingConfirm(null);
+    setConversations((prev) =>
+      setConversationDevInProgress(prev, convId, true)
+    );
+    setRightPanelOpen(true);
+    const capturedConvId = convId;
+    const requirement = pendingConfirm.requirement;
+    const delay = 3000 + Math.random() * 4000;
+    setTimeout(() => {
+      const result = buildMockDevResult(
+        crypto.randomUUID(),
+        requirement,
+        id || "demo"
+      );
+      setConversations((prev) => addTaskToConversation(prev, capturedConvId, result));
+      notifyDevComplete(result.requirementTitle);
+      setSelectedCardId(result.id);
+      setEditingDoc(null);
+      setRightPanelOpen(true);
+      startAIReview(result.id);
+    }, delay);
   };
 
   const handleOpenDocEditor = (docData: RequirementDocData) => {
