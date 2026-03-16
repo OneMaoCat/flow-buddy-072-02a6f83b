@@ -78,6 +78,15 @@ const buildMockDoc = (requirement: string): RequirementDocData => ({
       type: "delete",
     },
   ],
+  testCases: [
+    { id: "tc-1", name: "验证合法邮箱格式通过校验", category: "unit" },
+    { id: "tc-2", name: "验证非法邮箱格式被拦截并显示错误提示", category: "unit" },
+    { id: "tc-3", name: "验证弱密码显示强度指示为'弱'", category: "unit" },
+    { id: "tc-4", name: "验证强密码显示强度指示为'强'", category: "unit" },
+    { id: "tc-5", name: "验证必填字段为空时阻止表单提交", category: "integration" },
+    { id: "tc-6", name: "验证登录表单与后端 API 的完整交互流程", category: "integration" },
+    { id: "tc-7", name: "用户从打开登录页到成功登录的完整流程", category: "e2e" },
+  ],
 });
 
 /** A single chat bubble */

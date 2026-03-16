@@ -7,6 +7,8 @@ import {
   X,
   Lightbulb,
   FolderCode,
+  TestTube2,
+  Circle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -24,11 +26,18 @@ export interface TechnicalItem {
   type: "add" | "modify" | "delete";
 }
 
+export interface PlanTestCase {
+  id: string;
+  name: string;
+  category: "unit" | "integration" | "e2e";
+}
+
 export interface RequirementDocData {
   title: string;
   background: string;
   adjustments: AdjustmentItem[];
   technicalItems: TechnicalItem[];
+  testCases?: PlanTestCase[];
 }
 
 /* ─── Editable text block ─── */
@@ -186,6 +195,21 @@ const RequirementDoc = ({ data, onChange, onConfirm, onRevise, onOpenEditor }: R
     });
   };
 
+  const updateTestCase = (id: string, field: keyof PlanTestCase, value: string) => {
+    update({
+      testCases: (doc.testCases || []).map((tc) =>
+        tc.id === id ? { ...tc, [field]: value } : tc
+      ),
+    });
+  };
+
+  const testCategoryLabel: Record<string, string> = { unit: "单元测试", integration: "集成测试", e2e: "E2E 测试" };
+  const testCategoryColor: Record<string, string> = {
+    unit: "bg-blue-500/10 text-blue-600 border-blue-500/20",
+    integration: "bg-amber-500/10 text-amber-600 border-amber-500/20",
+    e2e: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
+  };
+
   return (
     <div
       className={cn(
@@ -300,6 +324,42 @@ const RequirementDoc = ({ data, onChange, onConfirm, onRevise, onOpenEditor }: R
             })}
           </div>
         </Section>
+
+        {/* Test Cases */}
+        {doc.testCases && doc.testCases.length > 0 && (
+          <Section
+            icon={<TestTube2 size={14} className="text-primary shrink-0" />}
+            title="测试用例"
+          >
+            <div className="space-y-2">
+              {doc.testCases.map((tc) => {
+                const catColor = testCategoryColor[tc.category] || "";
+                const catLabel = testCategoryLabel[tc.category] || tc.category;
+                return (
+                  <div
+                    key={tc.id}
+                    className="flex items-center gap-3 rounded-lg border border-border bg-muted/20 px-4 py-2.5"
+                  >
+                    <span
+                      className={cn(
+                        "shrink-0 rounded-md border px-1.5 py-0.5 text-[10px] font-semibold",
+                        catColor
+                      )}
+                    >
+                      {catLabel}
+                    </span>
+                    <div className="text-sm text-foreground/80 min-w-0 flex-1">
+                      <EditableText
+                        value={tc.name}
+                        onChange={(v) => updateTestCase(tc.id, "name", v)}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </Section>
+        )}
       </div>
 
       {/* Footer actions */}
