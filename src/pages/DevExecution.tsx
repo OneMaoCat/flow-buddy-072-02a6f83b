@@ -374,14 +374,7 @@ const DevExecution = () => {
           activeConversationId={activeConversationId}
           onSelectConversation={(cid) => {
             setActiveConversationId(cid);
-            const conv = conversations.find(c => c.id === cid);
-            if (conv && conv.tasks.length > 0) {
-              const matchedReq = requirements.find(r =>
-                conv.tasks.some(t => r.title.includes(t.requirementTitle) || t.requirementTitle.includes(r.title))
-              );
-              if (matchedReq) { setSelectedReqId(matchedReq.id); return; }
-            }
-            if (requirements.length > 0) setSelectedReqId(requirements[0].id);
+            navigate(`/project/${id}`);
           }}
           onNewConversation={() => navigate(`/project/${id}`)}
         />
