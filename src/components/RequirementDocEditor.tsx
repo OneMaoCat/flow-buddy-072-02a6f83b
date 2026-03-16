@@ -223,6 +223,26 @@ const RequirementDocEditor = ({ data, onChange, onClose, onConfirm }: Requiremen
     update({ technicalItems: doc.technicalItems.filter((t) => t.id !== id) });
   };
 
+  const updateTestCase = (id: string, field: keyof PlanTestCase, value: string) => {
+    update({ testCases: (doc.testCases || []).map((tc) => (tc.id === id ? { ...tc, [field]: value } : tc)) });
+  };
+
+  const addTestCase = () => {
+    update({
+      testCases: [...(doc.testCases || []), { id: `tc${Date.now()}`, name: "", category: "unit" as const }],
+    });
+  };
+
+  const removeTestCase = (id: string) => {
+    update({ testCases: (doc.testCases || []).filter((tc) => tc.id !== id) });
+  };
+
+  const testCategoryConfig: Record<string, { dot: string }> = {
+    unit: { dot: "bg-blue-500" },
+    integration: { dot: "bg-amber-500" },
+    e2e: { dot: "bg-emerald-500" },
+  };
+
   const addImage = (section: string) => {
     const current = images.get(section) || [];
     setImages(new Map(images.set(section, [...current, `img_${Date.now()}`])));
