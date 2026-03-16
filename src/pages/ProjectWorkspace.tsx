@@ -715,9 +715,28 @@ const ChatArea = ({
             {devCards.map(renderCard)}
             {devInProgress && renderInProgress()}
           </div>
-        ) : chatMessages.length > 0 || devCards.length > 0 ? (
+        ) : chatMessages.length > 0 || devCards.length > 0 || pendingConfirm ? (
           <div className="max-w-[800px] mx-auto flex flex-col gap-6">
             {renderTimeline()}
+            {pendingConfirm && (
+              <div className="flex justify-start animate-in fade-in slide-in-from-bottom-2 duration-300">
+                <div className="flex items-start gap-3 w-full">
+                  <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center shrink-0">
+                    <span className="text-foreground text-xs font-bold">DF</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-muted-foreground mb-2">请确认需求摘要和对应的测试用例，确认后将开始开发：</p>
+                    <RequirementConfirmCard
+                      requirement={pendingConfirm.requirement}
+                      testCases={pendingConfirm.testCases}
+                      generating={pendingConfirm.generating}
+                      onConfirm={onConfirmRequirement}
+                      onEdit={onCancelConfirm}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center h-full text-muted-foreground gap-3">
