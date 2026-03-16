@@ -148,7 +148,7 @@ const ProjectSidebarLayout = ({
               <Collapsible defaultOpen className="border-t border-border">
                 <CollapsibleTrigger className="w-full flex items-center justify-between px-4 py-2 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors group">
                   <span className="flex items-center gap-1.5">
-                    对话历史
+                    任务列表
                     {taskCount > 0 && (
                       <span className="inline-flex items-center justify-center h-4 min-w-4 px-1 rounded-full bg-primary/10 text-primary text-[10px] font-semibold">
                         {taskCount}
