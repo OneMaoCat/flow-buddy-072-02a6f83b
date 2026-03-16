@@ -444,6 +444,9 @@ const ProjectWorkspace = () => {
       onProcessOtherText={handleProcessOtherText}
       onProcessAcceptance={handleProcessAcceptance}
       onProcessMerge={handleProcessMerge}
+      pendingConfirm={pendingConfirm}
+      onConfirmRequirement={handleConfirmRequirement}
+      onCancelConfirm={() => { setPendingConfirm(null); setShowDeepFlow(true); }}
     />
   );
 
