@@ -4,6 +4,7 @@ import { PanelRightOpen, PanelRightClose, ListTodo, Loader2, Circle, Check, Shie
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 import PlanFlow from "@/components/PlanFlow";
+import RequirementConfirmCard, { generateMockTestCases, type ConfirmTestCase } from "@/components/RequirementConfirmCard";
 import PromptBar from "@/components/PromptBar";
 import DeepFlowPanel from "@/components/DeepFlowPanel";
 import ProjectSidebarLayout from "@/components/ProjectSidebarLayout";
