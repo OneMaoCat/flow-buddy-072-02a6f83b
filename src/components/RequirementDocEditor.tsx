@@ -497,6 +497,57 @@ const RequirementDocEditor = ({ data, onChange, onClose, onConfirm }: Requiremen
               onAddImage={() => addImage("technical")}
             />
 
+            {/* ──── 测试用例 ──── */}
+            {doc.testCases && doc.testCases.length > 0 && (
+              <>
+                <HeadingBlock level={2} icon={<TestTube2 size={16} />}>
+                  测试用例
+                </HeadingBlock>
+                <div className="space-y-1">
+                  {doc.testCases.map((tc) => {
+                    const cfg = testCategoryConfig[tc.category] || { dot: "bg-muted-foreground" };
+                    return (
+                      <DocBlock key={tc.id}>
+                        <div className="group/tc flex items-start gap-3 py-2 px-1 rounded-md hover:bg-accent/30 transition-colors">
+                          <div className="flex items-center gap-2 pt-1 shrink-0">
+                            <span className={cn("w-2 h-2 rounded-full", cfg.dot)} />
+                            <select
+                              value={tc.category}
+                              onChange={(e) => updateTestCase(tc.id, "category", e.target.value)}
+                              className="text-[11px] text-muted-foreground bg-transparent outline-none cursor-pointer border-none p-0"
+                            >
+                              <option value="unit">单元测试</option>
+                              <option value="integration">集成测试</option>
+                              <option value="e2e">E2E 测试</option>
+                            </select>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <DocInput
+                              value={tc.name}
+                              onChange={(v) => updateTestCase(tc.id, "name", v)}
+                              placeholder="测试用例名称..."
+                              className="text-sm text-foreground/80"
+                            />
+                          </div>
+                          <button
+                            onClick={() => removeTestCase(tc.id)}
+                            className="p-1 rounded hover:bg-accent text-muted-foreground/20 hover:text-destructive opacity-0 group-hover/tc:opacity-100 transition-all shrink-0 mt-0.5"
+                          >
+                            <Trash2 size={12} />
+                          </button>
+                        </div>
+                      </DocBlock>
+                    );
+                  })}
+                </div>
+                <AddBlockButton
+                  label="添加测试用例"
+                  onAddText={addTestCase}
+                  onAddImage={() => addImage("testCases")}
+                />
+              </>
+            )}
+
             {/* Bottom spacing */}
             <div className="h-20" />
           </div>
