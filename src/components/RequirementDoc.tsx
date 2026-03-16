@@ -195,6 +195,21 @@ const RequirementDoc = ({ data, onChange, onConfirm, onRevise, onOpenEditor }: R
     });
   };
 
+  const updateTestCase = (id: string, field: keyof PlanTestCase, value: string) => {
+    update({
+      testCases: (doc.testCases || []).map((tc) =>
+        tc.id === id ? { ...tc, [field]: value } : tc
+      ),
+    });
+  };
+
+  const testCategoryLabel: Record<string, string> = { unit: "单元测试", integration: "集成测试", e2e: "E2E 测试" };
+  const testCategoryColor: Record<string, string> = {
+    unit: "bg-blue-500/10 text-blue-600 border-blue-500/20",
+    integration: "bg-amber-500/10 text-amber-600 border-amber-500/20",
+    e2e: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
+  };
+
   return (
     <div
       className={cn(
