@@ -324,6 +324,42 @@ const RequirementDoc = ({ data, onChange, onConfirm, onRevise, onOpenEditor }: R
             })}
           </div>
         </Section>
+
+        {/* Test Cases */}
+        {doc.testCases && doc.testCases.length > 0 && (
+          <Section
+            icon={<TestTube2 size={14} className="text-primary shrink-0" />}
+            title="测试用例"
+          >
+            <div className="space-y-2">
+              {doc.testCases.map((tc) => {
+                const catColor = testCategoryColor[tc.category] || "";
+                const catLabel = testCategoryLabel[tc.category] || tc.category;
+                return (
+                  <div
+                    key={tc.id}
+                    className="flex items-center gap-3 rounded-lg border border-border bg-muted/20 px-4 py-2.5"
+                  >
+                    <span
+                      className={cn(
+                        "shrink-0 rounded-md border px-1.5 py-0.5 text-[10px] font-semibold",
+                        catColor
+                      )}
+                    >
+                      {catLabel}
+                    </span>
+                    <div className="text-sm text-foreground/80 min-w-0 flex-1">
+                      <EditableText
+                        value={tc.name}
+                        onChange={(v) => updateTestCase(tc.id, "name", v)}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </Section>
+        )}
       </div>
 
       {/* Footer actions */}
