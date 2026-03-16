@@ -118,6 +118,7 @@ const PlanFlow = ({ requirement, onCancel, onStartDev, onOpenDocEditor, onDevSub
   const [stage, setStage] = useState<FlowStage>("clarifying");
   const [clarifyAnswers, setClarifyAnswers] = useState<Record<string, string> | null>(null);
   const [docData, setDocData] = useState<RequirementDocData>(() => buildMockDoc(requirement));
+  const [testCases, setTestCases] = useState<ConfirmTestCase[]>([]);
 
   const handleClarifyComplete = (answers: Record<string, string>) => {
     setClarifyAnswers(answers);
