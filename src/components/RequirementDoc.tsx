@@ -26,11 +26,18 @@ export interface TechnicalItem {
   type: "add" | "modify" | "delete";
 }
 
+export interface PlanTestCase {
+  id: string;
+  name: string;
+  category: "unit" | "integration" | "e2e";
+}
+
 export interface RequirementDocData {
   title: string;
   background: string;
   adjustments: AdjustmentItem[];
   technicalItems: TechnicalItem[];
+  testCases?: PlanTestCase[];
 }
 
 /* ─── Editable text block ─── */
