@@ -3,6 +3,7 @@ import {
   FileText,
   Lightbulb,
   FolderCode,
+  TestTube2,
   ImagePlus,
   UserPlus,
   X,
