@@ -2,9 +2,10 @@ import { useState } from "react";
 import { useParams } from "react-router-dom";
 import ClarifyCards, { type ClarifyQuestion } from "./ClarifyCards";
 import RequirementDoc, { type RequirementDocData } from "./RequirementDoc";
+import RequirementConfirmCard, { generateMockTestCases, type ConfirmTestCase } from "./RequirementConfirmCard";
 import { Loader2 } from "lucide-react";
 
-type FlowStage = "clarifying" | "generating" | "planning" | "confirmed";
+type FlowStage = "clarifying" | "generating" | "planning" | "generating_tests" | "confirming_tests" | "confirmed";
 
 const mockQuestions: ClarifyQuestion[] = [
   {
