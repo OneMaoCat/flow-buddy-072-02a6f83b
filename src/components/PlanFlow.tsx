@@ -171,9 +171,11 @@ const PlanFlow = ({ requirement, onCancel, onStartDev, onOpenDocEditor, onDevSub
             onChange={setDocData}
             onOpenEditor={() => onOpenDocEditor?.(docData)}
             onConfirm={() => {
-              setStage("confirmed");
-              onStartDev();
-              onDevSubmitted?.();
+              setStage("generating_tests");
+              setTimeout(() => {
+                setTestCases(generateMockTestCases(requirement));
+                setStage("confirming_tests");
+              }, 1500);
             }}
             onRevise={onCancel}
           />
