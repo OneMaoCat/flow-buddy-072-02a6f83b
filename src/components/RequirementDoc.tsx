@@ -7,6 +7,8 @@ import {
   X,
   Lightbulb,
   FolderCode,
+  TestTube2,
+  Circle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
