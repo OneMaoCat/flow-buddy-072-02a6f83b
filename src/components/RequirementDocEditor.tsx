@@ -28,6 +28,7 @@ import type {
   RequirementDocData,
   AdjustmentItem,
   TechnicalItem,
+  PlanTestCase,
 } from "./RequirementDoc";
 
 /* ─── Types ─── */
