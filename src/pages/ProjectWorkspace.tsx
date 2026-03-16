@@ -4,6 +4,7 @@ import { PanelRightOpen, PanelRightClose, ListTodo, Loader2, Circle, Check, Shie
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 import PlanFlow from "@/components/PlanFlow";
+import RequirementConfirmCard, { generateMockTestCases, type ConfirmTestCase } from "@/components/RequirementConfirmCard";
 import PromptBar from "@/components/PromptBar";
 import DeepFlowPanel from "@/components/DeepFlowPanel";
 import ProjectSidebarLayout from "@/components/ProjectSidebarLayout";
@@ -85,6 +86,7 @@ const ProjectWorkspace = () => {
     toast.success("已确认合并主分支，正在执行回归测试...");
   }, []);
   const [planFlow, setPlanFlow] = useState<{ active: boolean; requirement: string }>({ active: false, requirement: "" });
+  const [pendingConfirm, setPendingConfirm] = useState<{ requirement: string; testCases: ConfirmTestCase[]; generating: boolean } | null>(null);
 
   const activeConversation = conversations.find((c) => c.id === activeConversationId) || null;
   const devCards = activeConversation?.tasks || [];
@@ -154,28 +156,42 @@ const ProjectWorkspace = () => {
     if (data.isPlanMode) {
       setPlanFlow({ active: true, requirement: data.text });
     } else {
+      // Non-plan mode: show requirement confirm card first
       setPlanFlow({ active: false, requirement: data.text });
-      setConversations((prev) =>
-        setConversationDevInProgress(prev, convId!, true)
-      );
-      setRightPanelOpen(true);
-      const capturedConvId = convId;
-      const delay = 3000 + Math.random() * 4000;
+      setPendingConfirm({ requirement: data.text, testCases: [], generating: true });
+      // Simulate test case generation delay
       setTimeout(() => {
-        const result = buildMockDevResult(
-          crypto.randomUUID(),
-          data.text,
-          id || "demo"
-        );
-        setConversations((prev) => addTaskToConversation(prev, capturedConvId, result));
-        notifyDevComplete(result.requirementTitle);
-        setSelectedCardId(result.id);
-        setEditingDoc(null);
-        setRightPanelOpen(true);
-        // Auto-trigger AI Code Review
-        startAIReview(result.id);
-      }, delay);
+        const cases = generateMockTestCases(data.text);
+        setPendingConfirm({ requirement: data.text, testCases: cases, generating: false });
+      }, 1500);
     }
+  };
+
+  const handleConfirmRequirement = () => {
+    if (!pendingConfirm) return;
+    const convId = activeConversationId;
+    if (!convId) return;
+    setPendingConfirm(null);
+    setConversations((prev) =>
+      setConversationDevInProgress(prev, convId, true)
+    );
+    setRightPanelOpen(true);
+    const capturedConvId = convId;
+    const requirement = pendingConfirm.requirement;
+    const delay = 3000 + Math.random() * 4000;
+    setTimeout(() => {
+      const result = buildMockDevResult(
+        crypto.randomUUID(),
+        requirement,
+        id || "demo"
+      );
+      setConversations((prev) => addTaskToConversation(prev, capturedConvId, result));
+      notifyDevComplete(result.requirementTitle);
+      setSelectedCardId(result.id);
+      setEditingDoc(null);
+      setRightPanelOpen(true);
+      startAIReview(result.id);
+    }, delay);
   };
 
   const handleOpenDocEditor = (docData: RequirementDocData) => {
@@ -428,6 +444,9 @@ const ProjectWorkspace = () => {
       onProcessOtherText={handleProcessOtherText}
       onProcessAcceptance={handleProcessAcceptance}
       onProcessMerge={handleProcessMerge}
+      pendingConfirm={pendingConfirm}
+      onConfirmRequirement={handleConfirmRequirement}
+      onCancelConfirm={() => { setPendingConfirm(null); setShowDeepFlow(true); }}
     />
   );
 
@@ -561,6 +580,9 @@ const ChatArea = ({
   onProcessOtherText,
   onProcessAcceptance,
   onProcessMerge,
+  pendingConfirm,
+  onConfirmRequirement,
+  onCancelConfirm,
 }: {
   projectId: string;
   planFlow: { active: boolean; requirement: string };
@@ -594,6 +616,9 @@ const ChatArea = ({
   onProcessOtherText: (id: string, text: string) => void;
   onProcessAcceptance: () => void;
   onProcessMerge: () => void;
+  pendingConfirm: { requirement: string; testCases: ConfirmTestCase[]; generating: boolean } | null;
+  onConfirmRequirement: () => void;
+  onCancelConfirm: () => void;
 }) => {
   const renderUserMessage = (msg: ChatMessage) => (
     <div key={msg.id} className="flex justify-end gap-2 animate-in fade-in slide-in-from-bottom-2 duration-300">
@@ -690,9 +715,28 @@ const ChatArea = ({
             {devCards.map(renderCard)}
             {devInProgress && renderInProgress()}
           </div>
-        ) : chatMessages.length > 0 || devCards.length > 0 ? (
+        ) : chatMessages.length > 0 || devCards.length > 0 || pendingConfirm ? (
           <div className="max-w-[800px] mx-auto flex flex-col gap-6">
             {renderTimeline()}
+            {pendingConfirm && (
+              <div className="flex justify-start animate-in fade-in slide-in-from-bottom-2 duration-300">
+                <div className="flex items-start gap-3 w-full">
+                  <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center shrink-0">
+                    <span className="text-foreground text-xs font-bold">DF</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-muted-foreground mb-2">请确认需求摘要和对应的测试用例，确认后将开始开发：</p>
+                    <RequirementConfirmCard
+                      requirement={pendingConfirm.requirement}
+                      testCases={pendingConfirm.testCases}
+                      generating={pendingConfirm.generating}
+                      onConfirm={onConfirmRequirement}
+                      onEdit={onCancelConfirm}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center h-full text-muted-foreground gap-3">

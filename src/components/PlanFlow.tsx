@@ -2,9 +2,10 @@ import { useState } from "react";
 import { useParams } from "react-router-dom";
 import ClarifyCards, { type ClarifyQuestion } from "./ClarifyCards";
 import RequirementDoc, { type RequirementDocData } from "./RequirementDoc";
+import RequirementConfirmCard, { generateMockTestCases, type ConfirmTestCase } from "./RequirementConfirmCard";
 import { Loader2 } from "lucide-react";
 
-type FlowStage = "clarifying" | "generating" | "planning" | "confirmed";
+type FlowStage = "clarifying" | "generating" | "planning" | "generating_tests" | "confirming_tests" | "confirmed";
 
 const mockQuestions: ClarifyQuestion[] = [
   {
@@ -117,6 +118,7 @@ const PlanFlow = ({ requirement, onCancel, onStartDev, onOpenDocEditor, onDevSub
   const [stage, setStage] = useState<FlowStage>("clarifying");
   const [clarifyAnswers, setClarifyAnswers] = useState<Record<string, string> | null>(null);
   const [docData, setDocData] = useState<RequirementDocData>(() => buildMockDoc(requirement));
+  const [testCases, setTestCases] = useState<ConfirmTestCase[]>([]);
 
   const handleClarifyComplete = (answers: Record<string, string>) => {
     setClarifyAnswers(answers);
@@ -169,18 +171,49 @@ const PlanFlow = ({ requirement, onCancel, onStartDev, onOpenDocEditor, onDevSub
             onChange={setDocData}
             onOpenEditor={() => onOpenDocEditor?.(docData)}
             onConfirm={() => {
-              setStage("confirmed");
-              onStartDev();
-              onDevSubmitted?.();
+              setStage("generating_tests");
+              setTimeout(() => {
+                setTestCases(generateMockTestCases(requirement));
+                setStage("confirming_tests");
+              }, 1500);
             }}
             onRevise={onCancel}
           />
         </AIBubbleWrapper>
       )}
 
+      {/* 6. Generating test cases spinner */}
+      {stage === "generating_tests" && (
+        <AIBubbleWrapper>
+          <div className="flex items-center gap-2 py-4">
+            <Loader2 size={18} className="text-primary animate-spin" />
+            <span className="text-sm text-muted-foreground">正在分析需求并生成测试用例…</span>
+          </div>
+        </AIBubbleWrapper>
+      )}
+
+      {/* 7. Requirement confirm + test cases */}
+      {stage === "confirming_tests" && (
+        <AIBubbleWrapper>
+          <p className="text-sm text-muted-foreground mb-3">
+            请确认需求摘要和对应的测试用例，确认后将开始开发：
+          </p>
+          <RequirementConfirmCard
+            requirement={requirement}
+            testCases={testCases}
+            onConfirm={() => {
+              setStage("confirmed");
+              onStartDev();
+              onDevSubmitted?.();
+            }}
+            onEdit={onCancel}
+          />
+        </AIBubbleWrapper>
+      )}
+
       {stage === "confirmed" && (
         <>
-          <UserBubble text="确认 Plan，开始开发！" />
+          <UserBubble text="确认需求和测试用例，开始开发！" />
           <AIBubbleWrapper>
             <div className="flex items-center gap-2 py-4">
               <Loader2 size={18} className="text-primary animate-spin" />
