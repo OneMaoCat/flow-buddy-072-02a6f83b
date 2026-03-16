@@ -580,6 +580,9 @@ const ChatArea = ({
   onProcessOtherText,
   onProcessAcceptance,
   onProcessMerge,
+  pendingConfirm,
+  onConfirmRequirement,
+  onCancelConfirm,
 }: {
   projectId: string;
   planFlow: { active: boolean; requirement: string };
@@ -613,6 +616,9 @@ const ChatArea = ({
   onProcessOtherText: (id: string, text: string) => void;
   onProcessAcceptance: () => void;
   onProcessMerge: () => void;
+  pendingConfirm: { requirement: string; testCases: ConfirmTestCase[]; generating: boolean } | null;
+  onConfirmRequirement: () => void;
+  onCancelConfirm: () => void;
 }) => {
   const renderUserMessage = (msg: ChatMessage) => (
     <div key={msg.id} className="flex justify-end gap-2 animate-in fade-in slide-in-from-bottom-2 duration-300">
